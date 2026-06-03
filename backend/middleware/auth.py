@@ -45,7 +45,18 @@ def get_tier(user: dict | None) -> str:
 
 
 def check_rate_limit(user_id: str, tier: str) -> None:
-    if not user or tier == "free":
+    """
+    Per-user/tier rate limit.
+
+    Pre-monetization (Phase 4): free/unauthenticated tier is UNLIMITED.
+    Reason: the global "anon" bucket previously shared by ALL anonymous
+    callers across the world makes the dashboard unusable as soon as
+    the daily quota is hit by anyone.
+
+    Phase 5 will add IP-based identification + Supabase Auth, at which
+    point free-tier limits will be re-enabled per authenticated user.
+    """
+    if tier == "free":
         return
 
     limits = {"pro": 100, "institutional": 1000}
