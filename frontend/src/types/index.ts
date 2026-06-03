@@ -69,15 +69,30 @@ export interface InsiderStock {
 }
 
 export interface MarketPulse {
-  trading_date: string;
-  market_phase: string;
-  foreign_stance: string;
-  breadth_score: number;
-  timing_signal: string;
-  total_foreign_net_miliar: number;
-  gainers: number;
-  losers: number;
-  whale_count: number;
+  latest_trading_date: string | null;
+  market_regime: string | null;
+  foreign_stance: string | null;
+  breadth_score: number | null;
+  market_timing_signal: string | null;
+  net_foreign_today_miliar: number | null;
+  whale_events_today: number | null;
+  total_value_triliun: number | null;
+  total_stocks: number | null;
+  strong_buy_count: number | null;
+  buy_count: number | null;
+  accumulate_count: number | null;
+  watch_count: number | null;
+  neutral_count: number | null;
+  avoid_count: number | null;
+  breadth_5d: number | null;
+  breadth_20d: number | null;
+  foreign_5d_total: number | null;
+  foreign_20d_total: number | null;
+  return_5d_avg: number | null;
+  return_20d_avg: number | null;
+  regime_changed_today: boolean | null;
+  is_accumulation_day: boolean | null;
+  is_risk_off_day: boolean | null;
 }
 
 export interface SectorRotation {
