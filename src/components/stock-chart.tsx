@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createChart, ColorType, CandlestickSeries, HistogramSeries, LineSeries } from 'lightweight-charts'
+import { createChart, ColorType } from 'lightweight-charts'
 
 interface OHLCV {
   time: string
@@ -30,9 +30,9 @@ export function StockChart({ data, height = 500 }: { data: OHLCV[]; height?: num
       width: container.clientWidth, height,
     })
 
-    const candles = chart.addSeries(CandlestickSeries, { upColor: '#22c55e', downColor: '#ef4444', borderUpColor: '#22c55e', borderDownColor: '#ef4444', wickUpColor: '#22c55e', wickDownColor: '#ef4444' })
-    const vwmaLine = chart.addSeries(LineSeries, { color: '#eab308', lineWidth: 1, lineStyle: 2, priceFormat: { type: 'price' } })
-    const foreignHist = chart.addSeries(HistogramSeries, { color: '#22c55e80', priceFormat: { type: 'volume' }, priceScaleId: 'volume' })
+    const candles = chart.addCandlestickSeries({ upColor: '#22c55e', downColor: '#ef4444', borderUpColor: '#22c55e', borderDownColor: '#ef4444', wickUpColor: '#22c55e', wickDownColor: '#ef4444' })
+    const vwmaLine = chart.addLineSeries({ color: '#eab308', lineWidth: 1, lineStyle: 2, priceFormat: { type: 'price' } })
+    const foreignHist = chart.addHistogramSeries({ color: '#22c55e80', priceFormat: { type: 'volume' }, priceScaleId: 'volume' })
     chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.85, bottom: 0 }, visible: false })
 
     const sorted = [...data].sort((a, b) => a.time.localeCompare(b.time))
