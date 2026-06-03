@@ -115,6 +115,7 @@ export interface DeepDiveSummary {
   foreign_score: number;
   broker_score: number;
   whale_score: number;
+  price_score: number | null;
   ksei_score: number;
   insider_score: number;
   stealth_quality: string | null;
