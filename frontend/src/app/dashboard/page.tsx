@@ -80,38 +80,38 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6 max-w-[1600px]">
       <PageHeader
         title="Market Command Center"
-        subtitle={mp ? `${mp.trading_date} — ${mp.market_phase}` : "Loading..."}
+        subtitle={mp ? `${mp.latest_trading_date} — ${mp.market_regime?.replace(/_/g, " ")}` : "Loading..."}
       />
 
       {/* Market header cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         <MetricCard
           label="Market Phase"
-          value={mp?.market_phase ?? "..."}
-          sub={mp?.timing_signal}
-          trend={mp?.market_phase?.includes("BULL") ? "up" : mp?.market_phase?.includes("BEAR") ? "down" : "neutral"}
+          value={mp?.market_regime?.replace(/_/g, " ") ?? "..."}
+          sub={mp?.market_timing_signal}
+          trend={mp?.market_regime?.includes("BULL") ? "up" : mp?.market_regime?.includes("BEAR") ? "down" : "neutral"}
         />
         <MetricCard
           label="Foreign Flow"
-          value={mp ? `${mp.total_foreign_net_miliar > 0 ? "+" : ""}${mp.total_foreign_net_miliar.toFixed(0)}M` : "..."}
-          trend={mp && mp.total_foreign_net_miliar > 0 ? "up" : "down"}
+          value={mp ? `${(mp.net_foreign_today_miliar ?? 0) > 0 ? "+" : ""}${(mp.net_foreign_today_miliar ?? 0).toFixed(0)}M` : "..."}
+          trend={mp && (mp.net_foreign_today_miliar ?? 0) > 0 ? "up" : "down"}
         />
         <MetricCard
           label="Breadth"
           value={mp?.breadth_score ?? "..."}
-          sub={mp ? `${mp.gainers}G / ${mp.losers}L` : ""}
+          sub={mp ? `${mp.buy_count ?? 0}B / ${mp.avoid_count ?? 0}A` : ""}
         />
         <MetricCard
           label="Whale Events"
-          value={mp?.whale_count ?? "..."}
+          value={mp?.whale_events_today ?? "..."}
         />
         <MetricCard
           label="Foreign Stance"
-          value={mp?.foreign_stance ?? "..."}
+          value={mp?.foreign_stance?.replace(/_/g, " ") ?? "..."}
         />
         <MetricCard
           label="Timing Signal"
-          value={mp?.timing_signal ?? "..."}
+          value={mp?.market_timing_signal ?? "..."}
         />
       </div>
 
