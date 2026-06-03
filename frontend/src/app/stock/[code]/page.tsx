@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { MetricCard } from "@/components/MetricCard";
@@ -17,7 +18,7 @@ import {
 } from "recharts";
 import type { DeepDivePrice, DeepDiveSummary } from "@/types";
 
-export default function StockAnalyzerPage() {
+function StockAnalyzerInner() {
   const params = useParams();
   const router = useRouter();
   const code = (params.code as string).toUpperCase();
@@ -234,5 +235,16 @@ export default function StockAnalyzerPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function StockAnalyzerPage() {
+  const [client] = useState(() => new QueryClient({
+    defaultOptions: { queries: { staleTime: 300000, refetchInterval: 300000 } },
+  }));
+  return (
+    <QueryClientProvider client={client}>
+      <StockAnalyzerInner />
+    </QueryClientProvider>
   );
 }

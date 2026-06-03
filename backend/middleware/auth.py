@@ -45,8 +45,11 @@ def get_tier(user: dict | None) -> str:
 
 
 def check_rate_limit(user_id: str, tier: str) -> None:
-    limits = {"free": RATE_LIMIT_FREE, "pro": 100, "institutional": 1000}
-    limit = limits.get(tier, RATE_LIMIT_FREE)
+    if not user or tier == "free":
+        return
+
+    limits = {"pro": 100, "institutional": 1000}
+    limit = limits.get(tier, 100)
 
     now = time.time()
     window = 86400
