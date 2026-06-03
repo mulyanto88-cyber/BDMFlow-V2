@@ -20,7 +20,7 @@ async def get_composite(
 ):
     user = await verify_auth(request)
     tier_level = get_tier(user)
-    check_rate_limit(user.get("sub", "anon"), tier_level)
+    check_rate_limit(user.get("sub", "anon") if user else "anon", tier_level)
 
     cache_key = _cache_key("composite", page, page_size, tier, sector)
     cached = get_cached(cache_key)
