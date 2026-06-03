@@ -88,7 +88,7 @@ export default function DashboardPage() {
         <MetricCard
           label="Market Phase"
           value={mp?.market_regime?.replace(/_/g, " ") ?? "..."}
-          sub={mp?.market_timing_signal}
+          sub={mp?.market_timing_signal ?? undefined}
           trend={mp?.market_regime?.includes("BULL") ? "up" : mp?.market_regime?.includes("BEAR") ? "down" : "neutral"}
         />
         <MetricCard
