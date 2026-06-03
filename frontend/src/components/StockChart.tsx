@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, CandlestickSeries, HistogramSeries, LineSeries } from "lightweight-charts";
+import { createChart, ColorType } from "lightweight-charts";
 
 interface OHLCVData {
   time: string;
@@ -64,7 +64,7 @@ export function StockChart({ data, height = 500 }: StockChartProps) {
       height,
     });
 
-    const candleSeries = chart.addSeries(CandlestickSeries, {
+    const candleSeries = chart.addCandlestickSeries({
       upColor: "#22c55e",
       downColor: "#ef4444",
       borderUpColor: "#22c55e",
@@ -73,14 +73,14 @@ export function StockChart({ data, height = 500 }: StockChartProps) {
       wickDownColor: "#ef4444",
     });
 
-    const vwmaSeries = chart.addSeries(LineSeries, {
+    const vwmaSeries = chart.addLineSeries({
       color: "#eab308",
       lineWidth: 1,
       lineStyle: 2,
       priceFormat: { type: "price" },
     });
 
-    const foreignSeries = chart.addSeries(HistogramSeries, {
+    const foreignSeries = chart.addHistogramSeries({
       color: "#22c55e80",
       priceFormat: { type: "volume" },
       priceScaleId: "volume",
