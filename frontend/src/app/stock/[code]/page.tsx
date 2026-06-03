@@ -34,21 +34,21 @@ export default function StockAnalyzerPage() {
     enabled: !!code,
   });
 
-  const brokerData = useQuery({
+  const brokerData = useQuery<any[]>({
     queryKey: ["deepdive-broker", code],
-    queryFn: () => fetchApi("/api/deepdive/broker", { stock_code: code }),
+    queryFn: () => fetchApi<any[]>("/api/deepdive/broker", { stock_code: code }),
     enabled: !!code,
   });
 
-  const kseiData = useQuery({
+  const kseiData = useQuery<any[]>({
     queryKey: ["deepdive-ksei", code],
-    queryFn: () => fetchApi("/api/deepdive/ksei", { stock_code: code }),
+    queryFn: () => fetchApi<any[]>("/api/deepdive/ksei", { stock_code: code }),
     enabled: !!code,
   });
 
-  const insiderData = useQuery({
+  const insiderData = useQuery<any[]>({
     queryKey: ["deepdive-insider", code],
-    queryFn: () => fetchApi("/api/deepdive/insider", { stock_code: code }),
+    queryFn: () => fetchApi<any[]>("/api/deepdive/insider", { stock_code: code }),
     enabled: !!code,
   });
 
