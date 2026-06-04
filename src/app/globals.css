@@ -234,72 +234,72 @@
 
   /* ── GRAPHITE: Warm Neutral Dark ──────────────────────────── */
   .theme-midnight {
-    --background:           0 0% 10%;           /* #1a1a1a */
-    --foreground:           40 18% 93%;          /* warm off-white */
-    --card:                 0 0% 14.5%;          /* #252525 */
-    --card-foreground:      40 18% 93%;
-    --popover:              0 0% 12.5%;          /* #202020 */
-    --popover-foreground:   40 18% 93%;
-    --primary:              43  79% 56%;         /* gold #e7b733 */
-    --primary-foreground:   0 0% 5%;
-    --secondary:            0 0% 18%;            /* #2e2e2e */
-    --secondary-foreground: 40 18% 93%;
-    --muted:                0 0% 17%;            /* #2b2b2b */
-    --muted-foreground:     30 4% 52%;           /* warm mid-gray */
-    --accent:               0 0% 20%;            /* #333333 */
-    --accent-foreground:    40 18% 93%;
-    --destructive:          0   72% 48%;
+    --background:           165 50% 5%;          /* #061512 — dark plasma teal */
+    --foreground:           165 20% 94%;          /* cool off-white */
+    --card:                 163 42% 8%;           /* #0d1f1a — dark teal card */
+    --card-foreground:      165 20% 94%;
+    --popover:              163 42% 7%;           /* #0b1a16 */
+    --popover-foreground:   165 20% 94%;
+    --primary:              163 100% 50%;         /* #00ffcc — neon cyan */
+    --primary-foreground:   165 50% 5%;
+    --secondary:            163 35% 13%;          /* #142820 */
+    --secondary-foreground: 165 20% 94%;
+    --muted:                163 35% 11%;          /* #10231c */
+    --muted-foreground:     163 18% 52%;          /* muted teal-gray */
+    --accent:               163 35% 16%;          /* #183225 */
+    --accent-foreground:    163 100% 70%;         /* bright cyan */
+    --destructive:          350  80% 52%;
     --destructive-foreground: 0 0% 98%;
-    --border:               0 0% 21%;            /* #363636 */
-    --input:                0 0% 21%;
-    --ring:                 43  79% 56%;
+    --border:               163 32% 15%;          /* #172e24 */
+    --input:                163 32% 15%;
+    --ring:                 163 100% 50%;         /* neon cyan ring */
 
-    /* Glass — neutral warm dark */
-    --glass-bg:           rgba(26, 26, 26, 0.72);
-    --glass-border:       rgba(255, 255, 255, 0.07);
-    --glass-border-top:   rgba(255, 255, 255, 0.13);
-    --glass-shadow:       0 4px 30px rgba(0, 0, 0, 0.40);
-    --glass-hover-bg:     rgba(36, 36, 36, 0.88);
-    --glass-hover-border: rgba(231, 183, 51, 0.22);
-    --glass-hover-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 0 24px rgba(231,183,51,0.08);
+    /* Glass — dark plasma teal */
+    --glass-bg:           rgba(6, 21, 18, 0.74);
+    --glass-border:       rgba(0, 255, 180, 0.08);
+    --glass-border-top:   rgba(0, 255, 180, 0.18);
+    --glass-shadow:       0 4px 30px rgba(0, 0, 0, 0.50);
+    --glass-hover-bg:     rgba(14, 34, 27, 0.90);
+    --glass-hover-border: rgba(0, 255, 180, 0.28);
+    --glass-hover-shadow: 0 8px 40px rgba(0,0,0,0.60), 0 0 28px rgba(0,255,180,0.12);
 
     /* Panel */
-    --panel-bg:     rgba(20, 20, 20, 0.80);
-    --panel-border: rgba(255, 255, 255, 0.05);
+    --panel-bg:     rgba(5, 18, 14, 0.82);
+    --panel-border: rgba(0, 255, 180, 0.06);
 
-    /* Body gradient accents — subtle warm shimmer */
-    --grad-1: rgba(231, 183, 51,  0.035);
-    --grad-2: rgba(200, 195, 185, 0.025);
-    --grad-3: rgba(150, 145, 135, 0.018);
+    /* Body gradient accents — neon cyan plasma shimmer */
+    --grad-1: rgba(0, 255, 180, 0.045);
+    --grad-2: rgba(0, 200, 140, 0.030);
+    --grad-3: rgba(0, 160, 120, 0.020);
 
     /* Header */
-    --header-bg:     rgba(16, 16, 16, 0.94);
-    --header-border: rgba(255, 255, 255, 0.06);
+    --header-bg:     rgba(4, 14, 11, 0.95);
+    --header-border: rgba(0, 255, 180, 0.09);
 
     /* Sidebar */
-    --sidebar-bg:     rgba(12, 12, 12, 0.98);
-    --sidebar-border: rgba(255, 255, 255, 0.05);
+    --sidebar-bg:     rgba(3, 11, 9, 0.98);
+    --sidebar-border: rgba(0, 255, 180, 0.07);
 
-    /* Shadows — lighter than navy, befitting gray */
-    --shadow-xs:   0 1px 2px  rgba(0,0,0,0.20);
-    --shadow-sm:   0 1px 3px  rgba(0,0,0,0.30);
-    --shadow-md:   0 4px 12px rgba(0,0,0,0.40);
-    --shadow-lg:   0 12px 40px rgba(0,0,0,0.50);
-    --shadow-xl:   0 24px 64px rgba(0,0,0,0.60);
-    --shadow-gold: 0 0 40px rgba(231,183,51,0.18);
-    --shadow-glow: 0 0 24px rgba(var(--primary-glow-rgb),0.18);
+    /* Shadows — deep with cyan glow */
+    --shadow-xs:   0 1px 2px  rgba(0,0,0,0.25);
+    --shadow-sm:   0 1px 3px  rgba(0,0,0,0.35);
+    --shadow-md:   0 4px 12px rgba(0,0,0,0.50);
+    --shadow-lg:   0 12px 40px rgba(0,0,0,0.60);
+    --shadow-xl:   0 24px 64px rgba(0,0,0,0.70);
+    --shadow-gold: 0 0 40px rgba(0,255,180,0.22);
+    --shadow-glow: 0 0 28px rgba(var(--primary-glow-rgb),0.22);
 
     /* Scrollbar */
-    --scrollbar-thumb: rgba(255, 255, 255, 0.09);
-    --scrollbar-hover: rgba(255, 255, 255, 0.17);
+    --scrollbar-thumb: rgba(0, 255, 180, 0.12);
+    --scrollbar-hover: rgba(0, 255, 180, 0.24);
 
-    /* Accent gradients — gold on gray */
-    --theme-gradient:   linear-gradient(135deg, #e7b733 0%, #f3db99 40%, #c49a1a 70%, #e7b733 100%);
-    --primary-glow-rgb: 231, 183, 51;
+    /* Accent gradients — neon cyan plasma */
+    --theme-gradient:   linear-gradient(135deg, #00ffcc 0%, #06ffd2 40%, #00cc99 70%, #00ffcc 100%);
+    --primary-glow-rgb: 0, 255, 180;
 
     /* Ticker */
-    --ticker-bg:    rgba(14, 14, 14, 0.92);
-    --ticker-border:rgba(255, 255, 255, 0.05);
+    --ticker-bg:    rgba(4, 14, 11, 0.94);
+    --ticker-border:rgba(0, 255, 180, 0.07);
   }
 
   /* ── Base resets ─────────────────────────────────────────── */
@@ -336,7 +336,7 @@
 
   html.dark      body { background-color: #060a16; }
   html.theme-blue body { background-color: #05060f; }
-  html.theme-midnight body { background-color: #1a1a1a; }
+  html.theme-midnight body { background-color: #061512; }
 
   /* ── Gauge Track Color (tema-aware) ──────────────────────── */
   :root             { --gauge-track: rgba(0,0,0,0.12);   --gauge-text: #1e2a3a; }
@@ -874,4 +874,3 @@
 .text-\[8\.5px\] { font-size: 10px !important; }
 .text-\[9px\]    { font-size: 11px !important; }
 .text-\[9\.5px\] { font-size: 11px !important; }
-
