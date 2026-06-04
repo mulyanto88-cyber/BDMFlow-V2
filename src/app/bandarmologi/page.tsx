@@ -21,9 +21,9 @@ export default function BandarmologiPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/broker-tracker?action=prime').then(r => r.json()).catch(() => []),
-      fetch('/api/broker-tracker?action=convergence').then(r => r.json()).catch(() => []),
-      fetch('/api/broker-tracker?action=leaderboard').then(r => r.json()).catch(() => []),
+      fetch('/api/bandarmologi?action=prime').then(r => r.json()).catch(() => []),
+      fetch('/api/bandarmologi?action=convergence').then(r => r.json()).catch(() => []),
+      fetch('/api/bandarmologi?action=leaderboard').then(r => r.json()).catch(() => []),
     ]).then(([p, c, l]) => {
       setPrime(Array.isArray(p) ? p : p.data ?? [])
       setConvergence(Array.isArray(c) ? c : c.data ?? [])
