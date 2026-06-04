@@ -42,8 +42,9 @@ export default function BandarmologiPage() {
   if (loading) return <div className="sidebar-offset min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
 
   // KPIs from data
-  const highBroker = leaderboard.filter((r: any) => (r.broker_score ?? 0) >= 12).length
-  const highForeign = leaderboard.filter((r: any) => (r.foreign_score ?? 0) >= 18).length
+  const allData = [...prime, ...convergence, ...leaderboard]
+  const highBroker = allData.filter((r: any) => (r.broker_score ?? 0) >= 10).length
+  const highForeign = allData.filter((r: any) => (r.foreign_score ?? 0) >= 15).length
   const totalSignals = leaderboard.length
 
   const primeCol = createColumnHelper<any>()
