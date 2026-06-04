@@ -478,7 +478,7 @@ export default function Sidebar() {
         </div>
 
         {/* ═══ NAVIGATION ═══ */}
-        <nav ref={navRef} className="flex-1 py-1 relative z-10">
+        <nav ref={navRef} className="flex-1 py-1 overflow-y-auto relative z-10">
           {navGroups.map((group, gi) => (
             <div key={gi} className={gi > 0 ? 'pt-0' : ''}>
 
