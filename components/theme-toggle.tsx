@@ -27,12 +27,12 @@ const THEMES: ThemeConfig[] = [
   },
   {
     key: 'midnight',
-    label: 'Graphite',
-    desc: 'Warm neutral · dark gray',
-    icon: <Palette size={13} className="text-slate-400" />,
-    preview: '#1a1a1a',
-    bg: 'bg-gradient-to-br from-[#1a1a1a] to-[#2e2e2e]',
-    accent: '#e7b733',
+    label: 'Plasma Edge',
+    desc: 'Dark teal · neon cyan glow',
+    icon: <Palette size={13} className="text-cyan-400" />,
+    preview: '#061512',
+    bg: 'bg-gradient-to-br from-[#061512] to-[#0d1f1a]',
+    accent: '#00ffcc',
   },
   {
     key: 'blue',
