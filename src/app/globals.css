@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 /* ============================================================
-   🎨 BDMFLOW — MODERN PREMIUM DESIGN SYSTEM v4.0
+   🎨 BDMFLOW — MODERN PREMIUM DESIGN SYSTEM v4.1
    Premium Obsidian (Dark) · Silver Lustre (Light) 
-   Indigo Premium (Blue) · Cyberpunk Neon (Midnight)
+   Canva Blue-Tosca (Blue) · Cyberpunk Cyan (Midnight)
    ============================================================ */
 
 @layer base {
@@ -163,74 +163,74 @@
     --ticker-border:rgba(255, 255, 255, 0.050);
   }
 
-  /* ── MIDNIGHT AZURE: Deep Indigo Premium ────────────────── */
+  /* ── CANVAS BLUE: Blue-Tosca Gradient (Canva-Style) ──────── */
   .theme-blue {
-    --background:           224 58% 4%;       /* Ultra-deep indigo */
-    --foreground:           219 38% 96%;      /* Clean bright white */
-    --card:                 224 52% 7%;       /* Deep indigo card */
-    --card-foreground:      219 38% 96%;
-    --popover:              224 55% 5%;       /* Deeper popover */
-    --popover-foreground:   219 38% 96%;
-    --primary:              234 88% 75%;      /* Bright cyan-blue — modern AI */
-    --primary-foreground:   224 58% 4%;
-    --secondary:            224 44% 12%;      /* Secondary depth */
-    --secondary-foreground: 219 38% 96%;
-    --muted:                224 44% 12%;
-    --muted-foreground:     223 26% 64%;      /* Strong muted text */
-    --accent:               224 48% 15%;      /* Bold accent */
-    --accent-foreground:    219 38% 96%;
-    --destructive:          0   68% 38%;
+    --background:           200 70% 15%;      /* Vibrant blue background */
+    --foreground:           210 40% 98%;      /* Bright white */
+    --card:                 200 65% 20%;      /* Blue card */
+    --card-foreground:      210 40% 98%;
+    --popover:              200 68% 18%;      /* Blue popover */
+    --popover-foreground:   210 40% 98%;
+    --primary:              195 100% 50%;     /* Vibrant cyan — Canva primary */
+    --primary-foreground:   200 70% 15%;
+    --secondary:            160 90% 48%;      /* Tosca accent — warm turquoise */
+    --secondary-foreground: 210 40% 98%;
+    --muted:                200 50% 30%;      /* Muted blue */
+    --muted-foreground:     210 35% 75%;      /* Strong teal-gray */
+    --accent:               200 55% 35%;      /* Bold accent */
+    --accent-foreground:    195 100% 60%;     /* Bright cyan */
+    --destructive:          10   75% 45%;     /* Warm red */
     --destructive-foreground: 0 0% 98%;
-    --border:               224 46% 14%;      /* Sharp indigo borders */
-    --input:                224 46% 14%;
-    --ring:                 234 88% 75%;      /* Bright cyan ring */
+    --border:               200 60% 28%;      /* Sharp blue borders */
+    --input:                200 60% 28%;
+    --ring:                 195 100% 50%;     /* Vibrant cyan ring */
 
-    /* Glass — deep indigo premium */
-    --glass-bg:           rgba(7, 9, 28, 0.70);
-    --glass-border:       rgba(129, 140, 248, 0.12);
-    --glass-border-top:   rgba(129, 140, 248, 0.22);
-    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.60);
-    --glass-hover-bg:     rgba(10, 12, 38, 0.92);
-    --glass-hover-border: rgba(129, 140, 248, 0.32);
-    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.70), 0 0 28px rgba(129,140,248,0.15);
+    /* Glass — blue with cyan glow */
+    --glass-bg:           rgba(20, 60, 100, 0.75);
+    --glass-border:       rgba(34, 211, 238, 0.18);
+    --glass-border-top:   rgba(34, 211, 238, 0.35);
+    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.48);
+    --glass-hover-bg:     rgba(25, 75, 120, 0.92);
+    --glass-hover-border: rgba(34, 211, 238, 0.42);
+    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.55), 0 0 32px rgba(34,211,238,0.20);
 
     /* Panel */
-    --panel-bg:     rgba(5, 6, 20, 0.85);
-    --panel-border: rgba(129, 140, 248, 0.10);
+    --panel-bg:     rgba(18, 50, 80, 0.82);
+    --panel-border: rgba(34, 211, 238, 0.14);
 
-    /* Body gradient accents — indigo premium */
-    --grad-1: rgba(129, 140, 248, 0.06);
-    --grad-2: rgba(99,  102, 241, 0.04);
-    --grad-3: rgba(167, 139, 250, 0.035);
+    /* Body gradient accents — blue-tosca shimmer */
+    --grad-1: rgba(34, 211, 238, 0.08);
+    --grad-2: rgba(20, 184, 166, 0.052);
+    --grad-3: rgba(45, 212, 191, 0.040);
 
     /* Header */
-    --header-bg:     rgba(4, 5, 16, 0.96);
-    --header-border: rgba(129, 140, 248, 0.12);
+    --header-bg:     rgba(15, 45, 70, 0.96);
+    --header-border: rgba(34, 211, 238, 0.16);
 
     /* Sidebar */
-    --sidebar-bg:     rgba(3, 4, 12, 0.99);
-    --sidebar-border: rgba(129, 140, 248, 0.10);
+    --sidebar-bg:     rgba(10, 35, 60, 0.99);
+    --sidebar-border: rgba(34, 211, 238, 0.14);
 
-    /* Shadows — deep with indigo glow */
-    --shadow-xs:   0 1px 2px  rgba(0,0,0,0.40);
-    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.55);
-    --shadow-md:   0 6px 16px rgba(0,0,0,0.65);
-    --shadow-lg:   0 16px 48px rgba(0,0,0,0.72);
-    --shadow-xl:   0 32px 72px rgba(0,0,0,0.80);
-    --shadow-gold: 0 0 48px rgba(129, 140, 248, 0.24);
-    --shadow-glow: 0 0 28px rgba(var(--primary-glow-rgb),0.24);
+    /* Shadows — deep with cyan-tosca glow */
+    --shadow-xs:   0 1px 2px  rgba(0,0,0,0.32);
+    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.45);
+    --shadow-md:   0 6px 16px rgba(0,0,0,0.55);
+    --shadow-lg:   0 16px 48px rgba(0,0,0,0.65);
+    --shadow-xl:   0 32px 72px rgba(0,0,0,0.72);
+    --shadow-cyan: 0 0 48px rgba(34, 211, 238, 0.28);
+    --shadow-glow: 0 0 32px rgba(var(--primary-glow-rgb),0.28);
 
     /* Scrollbar */
-    --scrollbar-thumb: rgba(129, 140, 248, 0.18);
-    --scrollbar-hover: rgba(129, 140, 248, 0.32);
+    --scrollbar-thumb: rgba(34, 211, 238, 0.20);
+    --scrollbar-hover: rgba(34, 211, 238, 0.38);
 
-    /* Accent gradients — indigo dominant */
-    --theme-gradient:   linear-gradient(135deg, #818cf8 0%, #a5b4fc 35%, #6366f1 65%, #818cf8 100%);
-    --primary-glow-rgb: 129, 140, 248;
+    /* Accent gradients — blue-tosca */
+    --theme-gradient:   linear-gradient(135deg, #22d3ee 0%, #14b8a6 50%, #06b6d4 100%);
+    --primary-glow-rgb: 34, 211, 238;
 
     /* Ticker */
-    --ticker-bg:    rgba(4, 5, 16, 0.94);
-    --ticker-border:rgba(129, 140, 248, 0.10);
+    --ticker-bg:    rgba(15, 45, 70, 0.96);
+    --ticker-border:rgba(34, 211, 238, 0.14);
   }
 
   /* ── GRAPHITE: Cyberpunk Cyan Premium ───────────────────── */
