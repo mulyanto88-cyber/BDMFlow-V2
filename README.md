@@ -103,11 +103,11 @@ Card:        #faf9f9 (Clean White)
 
 ### Blue Theme (Canva Blue-Tosca)
 ```css
-Background:  #0a2832 (Dark Teal-Blue)
-Foreground:  #f8f9fa (Bright White)
-Primary:     #22d3ee (Vibrant Cyan)
-Secondary:   #14b8a6 (Warm Tosca)
-Card:        #0f3242 (Teal-Blue)
+Background:  #143c64 (Vibrant blue)
+Foreground:  #f8f9fa (Bright white)
+Primary:     #22d3ee (Vibrant cyan)
+Secondary:   #14b8a6 (Warm tosca)
+Card:        #1a3a52 (Blue card)
 ```
 
 ### Midnight Theme (Cyberpunk)

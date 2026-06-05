@@ -66,7 +66,7 @@ Glass Glow:        0 10px 40px rgba(0,0,0, 0.16)
 
 ### Primary Colors
 ```
-Background:     #0a2832  (180°, 60%, 8%)    Dark Teal-Blue
+Background:     #143c64  (200°, 70%, 15%)    Vibrant Blue
 Foreground:     #f8f9fa  (210°, 40%, 98%)   Bright White
 Primary Accent: #22d3ee  (195°, 100%, 50%)  Vibrant Cyan
 Secondary:      #14b8a6  (160°, 90%, 48%)   Warm Tosca
@@ -74,14 +74,14 @@ Secondary:      #14b8a6  (160°, 90%, 48%)   Warm Tosca
 
 ### Secondary Colors
 ```
-Card:           #0f3242  (180°, 55%, 12%)   Teal-Blue
+Card:           #1a3a52  (200°, 65%, 20%)   Blue Card
 Card Foreground:#f8f9fa  (210°, 40%, 98%)   Bright White
-Border:         #1a4a5a  (180°, 48%, 22%)   Teal
+Border:         #1a5a8a  (200°, 60%, 28%)   Blue Border
 ```
 
 ### Glassmorphic Layer
 ```
-Glass Background:  rgba(10, 40, 50, 0.75)
+Glass Background:  rgba(20, 60, 100, 0.75)
 Glass Border:      rgba(34, 211, 238, 0.16)
 Glass Border Top:  rgba(34, 211, 238, 0.32)
 Glass Hover:       rgba(15, 50, 65, 0.92)

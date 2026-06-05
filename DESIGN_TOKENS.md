@@ -26,12 +26,12 @@ Border:          #d0c9d0    (Silver)
 
 ### Tertiary Theme: Blue (Canva Blue-Tosca)
 ```
-Background:      #0a2832    (Dark Teal-Blue)
+Background:      #143c64    (Vibrant Blue)
 Foreground:      #f8f9fa    (Bright White)
 Primary:         #22d3ee    (Vibrant Cyan)
 Secondary:       #14b8a6    (Warm Tosca)
-Card:            #0f3242    (Teal-Blue)
-Border:          #1a4a5a    (Teal)
+Card:            #1a3a52    (Blue Card)
+Border:          #1a5a8a    (Blue Border)
 ```
 
 **Use Case:** Modern creative design (Canva-inspired), vibrant yet professional
