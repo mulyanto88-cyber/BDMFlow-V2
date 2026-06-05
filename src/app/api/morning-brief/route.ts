@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/api/morning-brief/route.ts
 import { NextResponse } from 'next/server'
 import { run } from '@/lib/db'

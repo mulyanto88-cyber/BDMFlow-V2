@@ -1,6 +1,8 @@
-// src/app/api/broker-tracker/route.ts
+  // src/app/api/broker-tracker/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+
+export const dynamic = 'force-dynamic'
 
 // ─── Helper Functions ───────────────────────────────────────────────────────
 

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/page.tsx — Morning Brief
 import React from 'react'
 import Link from 'next/link'

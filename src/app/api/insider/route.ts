@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/api/insider/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
