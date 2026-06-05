@@ -18,7 +18,7 @@ const pool = new Pool({
   password: process.env.MOTHERDUCK_TOKEN,
   database: 'md:',
   ssl: { rejectUnauthorized: true },
-  max: 10,
+  max: 3,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 20000,
   keepAlive: true,

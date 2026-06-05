@@ -82,90 +82,20 @@ export async function GET(req: NextRequest) {
     // ── 4. MULTI-PERIOD SCREENER (1D / 7D / 14D / 30D / 60D / 90D / 120D) ──
     } else if (action === 'screener') {
       const groupName  = searchParams.get('group_name') || ''
-      const sectorClause = sector    ? `AND cp.sector = $1`        : ''
-      const groupClause  = groupName ? `AND cp.group_name = $${sector ? '2' : '1'}` : ''
-      const whaleClause  = whaleOnly ? `AND sms.whale_signal = TRUE` : ''
+      const sectorClause = sector    ? `AND sector = $1`        : ''
+      const groupClause  = groupName ? `AND company_name = $${sector ? '2' : '1'}` : ''
+      const whaleClause  = whaleOnly ? `AND whale_signal = TRUE` : ''
       const params: any[] = []
       if (sector) params.push(sector)
       if (groupName) params.push(groupName)
 
       const data = await safeRun(`
-        WITH ld AS (SELECT MAX(trading_date) AS max_date FROM market.daily_transactions),
-        mp AS (
-          SELECT
-            dt.stock_code,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '1 day'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f1d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '7 days'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f7d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '14 days'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f14d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '30 days'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f30d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '60 days'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f60d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '90 days'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f90d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '120 days'
-                     THEN dt.net_foreign_value ELSE 0 END)::DOUBLE   AS f120d,
-
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '1 day' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_1d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '1 day' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_1d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '7 days' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_7d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '7 days' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_7d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '14 days' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_14d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '14 days' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_14d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '30 days' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_30d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '30 days' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_30d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '60 days' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_60d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '60 days' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_60d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '90 days' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_90d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '90 days' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_90d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '120 days' AND dt.net_foreign_value > 0 THEN 1 END)::BIGINT AS buy_days_120d,
-            COUNT(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '120 days' AND dt.net_foreign_value < 0 THEN 1 END)::BIGINT AS sell_days_120d,
-
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '120 days'
-                     THEN dt.foreign_buy_value  ELSE 0 END)::DOUBLE  AS buy120d,
-            SUM(CASE WHEN dt.trading_date >= ld.max_date - INTERVAL '120 days'
-                     THEN dt.foreign_sell_value ELSE 0 END)::DOUBLE  AS sell120d
-          FROM market.daily_transactions dt, ld
-          WHERE dt.trading_date >= ld.max_date - INTERVAL '120 days'
-          GROUP BY dt.stock_code
-        )
-        SELECT
-          mp.stock_code,
-          cp.group_name                          AS company_name,
-          cp.sector,
-          sl.close::DOUBLE                       AS close,
-          sl.change_percent::DOUBLE              AS change_percent,
-          mp.f1d, mp.f7d, mp.f14d, mp.f30d,
-          mp.f60d, mp.f90d, mp.f120d,
-          mp.buy_days_1d, mp.sell_days_1d,
-          mp.buy_days_7d, mp.sell_days_7d,
-          mp.buy_days_14d, mp.sell_days_14d,
-          mp.buy_days_30d, mp.sell_days_30d,
-          mp.buy_days_60d, mp.sell_days_60d,
-          mp.buy_days_90d, mp.sell_days_90d,
-          mp.buy_days_120d, mp.sell_days_120d,
-          mp.buy120d, mp.sell120d,
-          sms.smart_money_score,
-          sms.whale_signal,
-          sms.broker_net::DOUBLE                 AS broker_net,
-          sms.signal,
-          tact.net_foreign_1d::DOUBLE            AS tact_foreign_1d,
-          tact.net_foreign_7d_miliar::DOUBLE     AS tact_foreign_5d,
-          tact.broker_net_7d_miliar::DOUBLE      AS broker_net_5d,
-          tact.tactical_signal
-        FROM mp
-        LEFT JOIN market.company_profile                   cp   ON cp.stock_code   = mp.stock_code
-        LEFT JOIN market.vw_stock_latest                   sl   ON sl.stock_code   = mp.stock_code
-        LEFT JOIN market.vw_smart_money_score              sms  ON sms.stock_code  = mp.stock_code
-        LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = mp.stock_code
-        WHERE mp.f30d <> 0
+        SELECT * FROM market.tb_foreign_multiperiod
+        WHERE f30d <> 0
           ${sectorClause}
           ${groupClause}
           ${whaleClause}
-        ORDER BY ABS(mp.f30d) DESC
+        ORDER BY ABS(f30d) DESC
         LIMIT 150
       `, params)
       return NextResponse.json({ data })

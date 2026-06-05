@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 // src/app/api/ksei-monthly/route.ts
 // KSEI Monthly Smart Money Tracker
@@ -44,91 +44,13 @@ export async function GET(req: NextRequest) {
     if (action === 'screener') {
       const trendFilter  = trend  ? `AND smart_money_trend = '${trend}'` : ''
       const divFilter    = div    ? `AND divergence_signal = '${div}'` : ''
-      const sectorFilter = sector ? `AND cp.sector = '${sector.replace(/'/g, "''")}'` : ''
+      const sectorFilter = sector ? `AND sector = '${sector.replace(/'/g, "''")}'` : ''
 
       const data = await run(`
-        WITH base AS (
-          SELECT
-            Code, Date, Price::DOUBLE AS price,
-            ${SMART}         AS smart_vol,
-            ${LOCAL_SMART}   AS local_smart_vol,
-            ${FOREIGN_SMART} AS foreign_smart_vol,
-            ${RETAIL}        AS retail_vol,
-            ${TOTAL_ALL}     AS total_all,
-            ${FOREIGN_ALL}   AS foreign_all,
-            ${LOCAL_ALL}     AS local_all,
-            Top_Buyer, Top_Seller,
-            ROW_NUMBER() OVER (PARTITION BY Code ORDER BY Date DESC) AS rn,
-            LAG(${SMART})         OVER (PARTITION BY Code ORDER BY Date) AS p1_smart,
-            LAG(${SMART}, 2)      OVER (PARTITION BY Code ORDER BY Date) AS p2_smart,
-            LAG(${SMART}, 3)      OVER (PARTITION BY Code ORDER BY Date) AS p3_smart,
-            LAG(${LOCAL_SMART})   OVER (PARTITION BY Code ORDER BY Date) AS p1_local,
-            LAG(${FOREIGN_SMART}) OVER (PARTITION BY Code ORDER BY Date) AS p1_foreign,
-            LAG(${RETAIL})        OVER (PARTITION BY Code ORDER BY Date) AS p1_retail,
-            LAG(${TOTAL_ALL})     OVER (PARTITION BY Code ORDER BY Date) AS p1_total,
-            LAG(${TOTAL_ALL}, 2)  OVER (PARTITION BY Code ORDER BY Date) AS p2_total,
-            LAG(${TOTAL_ALL}, 3)  OVER (PARTITION BY Code ORDER BY Date) AS p3_total
-          FROM ksei.monthly_snapshot
-        ),
-        calc AS (
-          SELECT
-            Code AS stock_code, price, Top_Buyer, Top_Seller, total_all, p1_total,
-            -- Δ smart money (miliar Rp), di-guard corp action per bulan
-            CASE WHEN ${ratioOk('total_all','p1_total')}
-                 THEN ROUND((smart_vol - p1_smart) * price / 1e9, 2) END AS m0_smart,
-            CASE WHEN ${ratioOk('p1_total','p2_total')}
-                 THEN ROUND((p1_smart - p2_smart) * price / 1e9, 2) END AS m1_smart,
-            CASE WHEN ${ratioOk('p2_total','p3_total')}
-                 THEN ROUND((p2_smart - p3_smart) * price / 1e9, 2) END AS m2_smart,
-            CASE WHEN ${ratioOk('total_all','p1_total')}
-                 THEN ROUND((local_smart_vol   - p1_local)   * price / 1e9, 2) END AS m0_local,
-            CASE WHEN ${ratioOk('total_all','p1_total')}
-                 THEN ROUND((foreign_smart_vol - p1_foreign) * price / 1e9, 2) END AS m0_foreign,
-            CASE WHEN ${ratioOk('total_all','p1_total')}
-                 THEN ROUND((retail_vol - p1_retail) * price / 1e9, 2) END AS m0_retail,
-            -- % ownership (corp-action immune, dari sum 18 kolom)
-            ROUND(foreign_all / NULLIF(total_all,0) * 100, 2) AS foreign_own_pct,
-            ROUND(local_all   / NULLIF(total_all,0) * 100, 2) AS local_own_pct,
-            -- Δ smart % ownership poin (corp-action immune)
-            ROUND(smart_vol / NULLIF(total_all,0) * 100
-                - p1_smart  / NULLIF(p1_total,0)  * 100, 3) AS smart_pct_delta
-          FROM base WHERE rn = 1 AND p1_smart IS NOT NULL
-        ),
-        scored AS (
-          SELECT *,
-            ROUND(COALESCE(m0_smart,0)+COALESCE(m1_smart,0)+COALESCE(m2_smart,0), 2) AS cum3m_smart,
-            CASE
-              WHEN COALESCE(m0_smart,0) > 0 AND COALESCE(m1_smart,0) > 0 AND COALESCE(m2_smart,0) > 0 THEN 'KONSISTEN_AKUMULASI'
-              WHEN COALESCE(m0_smart,0) > 0 THEN 'MULAI_AKUMULASI'
-              WHEN COALESCE(m0_smart,0) < 0 AND COALESCE(m1_smart,0) < 0 AND COALESCE(m2_smart,0) < 0 THEN 'KONSISTEN_DISTRIBUSI'
-              WHEN COALESCE(m0_smart,0) < 0 THEN 'MULAI_DISTRIBUSI'
-              ELSE 'MIXED'
-            END AS smart_money_trend,
-            CASE
-              WHEN COALESCE(m0_smart,0) > 0 AND COALESCE(m0_retail,0) < 0 THEN 'DIVERGEN_BULLISH'
-              WHEN COALESCE(m0_smart,0) < 0 AND COALESCE(m0_retail,0) > 0 THEN 'DIVERGEN_BEARISH'
-              ELSE 'ALIGNED'
-            END AS divergence_signal,
-            (CASE WHEN COALESCE(m0_smart,0) > 0 THEN 1 ELSE 0 END
-            +CASE WHEN COALESCE(m1_smart,0) > 0 THEN 1 ELSE 0 END
-            +CASE WHEN COALESCE(m2_smart,0) > 0 THEN 1 ELSE 0 END) AS months_positive
-          FROM calc
-        )
-        SELECT
-          s.stock_code, cp.sector, cp.group_name,
-          s.price AS latest_price,
-          s.m0_smart, s.m1_smart, s.m2_smart, s.cum3m_smart,
-          s.m0_local, s.m0_foreign, s.m0_retail,
-          s.foreign_own_pct, s.local_own_pct, s.smart_pct_delta,
-          s.months_positive, s.Top_Buyer AS top_buyer, s.Top_Seller AS top_seller,
-          s.smart_money_trend, s.divergence_signal,
-          l.close::DOUBLE AS market_price, l.change_percent::DOUBLE AS change_pct
-        FROM scored s
-        LEFT JOIN market.company_profile cp ON s.stock_code = cp.stock_code
-        LEFT JOIN market.vw_stock_latest  l ON s.stock_code = l.stock_code
-        WHERE ABS(COALESCE(s.m0_smart,0)) > 0.01
+        SELECT * FROM ksei.tb_ksei_monthly_scored
+        WHERE ABS(COALESCE(m0_smart,0)) > 0.01
           ${trendFilter} ${divFilter} ${sectorFilter}
-        ORDER BY ABS(COALESCE(s.m0_smart,0)) DESC
+        ORDER BY ABS(COALESCE(m0_smart,0)) DESC
         LIMIT 300
       `)
       return NextResponse.json({ data })
