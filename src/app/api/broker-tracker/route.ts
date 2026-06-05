@@ -536,8 +536,8 @@ export async function GET(req: NextRequest) {
       const sectorClause = sector ? `AND sector = $${paramIdx + 1}` : ''
       if (sector) { paramIdx++; queryParams.push(sector) }
       const whaleClause = whaleOnly ? `AND whale_signal = TRUE` : ''
-      queryParams.push(minVal, minBrk, minBuyBrk, minPwr, minNetMiliar, maxSellPressure)
-      const p = paramIdx // offset index for WHERE params
+      const p = paramIdx
+      queryParams.push(minNetMiliar, maxSellPressure, minVal, minBrk, minBuyBrk, minPwr)
       query = `
         SELECT * FROM market.tb_broker_accumulation
         WHERE net_accumulation > 0
