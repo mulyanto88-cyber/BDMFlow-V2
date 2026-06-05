@@ -19,8 +19,8 @@ async function getMorningBrief() {
                (total_foreign_flow/1e9)::DOUBLE AS foreign_miliar,
                whale_count::BIGINT AS whale_count, gainers::BIGINT AS gainers, losers::BIGINT AS losers,
                avg_change_pct::DOUBLE AS avg_change_pct
-        FROM market.vw_market_summary
-        WHERE trading_date=(SELECT MAX(trading_date) FROM market.vw_market_summary) LIMIT 1`
+        FROM market.tb_market_summary
+        ORDER BY trading_date DESC LIMIT 1`
     ).catch(() => []),
     run(`SELECT r.stock_code, r.sector, s.close::DOUBLE AS close,
                ROUND(r.change_percent::DOUBLE,2) AS chg, r.radar_score::INTEGER,
@@ -28,7 +28,7 @@ async function getMorningBrief() {
                ROUND(r.foreign_broker_net_7d::DOUBLE,2) AS fg7d,
                ROUND(r.local_inst_net_7d::DOUBLE,2) AS inst7d,
                ROUND(r.ksei_net_smart_miliar::DOUBLE,2) AS ksei
-        FROM market.vw_watchlist_radar r
+        FROM market.tb_radar r
         INNER JOIN market.vw_stock_latest s ON r.stock_code=s.stock_code
         WHERE r.warning_flag IS NULL AND s.close>100 AND s.value>5000000000
         ORDER BY r.radar_score DESC LIMIT 8`

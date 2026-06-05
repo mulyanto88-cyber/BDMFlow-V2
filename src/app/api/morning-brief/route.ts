@@ -11,8 +11,8 @@ export async function GET() {
         SELECT trading_date::VARCHAR AS date, stock_count::BIGINT, (total_value/1e12)::DOUBLE AS total_value_triliun,
                (total_foreign_flow/1e9)::DOUBLE AS foreign_net_miliar, whale_count::BIGINT, anomaly_count::BIGINT,
                gainers::BIGINT, losers::BIGINT, avg_change_pct::DOUBLE
-        FROM market.vw_market_summary
-        WHERE trading_date = (SELECT MAX(trading_date) FROM market.vw_market_summary) LIMIT 1
+        FROM market.tb_market_summary
+        ORDER BY trading_date DESC LIMIT 1
       `),
       run(`
         SELECT r.stock_code, r.sector, r.group_name, s.close::DOUBLE AS close,
@@ -22,7 +22,7 @@ export async function GET() {
                ROUND(r.ksei_net_smart_miliar::DOUBLE,2) AS ksei_smart,
                r.whale_signal::BOOLEAN, r.fresh_insider_buy::BOOLEAN,
                ROUND(r.aov_ratio_ma20::DOUBLE,2) AS aov_ratio, s.value::DOUBLE AS daily_value
-        FROM market.vw_watchlist_radar r
+        FROM market.tb_radar r
         INNER JOIN market.vw_stock_latest s ON r.stock_code = s.stock_code
         WHERE r.warning_flag IS NULL AND s.close > 100 AND s.value > 5000000000
         ORDER BY r.radar_score DESC LIMIT 8

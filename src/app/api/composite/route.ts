@@ -1,8 +1,8 @@
-// /api/composite — queries market.vw_d_composite_tab (Phase A view)
+// /api/composite — queries market.tb_broker_screener (materialized table)
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
     if (sector) { where = `WHERE sector = $1`; params.push(sector) }
 
     const [data, countResult] = await Promise.all([
-      run(`SELECT * FROM market.vw_d_composite_tab ${where} ORDER BY rank_overall ASC LIMIT ${pageSize} OFFSET ${offset}`, params),
-      run(`SELECT COUNT(*)::INTEGER AS total FROM market.vw_d_composite_tab ${where}`, params),
+      run(`SELECT * FROM market.tb_broker_screener ${where} ORDER BY rank_overall ASC LIMIT ${pageSize} OFFSET ${offset}`, params),
+      run(`SELECT COUNT(*)::INTEGER AS total FROM market.tb_broker_screener ${where}`, params),
     ])
 
     const total = countResult[0]?.total ?? data.length

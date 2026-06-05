@@ -531,134 +531,22 @@ export async function GET(req: NextRequest) {
       if (isNaN(minBuyBrk) || minBuyBrk < 1) return NextResponse.json({ error: 'min_buy_broker_count tidak valid'}, { status: 400 })
       if (isNaN(minNetMiliar) || minNetMiliar < 0) return NextResponse.json({ error: 'min_net_miliar tidak valid' }, { status: 400 })
       if (isNaN(maxSellPressure) || maxSellPressure < 0 || maxSellPressure > 100) return NextResponse.json({ error: 'max_sell_pressure tidak valid (0-100)' }, { status: 400 })
-      paramIdx += 4
-      queryParams.push(minVal, minBrk, minBuyBrk, minPwr, minNetMiliar, maxSellPressure)
-      paramIdx += 2
-      const sectorClause = sector ? `AND cp.sector = $${paramIdx + 1}` : ''
+      queryParams = []
+      paramIdx = 0
+      const sectorClause = sector ? `AND sector = $${paramIdx + 1}` : ''
       if (sector) { paramIdx++; queryParams.push(sector) }
-      const whaleClause = whaleOnly ? `AND sms.whale_signal = TRUE` : ''
+      const whaleClause = whaleOnly ? `AND whale_signal = TRUE` : ''
+      queryParams.push(minVal, minBrk, minBuyBrk, minPwr, minNetMiliar, maxSellPressure)
+      const p = paramIdx // offset index for WHERE params
       query = `
-        WITH stock_agg AS (
-          SELECT
-            LEFT(stock_code,4)                                                  AS clean_code,
-            SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE                AS total_buy,
-            ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE           AS total_sell,
-            SUM(value)::DOUBLE                                                   AS net_accumulation,
-            SUM(ABS(value))::DOUBLE                                              AS total_value,
-            COUNT(DISTINCT broker_code)                                          AS broker_count,
-            COUNT(DISTINCT CASE WHEN value>0 THEN broker_code END)               AS buy_broker_count,
-            COUNT(DISTINCT CASE WHEN value<0 THEN broker_code END)               AS sell_broker_count
-          FROM broker_activity
-          WHERE ${dateFilter.clause}
-          GROUP BY LEFT(stock_code,4)
-        ),
-        top_buyer AS (
-          SELECT
-            LEFT(stock_code,4) AS clean_code, broker_code,
-            SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE                 AS buy_val,
-            ROW_NUMBER() OVER (PARTITION BY LEFT(stock_code,4)
-              ORDER BY SUM(CASE WHEN value>0 THEN value ELSE 0 END) DESC)        AS rn
-          FROM broker_activity WHERE ${dateFilter.clause}
-          GROUP BY LEFT(stock_code,4), broker_code
-        ),
-        -- Foreign vs Local broker split — untuk lihat siapa yang beli
-        local_agg AS (
-          SELECT LEFT(ba.stock_code,4) AS clean_code,
-            SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE           AS local_buy,
-            SUM(ba.value)::DOUBLE                                                 AS local_net
-          FROM broker_activity ba
-          JOIN broker_classification bc ON bc.broker_code = ba.broker_code
-          WHERE ${dateFilter.clause} AND LOWER(bc.category) <> 'foreign'
-          GROUP BY LEFT(ba.stock_code,4)
-        ),
-        foreign_agg AS (
-          SELECT LEFT(ba.stock_code,4) AS clean_code,
-            SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE           AS foreign_buy,
-            SUM(ba.value)::DOUBLE                                                 AS foreign_net
-          FROM broker_activity ba
-          JOIN broker_classification bc ON bc.broker_code = ba.broker_code
-          WHERE ${dateFilter.clause} AND LOWER(bc.category) = 'foreign'
-          GROUP BY LEFT(ba.stock_code,4)
-        ),
-        scored AS (
-          SELECT
-            sa.clean_code,
-            sa.total_buy, sa.total_sell, sa.net_accumulation, sa.total_value,
-            sa.broker_count, sa.buy_broker_count, sa.sell_broker_count,
-            -- Sell pressure: 0% = zero selling, 100% = equal buy/sell
-            ROUND(sa.total_sell / NULLIF(sa.total_buy, 0) * 100, 1)::DOUBLE        AS sell_pressure_pct,
-            -- Sell pressure factor: 1.0 at 0%, 0.7 at 50%, 0.4 at 100%
-            GREATEST(0.4, 1.0 - (sa.total_sell / NULLIF(sa.total_buy + sa.total_sell, 0)) * 0.6)
-                                                                                    AS sp_factor,
-            -- Accumulation intensity
-            sa.net_accumulation / NULLIF(sa.total_value, 0)                        AS net_ratio,
-            -- Top buyer
-            COALESCE(tb.buy_val, 0)                                                 AS top_buy_val,
-            tb.broker_code                                                          AS top_buyer_code,
-            ROUND(COALESCE(tb.buy_val,0)/NULLIF(sa.total_buy,0)*100,1)::DOUBLE     AS top_buyer_pct,
-            -- Foreign / Local
-            COALESCE(la.local_buy, 0)                                               AS local_buy,
-            COALESCE(la.local_net, 0)                                               AS local_net,
-            COALESCE(fa.foreign_buy, 0)                                             AS foreign_buy,
-            COALESCE(fa.foreign_net, 0)                                             AS foreign_net,
-            ROUND(COALESCE(fa.foreign_buy,0)/NULLIF(sa.total_buy,0)*100,1)::DOUBLE AS foreign_buy_pct
-          FROM stock_agg sa
-          LEFT JOIN top_buyer tb ON sa.clean_code = tb.clean_code AND tb.rn = 1
-          LEFT JOIN local_agg  la ON la.clean_code = sa.clean_code
-          LEFT JOIN foreign_agg fa ON fa.clean_code = sa.clean_code
-        )
-        SELECT
-          sc.clean_code                                                             AS stock_code,
-          cp.sector,
-          cp.group_name                                                             AS company_name,
-          sms.close::DOUBLE                                                         AS latest_price,
-          sms.change_percent::DOUBLE                                                AS price_change_pct,
-          -- Raw flow values
-          sc.total_buy,
-          sc.total_sell,
-          sc.net_accumulation,
-          ROUND(sc.net_accumulation/1e9, 3)::DOUBLE                               AS net_miliar,
-          sc.total_value,
-          -- Broker stats
-          sc.broker_count, sc.buy_broker_count, sc.sell_broker_count,
-          -- ★ Sell pressure (new - sortable column)
-          sc.sell_pressure_pct,
-          -- Concentration
-          sc.top_buyer_code,
-          sc.top_buyer_pct,
-          -- Foreign / Local split
-          ROUND(sc.local_net/1e9, 3)::DOUBLE                                       AS local_net_miliar,
-          ROUND(sc.foreign_net/1e9, 3)::DOUBLE                                     AS foreign_net_miliar,
-          sc.foreign_buy_pct,
-          -- Smart Money flags
-          sms.whale_signal,
-          sms.big_player_anomaly,
-          sms.smart_money_score,
-          sms.signal                                                                AS smart_signal,
-          -- ★ Composite Score (new proper formula)
-          ROUND(
-            -- Base: accumulation intensity × breadth
-            sc.net_ratio * LN(1 + sc.buy_broker_count) * 100
-            -- Sell pressure penalty
-            * sc.sp_factor
-            -- Smart money bonus (normalized ~0-30)
-            + COALESCE(sms.smart_money_score, 0) * 0.3
-            -- Flag bonuses
-            + CASE WHEN sms.whale_signal       THEN 8 ELSE 0 END
-            + CASE WHEN sms.big_player_anomaly THEN 4 ELSE 0 END
-          , 1)::DOUBLE                                                              AS composite_score
-        FROM scored sc
-        LEFT JOIN market.company_profile   cp  ON cp.stock_code  = sc.clean_code
-        LEFT JOIN market.vw_smart_money_score sms ON sms.stock_code = sc.clean_code
-        WHERE sc.net_accumulation  > 0
-          -- ★ Minimum net miliar — filter out near-zero accumulation
-          AND (sc.net_accumulation / 1e9) >= $${paramIdx - 1}
-          -- ★ Maximum sell pressure — filter out contested stocks
-          AND sc.sell_pressure_pct <= $${paramIdx}
-          AND sc.total_value       >= $${paramIdx - 5}
-          AND sc.broker_count      >= $${paramIdx - 4}
-          AND sc.buy_broker_count  >= $${paramIdx - 3}
-          AND (sc.net_ratio * LN(1 + sc.buy_broker_count) * 100 * sc.sp_factor) >= $${paramIdx - 2}
+        SELECT * FROM market.tb_broker_accumulation
+        WHERE net_accumulation > 0
+          AND net_miliar >= $${p + 1}
+          AND sell_pressure_pct <= $${p + 2}
+          AND total_value >= $${p + 3}
+          AND broker_count >= $${p + 4}
+          AND buy_broker_count >= $${p + 5}
+          AND composite_score >= $${p + 6}
           ${sectorClause} ${whaleClause}
         ORDER BY composite_score DESC
         LIMIT 100`
