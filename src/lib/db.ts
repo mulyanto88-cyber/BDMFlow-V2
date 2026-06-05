@@ -4,24 +4,43 @@
 import { Pool, PoolClient, QueryResultRow } from 'pg'
 import { createHash } from 'crypto'
 
-const MAX_RETRIES = 3
-const RETRY_DELAY_MS = 800
+const MAX_RETRIES = 2
+const RETRY_DELAY_MS = 600
+
+// ── Fast-fail: token harus ada sebelum pool dibuat ───────────
+const MOTHERDUCK_TOKEN = process.env.MOTHERDUCK_TOKEN
+if (!MOTHERDUCK_TOKEN) {
+  console.error(
+    '[db] MOTHERDUCK_TOKEN tidak ditemukan di environment variables.\n' +
+    '     Buat file .env.local dan isi:\n' +
+    '     MOTHERDUCK_TOKEN=your_token_here'
+  )
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+// SSL: strict di production, relaxed di dev (hindari CA-bundle issue di Windows)
+const sslConfig =
+  process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: true }
+    : { rejectUnauthorized: false }
+
 const pool = new Pool({
   host: 'pg.us-east-1-aws.motherduck.com',
   port: 5432,
   user: 'postgres',
-  password: process.env.MOTHERDUCK_TOKEN,
+  password: MOTHERDUCK_TOKEN,
   database: 'md:',
-  ssl: { rejectUnauthorized: true },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 20000,
+  ssl: sslConfig,
+  max: 8,
+  idleTimeoutMillis: 20000,
+  connectionTimeoutMillis: 8000,   // Fail-fast: 8 detik (was 20)
+  query_timeout: 25000,            // Max 25 detik per query
+  statement_timeout: 25000,
   keepAlive: true,
+  keepAliveInitialDelayMillis: 5000,
 })
 
 pool.on('error', (err) => {
