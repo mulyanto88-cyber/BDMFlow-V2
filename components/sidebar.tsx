@@ -370,7 +370,7 @@ export default function Sidebar() {
 
   const themeConfig = {
     dark:     { icon: <Moon size={12} className="text-amber-400" />,    label: 'Dark Navy',       next: '\u2192 Midnight', color: '#facc15' },
-    midnight: { icon: <Palette size={12} className="text-slate-400" />,  label: 'Graphite',        next: '\u2192 Blue',     color: '#a8a29e' },
+    midnight: { icon: <Palette size={12} className="text-cyan-400" />,   label: 'Plasma Edge',     next: '\u2192 Blue',     color: '#00ffcc' },
     blue:     { icon: <Globe size={12} className="text-indigo-400" />,   label: 'Midnight Azure',  next: '\u2192 Light',    color: '#818cf8' },
     light:    { icon: <Sun  size={12} className="text-amber-400" />,     label: 'Light Silver',    next: '\u2192 Dark',     color: '#facc15' },
   }
