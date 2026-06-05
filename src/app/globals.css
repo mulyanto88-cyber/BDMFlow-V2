@@ -314,13 +314,6 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  html {
-    /* Inter as the single source of truth for all UI text */
-    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
-    text-rendering: optimizeLegibility;
-    -webkit-text-size-adjust: 100%;
-  }
-
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
