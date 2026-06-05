@@ -2208,6 +2208,7 @@ export default function BrokerTrackerPage() {
   const [filterSmScore,    setFilterSmScore]    = useState(0);
   const [filterMinNet,     setFilterMinNet]     = useState(0.5);   // min net miliar
   const [filterMaxSellPct, setFilterMaxSellPct] = useState(85);    // max sell pressure %
+  const [screenerPeriod,   setScreenerPeriod]   = useState(5);     // 5d / 14d / 30d / 60d / 90d
 
   // ── Date ──────────────────────────────────────────────────────────────────
   const [startDate, setStartDate] = useState<string>(() => {
@@ -2422,8 +2423,9 @@ export default function BrokerTrackerPage() {
         // ★ New quality filters
         const minNetQ    = `&min_net_miliar=${filterMinNet}`;
         const maxSpQ     = `&max_sell_pressure=${filterMaxSellPct}`;
+        const periodQ    = `&screener_days=${screenerPeriod}`;
 
-        const res  = await fetch(`/api/broker-tracker?action=screener&${params}${sectorQ}${whaleQ}${pwrQ}${minValQ}${minBrkQ}${minNetQ}${maxSpQ}`);
+        const res  = await fetch(`/api/broker-tracker?action=screener&${params}${sectorQ}${whaleQ}${pwrQ}${minValQ}${minBrkQ}${minNetQ}${maxSpQ}${periodQ}`);
         const json = await res.json();
         if (json.error) throw new Error(json.error);
         setScreenerData(json.data || []);
@@ -2438,7 +2440,7 @@ export default function BrokerTrackerPage() {
       setError(e.message ?? 'Terjadi kesalahan.');
     }
     setLoading(false);
-  }, [activeTab, code, startDate, endDate, filterSector, filterWhaleOnly, filterPowerScore, filterMinVal, filterMinBroker, filterMinNet, filterMaxSellPct, enrichTracker, loadStance]);
+  }, [activeTab, code, startDate, endDate, filterSector, filterWhaleOnly, filterPowerScore, filterMinVal, filterMinBroker, filterMinNet, filterMaxSellPct, screenerPeriod, enrichTracker, loadStance]);
 
   useEffect(() => {
     if (urlCode) loadData(urlCode, 'tracker');
@@ -2891,6 +2893,17 @@ export default function BrokerTrackerPage() {
                   <input type="range" min={20} max={100} step={5} value={filterMaxSellPct}
                     onChange={e => setFilterMaxSellPct(Number(e.target.value))}
                     className="w-28 accent-red-400" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">Periode</label>
+                  <div className="flex gap-1 bg-background rounded-lg p-1">
+                    {[5, 14, 30, 60, 90].map(d => (
+                      <button key={d} onClick={() => setScreenerPeriod(d)}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all whitespace-nowrap ${
+                          screenerPeriod === d ? 'bg-gold-400 text-black shadow' : 'text-gray-400 hover:text-white'
+                        }`}>{d}D</button>
+                    ))}
+                  </div>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <div className={`w-8 h-4 rounded-full transition-colors ${filterWhaleOnly ? 'bg-yellow-400' : 'bg-white/10'}`}
