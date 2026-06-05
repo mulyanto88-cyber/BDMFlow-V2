@@ -80,6 +80,14 @@ function netColor(v: number) {
   return 'text-slate-400'
 }
 
+const fmtM = (v: number | null | undefined) => {
+  const val = Number(v) || 0
+  const abs = Math.abs(val)
+  const sign = val > 0 ? '+' : ''
+  if (abs >= 1000) return `${sign}${(val / 1000).toFixed(1)} T`
+  return `${sign}${val.toFixed(1)} M`
+}
+
 function signalBadge(sig: string) {
   if (sig.includes('TRIPLE'))   return 'bg-gold-400/20 text-gold-400 border-gold-400/30'
   if (sig.includes('PRIME'))    return 'bg-sky-500/20 text-sky-300 border-sky-500/30'
@@ -462,17 +470,17 @@ export default function RadarPage() {
 
                     {/* Foreign Broker 7d */}
                     <td className={`px-3 py-3 text-right text-xs font-semibold counter hidden xl:table-cell ${netColor(r.foreign_broker_net_7d)}`} data-label="Asing 7d">
-                      {r.foreign_broker_net_7d > 0 ? '+' : ''}{r.foreign_broker_net_7d?.toFixed(1)} M
+                      {fmtM(r.foreign_broker_net_7d)}
                     </td>
 
                     {/* Local Inst 7d */}
                     <td className={`px-3 py-3 text-right text-xs font-semibold counter hidden xl:table-cell ${netColor(r.local_inst_net_7d)}`} data-label="Inst 7d">
-                      {r.local_inst_net_7d > 0 ? '+' : ''}{r.local_inst_net_7d?.toFixed(1)} M
+                      {fmtM(r.local_inst_net_7d)}
                     </td>
 
                     {/* KSEI */}
                     <td className={`px-3 py-3 text-right text-xs font-semibold counter hidden xl:table-cell ${netColor(r.ksei_net_smart_miliar)}`} data-label="KSEI 7d">
-                      {r.ksei_net_smart_miliar > 0 ? '+' : ''}{r.ksei_net_smart_miliar?.toFixed(1)} M
+                      {fmtM(r.ksei_net_smart_miliar)}
                     </td>
 
                     {/* Market signal */}
