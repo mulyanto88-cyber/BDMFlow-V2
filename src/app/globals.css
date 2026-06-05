@@ -234,51 +234,51 @@
 
   /* ── GRAPHITE: Warm Neutral Dark ──────────────────────────── */
   .theme-midnight {
-    --background:           165 50% 5%;          /* #061512 — dark plasma teal */
-    --foreground:           165 20% 94%;          /* cool off-white */
-    --card:                 163 42% 8%;           /* #0d1f1a — dark teal card */
-    --card-foreground:      165 20% 94%;
-    --popover:              163 42% 7%;           /* #0b1a16 */
-    --popover-foreground:   165 20% 94%;
+    --background:           160 45% 7%;           /* #091e17 — visible plasma teal */
+    --foreground:           0 0% 97%;              /* near-pure white — tegas */
+    --card:                 160 40% 10%;           /* #102820 — dark teal card */
+    --card-foreground:      0 0% 97%;
+    --popover:              160 40% 9%;            /* #0e2419 */
+    --popover-foreground:   0 0% 97%;
     --primary:              163 100% 50%;         /* #00ffcc — neon cyan */
-    --primary-foreground:   165 50% 5%;
-    --secondary:            163 35% 13%;          /* #142820 */
-    --secondary-foreground: 165 20% 94%;
-    --muted:                163 35% 11%;          /* #10231c */
-    --muted-foreground:     163 18% 52%;          /* muted teal-gray */
-    --accent:               163 35% 16%;          /* #183225 */
-    --accent-foreground:    163 100% 70%;         /* bright cyan */
+    --primary-foreground:   160 45% 7%;
+    --secondary:            160 35% 14%;          /* #142820 */
+    --secondary-foreground: 0 0% 97%;
+    --muted:                160 35% 12%;          /* #112218 */
+    --muted-foreground:     163 25% 62%;          /* bright teal-gray — tegas */
+    --accent:               160 35% 17%;          /* #173424 */
+    --accent-foreground:    163 100% 72%;         /* bright cyan */
     --destructive:          350  80% 52%;
     --destructive-foreground: 0 0% 98%;
-    --border:               163 32% 15%;          /* #172e24 */
-    --input:                163 32% 15%;
+    --border:               160 32% 16%;          /* #163025 */
+    --input:                160 32% 16%;
     --ring:                 163 100% 50%;         /* neon cyan ring */
 
     /* Glass — dark plasma teal */
-    --glass-bg:           rgba(6, 21, 18, 0.74);
-    --glass-border:       rgba(0, 255, 180, 0.08);
-    --glass-border-top:   rgba(0, 255, 180, 0.18);
+    --glass-bg:           rgba(9, 30, 23, 0.74);
+    --glass-border:       rgba(0, 255, 180, 0.09);
+    --glass-border-top:   rgba(0, 255, 180, 0.20);
     --glass-shadow:       0 4px 30px rgba(0, 0, 0, 0.50);
-    --glass-hover-bg:     rgba(14, 34, 27, 0.90);
-    --glass-hover-border: rgba(0, 255, 180, 0.28);
-    --glass-hover-shadow: 0 8px 40px rgba(0,0,0,0.60), 0 0 28px rgba(0,255,180,0.12);
+    --glass-hover-bg:     rgba(16, 40, 32, 0.92);
+    --glass-hover-border: rgba(0, 255, 180, 0.30);
+    --glass-hover-shadow: 0 8px 40px rgba(0,0,0,0.60), 0 0 28px rgba(0,255,180,0.14);
 
     /* Panel */
-    --panel-bg:     rgba(5, 18, 14, 0.82);
-    --panel-border: rgba(0, 255, 180, 0.06);
+    --panel-bg:     rgba(7, 24, 18, 0.82);
+    --panel-border: rgba(0, 255, 180, 0.07);
 
     /* Body gradient accents — neon cyan plasma shimmer */
-    --grad-1: rgba(0, 255, 180, 0.045);
-    --grad-2: rgba(0, 200, 140, 0.030);
-    --grad-3: rgba(0, 160, 120, 0.020);
+    --grad-1: rgba(0, 255, 180, 0.055);
+    --grad-2: rgba(0, 200, 140, 0.038);
+    --grad-3: rgba(0, 160, 120, 0.025);
 
     /* Header */
-    --header-bg:     rgba(4, 14, 11, 0.95);
-    --header-border: rgba(0, 255, 180, 0.09);
+    --header-bg:     rgba(5, 18, 14, 0.96);
+    --header-border: rgba(0, 255, 180, 0.10);
 
     /* Sidebar */
-    --sidebar-bg:     rgba(3, 11, 9, 0.98);
-    --sidebar-border: rgba(0, 255, 180, 0.07);
+    --sidebar-bg:     rgba(4, 14, 10, 0.98);
+    --sidebar-border: rgba(0, 255, 180, 0.08);
 
     /* Shadows — deep with cyan glow */
     --shadow-xs:   0 1px 2px  rgba(0,0,0,0.25);
@@ -286,20 +286,20 @@
     --shadow-md:   0 4px 12px rgba(0,0,0,0.50);
     --shadow-lg:   0 12px 40px rgba(0,0,0,0.60);
     --shadow-xl:   0 24px 64px rgba(0,0,0,0.70);
-    --shadow-gold: 0 0 40px rgba(0,255,180,0.22);
-    --shadow-glow: 0 0 28px rgba(var(--primary-glow-rgb),0.22);
+    --shadow-gold: 0 0 40px rgba(0,255,180,0.24);
+    --shadow-glow: 0 0 28px rgba(var(--primary-glow-rgb),0.24);
 
     /* Scrollbar */
-    --scrollbar-thumb: rgba(0, 255, 180, 0.12);
-    --scrollbar-hover: rgba(0, 255, 180, 0.24);
+    --scrollbar-thumb: rgba(0, 255, 180, 0.14);
+    --scrollbar-hover: rgba(0, 255, 180, 0.28);
 
     /* Accent gradients — neon cyan plasma */
     --theme-gradient:   linear-gradient(135deg, #00ffcc 0%, #06ffd2 40%, #00cc99 70%, #00ffcc 100%);
     --primary-glow-rgb: 0, 255, 180;
 
     /* Ticker */
-    --ticker-bg:    rgba(4, 14, 11, 0.94);
-    --ticker-border:rgba(0, 255, 180, 0.07);
+    --ticker-bg:    rgba(5, 18, 14, 0.95);
+    --ticker-border:rgba(0, 255, 180, 0.08);
   }
 
   /* ── Base resets ─────────────────────────────────────────── */
@@ -336,7 +336,7 @@
 
   html.dark      body { background-color: #060a16; }
   html.theme-blue body { background-color: #05060f; }
-  html.theme-midnight body { background-color: #061512; }
+  html.theme-midnight body { background-color: #091e17; }
 
   /* ── Gauge Track Color (tema-aware) ──────────────────────── */
   :root             { --gauge-track: rgba(0,0,0,0.12);   --gauge-text: #1e2a3a; }
@@ -367,6 +367,38 @@
 .dark .noise-overlay    { opacity: 0.032; }
 .theme-blue .noise-overlay { opacity: 0.025; }
 .theme-midnight .noise-overlay { opacity: 0.040; }
+
+/* ── Plasma Edge — override hardcoded purple/blue → cyan ──── */
+.theme-midnight .from-purple-400 {
+  --tw-gradient-from: #00ffcc var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,255,204,0));
+}
+.theme-midnight .from-purple-500 {
+  --tw-gradient-from: #00e5b0 var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,229,176,0));
+}
+.theme-midnight .to-blue-400 {
+  --tw-gradient-to: #22d3ee var(--tw-gradient-to-position);
+}
+.theme-midnight .to-blue-500 {
+  --tw-gradient-to: #06b6d4 var(--tw-gradient-to-position);
+}
+.theme-midnight .text-purple-400,
+.theme-midnight .text-purple-500 {
+  color: #00e5b0;
+}
+.theme-midnight .text-blue-400,
+.theme-midnight .text-blue-500 {
+  color: #22d3ee;
+}
+.theme-midnight .border-purple-400\/40,
+.theme-midnight .border-purple-500\/30 {
+  border-color: rgba(0, 255, 180, 0.35);
+}
+.theme-midnight .bg-purple-500\/10,
+.theme-midnight .bg-purple-400\/10 {
+  background-color: rgba(0, 255, 180, 0.10);
+}
 
 /* ── Glass Card ───────────────────────────────────────────── */
 .glass {
