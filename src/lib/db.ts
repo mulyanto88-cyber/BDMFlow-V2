@@ -34,10 +34,10 @@ const pool = new Pool({
   password: MOTHERDUCK_TOKEN,
   database: 'md:',
   ssl: sslConfig,
-  max: 8,
+  max: 10,                              // Increased from 8 to 10 for better parallelism
   idleTimeoutMillis: 20000,
-  connectionTimeoutMillis: 8000,   // Fail-fast: 8 detik (was 20)
-  query_timeout: 25000,            // Max 25 detik per query
+  connectionTimeoutMillis: 8000,
+  query_timeout: 25000,
   statement_timeout: 25000,
   keepAlive: true,
   keepAliveInitialDelayMillis: 5000,
@@ -49,14 +49,15 @@ pool.on('error', (err) => {
 
 const queryCache = new Map<string, { data: any; expires: number }>()
 const activeQueries = new Map<string, Promise<any>>()
+const MAX_CACHE_SIZE = 200
 
 export async function run<T extends QueryResultRow = any>(
   query: string,
   params: any[] = [],
-  ttlMs: number = 60000 // Default 60s cache
+  ttlMs: number = 60000
 ): Promise<T[]> {
   const hash = createHash('md5').update(query + JSON.stringify(params)).digest('hex')
-  
+
   const cached = queryCache.get(hash)
   if (cached && cached.expires > Date.now()) {
     return cached.data as T[]
@@ -72,8 +73,17 @@ export async function run<T extends QueryResultRow = any>(
       let client: PoolClient | null = null
       try {
         client = await pool.connect()
+        const startMs = Date.now()
         const result = await client.query<T>(query, params)
+        const elapsed = Date.now() - startMs
+        if (elapsed > 5000) {
+          console.warn(`[db] Slow query (${elapsed}ms): ${query.substring(0, 150)}`)
+        }
         if (ttlMs > 0) {
+          if (queryCache.size >= MAX_CACHE_SIZE) {
+            const oldest = queryCache.keys().next().value
+            if (oldest) queryCache.delete(oldest)
+          }
           queryCache.set(hash, { data: result.rows, expires: Date.now() + ttlMs })
         }
         return result.rows

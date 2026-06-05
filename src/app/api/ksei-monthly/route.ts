@@ -42,12 +42,14 @@ export async function GET(req: NextRequest) {
     // SCREENER — smart money momentum per saham
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'screener') {
-      const trendFilter  = trend  ? `AND smart_money_trend = '${trend}'` : ''
-      const divFilter    = div    ? `AND divergence_signal = '${div}'` : ''
+      const ALLOWED_TRENDS = ['KONSISTEN_AKUMULASI','MULAI_AKUMULASI','KONSISTEN_DISTRIBUSI','MULAI_DISTRIBUSI','MIXED']
+      const ALLOWED_DIVS   = ['DIVERGEN_BULLISH','DIVERGEN_BEARISH','ALIGNED']
+      const trendFilter  = trend && ALLOWED_TRENDS.includes(trend) ? `AND smart_money_trend = '${trend}'` : ''
+      const divFilter    = div   && ALLOWED_DIVS.includes(div)       ? `AND divergence_signal = '${div}'` : ''
       const sectorFilter = sector ? `AND cp.sector = '${sector.replace(/'/g, "''")}'` : ''
 
       const data = await run(`
-        WITH base AS (
+        WITH computed AS (
           SELECT
             Code, Date, Price::DOUBLE AS price,
             ${SMART}         AS smart_vol,
@@ -57,18 +59,22 @@ export async function GET(req: NextRequest) {
             ${TOTAL_ALL}     AS total_all,
             ${FOREIGN_ALL}   AS foreign_all,
             ${LOCAL_ALL}     AS local_all,
-            Top_Buyer, Top_Seller,
-            ROW_NUMBER() OVER (PARTITION BY Code ORDER BY Date DESC) AS rn,
-            LAG(${SMART})         OVER (PARTITION BY Code ORDER BY Date) AS p1_smart,
-            LAG(${SMART}, 2)      OVER (PARTITION BY Code ORDER BY Date) AS p2_smart,
-            LAG(${SMART}, 3)      OVER (PARTITION BY Code ORDER BY Date) AS p3_smart,
-            LAG(${LOCAL_SMART})   OVER (PARTITION BY Code ORDER BY Date) AS p1_local,
-            LAG(${FOREIGN_SMART}) OVER (PARTITION BY Code ORDER BY Date) AS p1_foreign,
-            LAG(${RETAIL})        OVER (PARTITION BY Code ORDER BY Date) AS p1_retail,
-            LAG(${TOTAL_ALL})     OVER (PARTITION BY Code ORDER BY Date) AS p1_total,
-            LAG(${TOTAL_ALL}, 2)  OVER (PARTITION BY Code ORDER BY Date) AS p2_total,
-            LAG(${TOTAL_ALL}, 3)  OVER (PARTITION BY Code ORDER BY Date) AS p3_total
+            Top_Buyer, Top_Seller
           FROM ksei.monthly_snapshot
+        ),
+        base AS (
+          SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY Code ORDER BY Date DESC) AS rn,
+            LAG(smart_vol)         OVER (PARTITION BY Code ORDER BY Date) AS p1_smart,
+            LAG(smart_vol, 2)      OVER (PARTITION BY Code ORDER BY Date) AS p2_smart,
+            LAG(smart_vol, 3)      OVER (PARTITION BY Code ORDER BY Date) AS p3_smart,
+            LAG(local_smart_vol)   OVER (PARTITION BY Code ORDER BY Date) AS p1_local,
+            LAG(foreign_smart_vol) OVER (PARTITION BY Code ORDER BY Date) AS p1_foreign,
+            LAG(retail_vol)        OVER (PARTITION BY Code ORDER BY Date) AS p1_retail,
+            LAG(total_all)         OVER (PARTITION BY Code ORDER BY Date) AS p1_total,
+            LAG(total_all, 2)      OVER (PARTITION BY Code ORDER BY Date) AS p2_total,
+            LAG(total_all, 3)      OVER (PARTITION BY Code ORDER BY Date) AS p3_total
+          FROM computed
         ),
         calc AS (
           SELECT
@@ -150,7 +156,7 @@ export async function GET(req: NextRequest) {
             LAG(${FOREIGN_SMART}) OVER (ORDER BY Date) AS p_foreign,
             LAG(${RETAIL})        OVER (ORDER BY Date) AS p_retail,
             LAG(${TOTAL_ALL})     OVER (ORDER BY Date) AS p_total
-          FROM ksei.monthly_snapshot WHERE Code = '${code}'
+          FROM ksei.monthly_snapshot WHERE Code = $1
         )
         SELECT
           Date::VARCHAR AS month, price,
@@ -165,48 +171,50 @@ export async function GET(req: NextRequest) {
           ROUND(foreign_all / NULLIF(total_all,0) * 100, 2) AS foreign_own_pct
         FROM lag_data
         WHERE p_smart IS NOT NULL
-          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code='${code}') - INTERVAL '12 months'
+          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code=$1) - INTERVAL '12 months'
         ORDER BY Date ASC
-      `)
+      `, [code])
 
       // 2. Komposisi 18 tipe investor (latest vs prev month) — % of TOTAL_ALL
+      // OPTIMIZED: single materialized cur/prev instead of 18 separate scalar sub-selects
       const composition = await run(`
         WITH latest2 AS (
-          SELECT * FROM ksei.monthly_snapshot WHERE Code = '${code}'
+          SELECT * FROM ksei.monthly_snapshot WHERE Code = $1
           ORDER BY Date DESC LIMIT 2
         ),
-        cur  AS (SELECT * FROM latest2 ORDER BY Date DESC LIMIT 1),
-        prev AS (SELECT * FROM latest2 ORDER BY Date ASC LIMIT 1),
-        tot AS (SELECT ${TOTAL_ALL} AS total_all FROM cur)
+        cur_row  AS (SELECT * FROM latest2 ORDER BY Date DESC LIMIT 1),
+        prev_row AS (SELECT * FROM latest2 ORDER BY Date ASC  LIMIT 1),
+        tot AS (SELECT ${TOTAL_ALL} AS total_all FROM cur_row),
+        unpivot AS (
+          SELECT 'Local CP' AS tipe, 'Smart' AS kategori, cur.Local_CP AS cur_vol, prev.Local_CP AS prev_vol FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local PF','Smart',cur.Local_PF,prev.Local_PF FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local IB','Smart',cur.Local_IB,prev.Local_IB FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local MF','Smart',cur.Local_MF,prev.Local_MF FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local ID','Retail',cur.Local_ID,prev.Local_ID FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local IS','Inst',cur.Local_IS,prev.Local_IS FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local SC','Other',cur.Local_SC,prev.Local_SC FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local FD','Other',cur.Local_FD,prev.Local_FD FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Local OT','Other',cur.Local_OT,prev.Local_OT FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign CP','Smart',cur.Foreign_CP,prev.Foreign_CP FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign PF','Smart',cur.Foreign_PF,prev.Foreign_PF FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign IB','Smart',cur.Foreign_IB,prev.Foreign_IB FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign MF','Smart',cur.Foreign_MF,prev.Foreign_MF FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign ID','Retail',cur.Foreign_ID,prev.Foreign_ID FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign IS','Inst',cur.Foreign_IS,prev.Foreign_IS FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign SC','Other',cur.Foreign_SC,prev.Foreign_SC FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign FD','Other',cur.Foreign_FD,prev.Foreign_FD FROM cur_row cur, prev_row prev
+          UNION ALL SELECT 'Foreign OT','Other',cur.Foreign_OT,prev.Foreign_OT FROM cur_row cur, prev_row prev
+        )
         SELECT
-          t.tipe, t.kategori,
-          ROUND(t.cur_vol / NULLIF((SELECT total_all FROM tot),0) * 100, 2) AS pct,
-          t.cur_vol::BIGINT  AS shares,
-          ROUND((t.cur_vol - t.prev_vol) / NULLIF((SELECT total_all FROM tot),0) * 100, 3) AS delta_pct,
-          (t.cur_vol - t.prev_vol)::BIGINT AS delta_shares
-        FROM (
-          SELECT 'Local CP' AS tipe, 'Smart' AS kategori, (SELECT Local_CP FROM cur) AS cur_vol, (SELECT Local_CP FROM prev) AS prev_vol
-          UNION ALL SELECT 'Local PF','Smart',(SELECT Local_PF FROM cur),(SELECT Local_PF FROM prev)
-          UNION ALL SELECT 'Local IB','Smart',(SELECT Local_IB FROM cur),(SELECT Local_IB FROM prev)
-          UNION ALL SELECT 'Local MF','Smart',(SELECT Local_MF FROM cur),(SELECT Local_MF FROM prev)
-          UNION ALL SELECT 'Local ID','Retail',(SELECT Local_ID FROM cur),(SELECT Local_ID FROM prev)
-          UNION ALL SELECT 'Local IS','Inst',(SELECT Local_IS FROM cur),(SELECT Local_IS FROM prev)
-          UNION ALL SELECT 'Local SC','Other',(SELECT Local_SC FROM cur),(SELECT Local_SC FROM prev)
-          UNION ALL SELECT 'Local FD','Other',(SELECT Local_FD FROM cur),(SELECT Local_FD FROM prev)
-          UNION ALL SELECT 'Local OT','Other',(SELECT Local_OT FROM cur),(SELECT Local_OT FROM prev)
-          UNION ALL SELECT 'Foreign CP','Smart',(SELECT Foreign_CP FROM cur),(SELECT Foreign_CP FROM prev)
-          UNION ALL SELECT 'Foreign PF','Smart',(SELECT Foreign_PF FROM cur),(SELECT Foreign_PF FROM prev)
-          UNION ALL SELECT 'Foreign IB','Smart',(SELECT Foreign_IB FROM cur),(SELECT Foreign_IB FROM prev)
-          UNION ALL SELECT 'Foreign MF','Smart',(SELECT Foreign_MF FROM cur),(SELECT Foreign_MF FROM prev)
-          UNION ALL SELECT 'Foreign ID','Retail',(SELECT Foreign_ID FROM cur),(SELECT Foreign_ID FROM prev)
-          UNION ALL SELECT 'Foreign IS','Inst',(SELECT Foreign_IS FROM cur),(SELECT Foreign_IS FROM prev)
-          UNION ALL SELECT 'Foreign SC','Other',(SELECT Foreign_SC FROM cur),(SELECT Foreign_SC FROM prev)
-          UNION ALL SELECT 'Foreign FD','Other',(SELECT Foreign_FD FROM cur),(SELECT Foreign_FD FROM prev)
-          UNION ALL SELECT 'Foreign OT','Other',(SELECT Foreign_OT FROM cur),(SELECT Foreign_OT FROM prev)
-        ) t
-        WHERE t.cur_vol > 0
+          tipe, kategori,
+          ROUND(cur_vol::DOUBLE / NULLIF((SELECT total_all FROM tot),0) * 100, 2) AS pct,
+          cur_vol::BIGINT  AS shares,
+          ROUND((cur_vol::DOUBLE - prev_vol::DOUBLE) / NULLIF((SELECT total_all FROM tot),0) * 100, 3) AS delta_pct,
+          (cur_vol - prev_vol)::BIGINT AS delta_shares
+        FROM unpivot
+        WHERE cur_vol > 0
         ORDER BY pct DESC
-      `)
+      `, [code])
 
       // 3. Summary stats — foreign% dari sum 18 kolom
       const summary = await run(`
@@ -218,9 +226,9 @@ export async function GET(req: NextRequest) {
           Top_Buyer AS top_buyer, Top_Seller AS top_seller,
           Is_Split_Suspect AS is_split, Is_Reverse_Suspect AS is_reverse
         FROM ksei.monthly_snapshot
-        WHERE Code = '${code}'
+        WHERE Code = $1
         ORDER BY Date DESC LIMIT 1
-      `)
+      `, [code])
 
       return NextResponse.json({
         trend: trend12,

@@ -243,10 +243,10 @@ export async function GET(req: NextRequest) {
   // No specific action → return full stock detail package
   try {
     // Batch 1 — Core data (7 queries)
-    let latestRows: any[] = [], smRows: any[] = [], histRows: any[] = [], brokerRows: any[] = [],
+    let latestRows: any[] = [], smRows: any[] = [], chartFlowRows: any[] = [], brokerRows: any[] = [],
         ownerRows: any[] = [], whaleRows: any[] = [], foreignRows: any[] = [];
     try {
-      [latestRows, smRows, histRows, brokerRows, ownerRows, whaleRows, foreignRows] = await Promise.all([
+      [latestRows, smRows, chartFlowRows, brokerRows, ownerRows, whaleRows, foreignRows] = await Promise.all([
       
       // 1. Latest stock data
       run(`SELECT * FROM market.vw_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
@@ -254,15 +254,39 @@ export async function GET(req: NextRequest) {
       // 2. Smart Money Score
       run(`SELECT * FROM market.vw_smart_money_score WHERE stock_code = $1`, [code]),
       
-      // 3. Chart history — FIX: CAST trading_date AS DATE
+      // 3+8. Chart history + Flow trend COMBINED (single scan of daily_transactions)
       run(`
-        SELECT trading_date, open_price, high, low, close, volume,
-               net_foreign_value, vwma_20d, aov_ratio_ma20,
-               whale_signal, big_player_anomaly, previous
-        FROM market.daily_transactions
-        WHERE stock_code = $1
-          AND CAST(trading_date AS DATE) >= (SELECT CAST(MAX(trading_date) AS DATE) FROM market.daily_transactions) - INTERVAL '${days} days'
-        ORDER BY trading_date ASC
+        WITH base AS (
+          SELECT trading_date, open_price, high, low, close, volume,
+                 net_foreign_value, vwma_20d, aov_ratio_ma20,
+                 whale_signal, big_player_anomaly, previous
+          FROM market.daily_transactions
+          WHERE stock_code = $1
+            AND CAST(trading_date AS DATE) >= (SELECT CAST(MAX(trading_date) AS DATE) FROM market.daily_transactions) - INTERVAL '${Math.max(days, 60)} days'
+        )
+        SELECT
+          COALESCE((SELECT json_agg(c.*) FROM (
+            SELECT * FROM base ORDER BY trading_date ASC
+          ) c), '[]'::json) AS chart_data,
+          COALESCE((SELECT json_agg(f.*) FROM (
+            SELECT
+              CAST(trading_date AS VARCHAR) AS trading_date,
+              net_foreign_value::DOUBLE,
+              close::DOUBLE,
+              SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DOUBLE AS cumulative_flow,
+              AVG(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)::DOUBLE AS flow_ma5,
+              AVG(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW)::DOUBLE AS flow_ma20,
+              CASE
+                WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) >= 10e9 AND net_foreign_value >= 0 THEN 'STRONG_ACCUMULATION'
+                WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) > 0 THEN 'MILD_ACCUMULATION'
+                WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) <= -10e9 AND net_foreign_value <= 0 THEN 'STRONG_DISTRIBUTION'
+                WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) < 0 THEN 'MILD_DISTRIBUTION'
+                ELSE 'NEUTRAL'
+              END AS trend
+            FROM base
+            WHERE CAST(trading_date AS DATE) >= (SELECT CAST(MAX(trading_date) AS DATE) FROM market.daily_transactions) - 60
+            ORDER BY trading_date ASC
+          ) f), '[]'::json) AS flow_trend_data
       `, [code]),
       
       // 4. Broker Activity — FIX: CAST date AS DATE
@@ -345,32 +369,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: errMsg }, { status: 404 })
     }
 
-    // Batch 2 — Rich data (7 queries)
-    let flowTrendRows: any[] = [], concRows: any[] = [], instChangeRows: any[] = [],
+    // Extract combined chart+flow data from the merged query result
+    const histRows: any[] = chartFlowRows[0]?.chart_data ?? []
+    const flowTrendRows: any[] = chartFlowRows[0]?.flow_trend_data ?? []
+
+    // Batch 2 — Rich data (6 queries, was 7 — flow trend merged into chart above)
+    let concRows: any[] = [], instChangeRows: any[] = [],
         stealthRows: any[] = [], brokerConsRows: any[] = [],
         volSpikeRows: any[] = [], whaleActRows: any[] = [];
     try {
-      [flowTrendRows, concRows, instChangeRows, stealthRows, brokerConsRows, volSpikeRows, whaleActRows] = await Promise.all([
-      run(`
-        SELECT
-          CAST(trading_date AS VARCHAR) AS trading_date,
-          net_foreign_value,
-          close,
-          SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_flow,
-          AVG(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) AS flow_ma5,
-          AVG(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) AS flow_ma20,
-          CASE
-            WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) >= 10e9 AND net_foreign_value >= 0 THEN 'STRONG_ACCUMULATION'
-            WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) > 0 THEN 'MILD_ACCUMULATION'
-            WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) <= -10e9 AND net_foreign_value <= 0 THEN 'STRONG_DISTRIBUTION'
-            WHEN SUM(net_foreign_value) OVER (ORDER BY trading_date ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) < 0 THEN 'MILD_DISTRIBUTION'
-            ELSE 'NEUTRAL'
-          END AS trend
-        FROM market.daily_transactions
-        WHERE stock_code = $1
-          AND CAST(trading_date AS DATE) >= (SELECT CAST(MAX(trading_date) AS DATE) FROM market.daily_transactions) - 60
-        ORDER BY trading_date ASC
-      `, [code]),
+      [concRows, instChangeRows, stealthRows, brokerConsRows, volSpikeRows, whaleActRows] = await Promise.all([
 
       // 9. Concentration Index
       run(`
