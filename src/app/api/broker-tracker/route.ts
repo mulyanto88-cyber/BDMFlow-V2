@@ -520,7 +520,7 @@ export async function GET(req: NextRequest) {
         score:  scores[0] ?? null,
       })
 
-    // ── 16. SCREENER — merged proper version ───────────────────────────────
+    // ── 16. SCREENER — materialized table, supports 5d/14d/30d/60d/90d ──────
     } else if (action === 'screener' || action === 'screener_enhanced') {
       const minVal    = parseFloat(minTotalValue)
       const minBrk    = parseInt(minBrokerCount)
@@ -531,6 +531,9 @@ export async function GET(req: NextRequest) {
       if (isNaN(minBuyBrk) || minBuyBrk < 1) return NextResponse.json({ error: 'min_buy_broker_count tidak valid'}, { status: 400 })
       if (isNaN(minNetMiliar) || minNetMiliar < 0) return NextResponse.json({ error: 'min_net_miliar tidak valid' }, { status: 400 })
       if (isNaN(maxSellPressure) || maxSellPressure < 0 || maxSellPressure > 100) return NextResponse.json({ error: 'max_sell_pressure tidak valid (0-100)' }, { status: 400 })
+      const screenerDays = parseInt(searchParams.get('screener_days') || '5')
+      const validDays = [5, 14, 30, 60, 90].includes(screenerDays) ? screenerDays : 5
+      const tbl = `market.tb_broker_accum_${validDays}d`
       queryParams = []
       paramIdx = 0
       const sectorClause = sector ? `AND sector = $${paramIdx + 1}` : ''
@@ -539,7 +542,7 @@ export async function GET(req: NextRequest) {
       const p = paramIdx
       queryParams.push(minNetMiliar, maxSellPressure, minVal, minBrk, minBuyBrk, minPwr)
       query = `
-        SELECT * FROM market.tb_broker_accumulation
+        SELECT * FROM ${tbl}
         WHERE net_accumulation > 0
           AND net_miliar >= $${p + 1}
           AND sell_pressure_pct <= $${p + 2}
