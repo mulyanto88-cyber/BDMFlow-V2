@@ -294,7 +294,9 @@ function TabLeaderboard({
                   {fmtM(n(g.foreign_net_5d_miliar))}
                 </td>
                 <td className="px-3 py-2.5 text-right font-mono text-blue-300" data-label="Value 1D">
-                  {n(g.value_1d_miliar).toFixed(0)} M
+                  {n(g.value_1d_miliar) >= 1000
+                    ? `${(n(g.value_1d_miliar) / 1000).toFixed(1)} T`
+                    : `${n(g.value_1d_miliar).toFixed(0)} M`}
                 </td>
                 <td className={`px-3 py-2.5 text-right ${n(g.whale_1d) > 0 ? 'text-cyan-400' : 'text-muted-foreground'}`} data-label="Whale">
                   {n(g.whale_1d) > 0 ? `★ ${g.whale_1d}` : '—'}
@@ -652,7 +654,9 @@ function TabFlowMonitor({
                                             {s.whale_signal ? '★' : '—'}
                                           </td>
                                           <td className={`px-3 py-1.5 text-right font-mono ${numCls(n(s.broker_net_7d_miliar))}`} data-label="Broker 7D">
-                                            {fmt(n(s.broker_net_7d_miliar), 2)} M
+                                            {Math.abs(n(s.broker_net_7d_miliar)) >= 1000
+                                              ? `${fmt(n(s.broker_net_7d_miliar) / 1000, 1)} T`
+                                              : `${fmt(n(s.broker_net_7d_miliar), 2)} M`}
                                           </td>
                                           <td className={`px-3 py-1.5 text-right font-bold text-[9px] whitespace-nowrap ${roleColors[s.stock_role] ?? 'text-muted-foreground'}`} data-label="Role">
                                             {s.stock_role === 'CATCH_UP_CANDIDATE' ? '⚡ CATCH-UP' : s.stock_role}
