@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatRupiah } from '@/lib/utils'
 import {
   Search, Crown, Activity, Shield, Filter,
@@ -141,82 +141,94 @@ export default function SmartMoneyMatrix() {
   const [sortBy, setSortBy]         = useState<SortField>('net_foreign_7d_miliar')
   const [sortDir, setSortDir]       = useState<SortDir>('desc')
 
-  // ─── Fetches (all 3 in one batch with AbortController) ──────────────────────
-  const abortRef = useRef<AbortController | null>(null)
-  useEffect(() => {
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    const { signal } = controller
-    abortRef.current = controller
-
-    async function loadAll() {
-      try {
-        const [strategic, smartScore, tactical] = await Promise.all([
-          mdQuery(`SELECT * FROM ksei.vw_ksei_inst_positioning ORDER BY mom_change_pct DESC LIMIT 50`),
-          mdQuery(`SELECT * FROM market.vw_smart_money_score ORDER BY smart_money_score DESC LIMIT 50`),
-          mdQuery(`
-            SELECT * FROM market.vw_tactical_momentum_smart_money
-            WHERE ABS(net_foreign_7d_miliar * 1e9) > CAST($1 AS DOUBLE)
-               OR ABS(broker_net_7d_miliar * 1e9)  > CAST($1 AS DOUBLE)
-            ORDER BY ABS(net_foreign_7d_miliar) DESC, ABS(broker_net_7d_miliar) DESC
-            LIMIT 50
-          `, [threshold * 1_000_000_000]),
-        ])
-        if (signal.aborted) return
-        setStrategicList(strategic as StrategicData[])
-        setSmartScoreList(smartScore as SmartScoreData[])
-        setTacticalList(tactical as TacticalData[])
-      } catch (err: any) {
-        if (signal.aborted) return
-        setError(err.message || 'Failed to fetch data')
-      } finally {
-        if (!signal.aborted) setLoading(false)
-      }
+  // ─── Fetches ──────────────────────────────────────────────────────────────
+  const fetchStrategic = useCallback(async () => {
+    try {
+      const data = await mdQuery(`
+        SELECT * FROM ksei.vw_ksei_inst_positioning
+        ORDER BY mom_change_pct DESC
+        LIMIT 50
+      `)
+      setStrategicList(data as StrategicData[])
+    } catch (err: any) {
+      console.error('Strategic Error:', err)
     }
+  }, [])
 
-    loadAll()
-    return () => controller.abort()
+  const fetchSmartScore = useCallback(async () => {
+    try {
+      const data = await mdQuery(`
+        SELECT * FROM market.vw_smart_money_score
+        ORDER BY smart_money_score DESC
+        LIMIT 50
+      `)
+      setSmartScoreList(data as SmartScoreData[])
+    } catch (err: any) {
+      console.error('SmartScore Error:', err)
+    }
+  }, [])
+
+  const fetchTactical = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await mdQuery(`
+        SELECT * FROM market.vw_tactical_momentum_smart_money
+        WHERE ABS(net_foreign_7d_miliar * 1e9) > CAST($1 AS DOUBLE)
+           OR ABS(broker_net_7d_miliar * 1e9)  > CAST($1 AS DOUBLE)
+        ORDER BY ABS(net_foreign_7d_miliar) DESC, ABS(broker_net_7d_miliar) DESC
+        LIMIT 50
+      `, [threshold * 1_000_000_000])
+      setTacticalList(data as TacticalData[])
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch data')
+    } finally {
+      setLoading(false)
+    }
   }, [threshold, foreignDays])
 
-  // ─── Computed (single-pass for kpis + signal distributions) ─────────────────
-  const { sortedTactical, kpis, maxAbsForeign, tacSignalDist, strSignalDist } = useMemo(() => {
-    const sorted = [...tacticalList].sort((a, b) => {
+  useEffect(() => { fetchStrategic()  }, [fetchStrategic])
+  useEffect(() => { fetchSmartScore() }, [fetchSmartScore])
+  useEffect(() => { fetchTactical()   }, [fetchTactical])
+
+  // ─── Computed ─────────────────────────────────────────────────────────────
+  const sortedTactical = useMemo(() => {
+    return [...tacticalList].sort((a, b) => {
       const av = Number(a[sortBy as keyof TacticalData]) || 0
       const bv = Number(b[sortBy as keyof TacticalData]) || 0
       return sortDir === 'desc' ? bv - av : av - bv
     })
+  }, [tacticalList, sortBy, sortDir])
 
-    let bullish = 0, fgnSum = 0, bkrSum = 0
-    const tacCnt: Record<string, number> = {}
-    let maxFgn = 1
-    tacticalList.forEach(r => {
+  const kpis = useMemo(() => {
+    const bullish    = tacticalList.filter(r => {
       const s = (r.tactical_signal || '').toUpperCase()
-      if (s.includes('BULL') || s.includes('BUY')) bullish++
-      const f7 = Number(r.net_foreign_7d_miliar || 0)
-      fgnSum += f7
-      bkrSum += Number(r.broker_net_7d_miliar || 0)
-      maxFgn = Math.max(maxFgn, Math.abs(f7))
-      const sig = r.tactical_signal || 'OTHER'
-      tacCnt[sig] = (tacCnt[sig] || 0) + 1
-    })
-
-    let acc = 0
-    const strCnt: Record<string, number> = {}
-    strategicList.forEach(r => {
+      return s.includes('BULL') || s.includes('BUY')
+    }).length
+    const netForeign = tacticalList.reduce((s, r) => s + Number(r.net_foreign_7d_miliar || 0), 0)
+    const netBroker  = tacticalList.reduce((s, r) => s + Number(r.broker_net_7d_miliar  || 0), 0)
+    const accum      = strategicList.filter(r => {
       const s = (r.strategic_signal || '').toUpperCase()
-      if (s.includes('ACCUM') || s.includes('BUY') || s.includes('BULL')) acc++
-      const sig = r.strategic_signal || 'OTHER'
-      strCnt[sig] = (strCnt[sig] || 0) + 1
-    })
+      return s.includes('ACCUM') || s.includes('BUY') || s.includes('BULL')
+    }).length
+    return { bullish, netForeign, netBroker, accum, total: tacticalList.length }
+  }, [tacticalList, strategicList])
 
-    return {
-      sortedTactical: sorted,
-      kpis: { bullish, netForeign: fgnSum, netBroker: bkrSum, accum: acc, total: tacticalList.length },
-      maxAbsForeign: maxFgn,
-      tacSignalDist: Object.entries(tacCnt).sort((a, b) => b[1] - a[1]),
-      strSignalDist: Object.entries(strCnt).sort((a, b) => b[1] - a[1]),
-    }
-  }, [tacticalList, strategicList, sortBy, sortDir])
+  const maxAbsForeign = useMemo(() =>
+    Math.max(...sortedTactical.map(r => Math.abs(Number(r.net_foreign_7d_miliar || 0))), 1),
+  [sortedTactical])
+
+  const tacSignalDist = useMemo(() => {
+    const cnt: Record<string, number> = {}
+    tacticalList.forEach(r => { const s = r.tactical_signal || 'OTHER'; cnt[s] = (cnt[s] || 0) + 1 })
+    return Object.entries(cnt).sort((a, b) => b[1] - a[1])
+  }, [tacticalList])
+
+  const strSignalDist = useMemo(() => {
+    const cnt: Record<string, number> = {}
+    strategicList.forEach(r => { const s = r.strategic_signal || 'OTHER'; cnt[s] = (cnt[s] || 0) + 1 })
+    return Object.entries(cnt).sort((a, b) => b[1] - a[1])
+  }, [strategicList])
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   const toggleSort = (field: SortField) => {

@@ -98,10 +98,6 @@ export default function StockDetailPage() {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [chartReady, setChartReady] = useState(false)
-  const chartRef = useRef<any>(null)
-  const chartSeriesRef = useRef<{
-    candle: any; vwma: any; aov: any; vol: any; foreign: any; nfLine: any
-  } | null>(null)
 
   // ─── Load Lightweight Charts ───────────────────────────────────────────────
   useEffect(() => {
@@ -129,18 +125,13 @@ export default function StockDetailPage() {
   }, [])
 
   // ─── Fetch Overview ────────────────────────────────────────────────────────
-  const abortRef = useRef<AbortController | null>(null)
   const fetchAllData = useCallback(async (code: string, days: number) => {
     if (!code) return
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    abortRef.current = controller
     setIsLoading(true)
     setErrorMsg('')
     try {
-      const res = await fetch(`/api/stock-detail?code=${code}&days=${days}`, { signal: controller.signal })
+      const res = await fetch(`/api/stock-detail?code=${code}&days=${days}`)
       const json = await res.json()
-      if (controller.signal.aborted) return
       if (!res.ok || json.error) { setErrorMsg(json.error || 'Failed'); return }
 
       setStockData(json.stockData)
@@ -174,9 +165,8 @@ export default function StockDetailPage() {
         big_player_anomaly: !!d.big_player_anomaly,
       })))
     } catch (err: any) {
-      if (abortRef.current?.signal.aborted) return
       setErrorMsg(err.message || 'Failed')
-    } finally { if (!abortRef.current?.signal.aborted) setIsLoading(false) }
+    } finally { setIsLoading(false) }
     loadedTabs.current.add('overview')
   }, [])
 
@@ -216,16 +206,18 @@ export default function StockDetailPage() {
     loadTab(tab)
   }
 
-  // ─── Render Chart (creation ONCE, data updates via .setData()) ──────────────
+  // ─── Render Chart ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!chartReady || !chartContainerRef.current || activeTab !== 'overview') return
+    if (!chartReady || !chartContainerRef.current || !historyData.length || activeTab !== 'overview') return
     const lwc = (window as any).LightweightCharts
     if (!lwc) return
-    if (chartRef.current) return // already created
 
     chartContainerRef.current.innerHTML = ''
+    const chartHeight = isFullscreen
+      ? Math.max(400, (chartContainerRef.current.clientHeight || window.innerHeight - 120))
+      : 600
     const chart = lwc.createChart(chartContainerRef.current, {
-      height: isFullscreen ? Math.max(400, chartContainerRef.current.clientHeight || window.innerHeight - 120) : 600,
+      height: chartHeight,
       localization: { priceFormatter: (p: number) => Math.round(p).toLocaleString('id-ID') },
       layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#94a3b8' },
       grid: { vertLines: { color: 'rgba(51,65,85,0.15)' }, horzLines: { color: 'rgba(51,65,85,0.15)' } },
@@ -233,44 +225,76 @@ export default function StockDetailPage() {
       rightPriceScale: { borderColor: 'rgba(51,65,85,0.5)' },
       timeScale: { borderColor: 'rgba(51,65,85,0.5)', timeVisible: true },
     })
+
     chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.38 } })
 
+    let cumSum = 0
+    const cumulativeNF = historyData.map(d => { cumSum += d.net_foreign; return cumSum })
+    const cnfMin = Math.min(...cumulativeNF)
+    const cnfMax = Math.max(...cumulativeNF)
+    const cnfRange = cnfMax - cnfMin || 1
+    const pLow  = Math.min(...historyData.map(d => d.low).filter(v => v > 0))
+    const pHigh = Math.max(...historyData.map(d => d.high).filter(v => v > 0))
+    const pRange = pHigh - pLow || 1
+    const targetLow  = pLow  + pRange * 0.15
+    const targetHigh = pLow  + pRange * 0.65
+    const nfLineData = historyData.map((d, i) => ({
+      time: d.time,
+      value: ((cumulativeNF[i] - cnfMin) / cnfRange) * (targetHigh - targetLow) + targetLow,
+    }))
     const nfLineSeries = chart.addLineSeries({
       color: 'rgba(20,184,166,0.6)', lineWidth: 2, crosshairMarkerVisible: false,
       lastValueVisible: false, priceLineVisible: false, priceScaleId: 'right',
     })
+    nfLineSeries.setData(nfLineData)
+
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#22c55e', downColor: '#ef4444', borderVisible: false,
       wickUpColor: '#22c55e', wickDownColor: '#ef4444',
     })
-    const vwmaSeries = chart.addLineSeries({
-      color: '#3b82f6', lineWidth: 2, lineStyle: 2,
-      crosshairMarkerVisible: false, lastValueVisible: true, priceLineVisible: false,
+    candleSeries.setData(historyData.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })))
+
+    const markers: any[] = []
+    historyData.forEach(d => {
+      if (d.whale_signal || d.aov_ratio >= 1.5)
+        markers.push({ time: d.time, position: 'aboveBar', color: '#10b981', shape: 'circle', size: 1.5, text: '★' })
+      if (d.aov_ratio <= 0.6 && d.aov_ratio > 0)
+        markers.push({ time: d.time, position: 'belowBar', color: '#ef4444', shape: 'circle', size: 1.5, text: '⚡' })
+      if (d.big_player_anomaly)
+        markers.push({ time: d.time, position: 'belowBar', color: '#ec4899', shape: 'circle', size: 1.5, text: '◆' })
     })
+    markers.sort((a, b) => (a.time < b.time ? -1 : 1))
+    candleSeries.setMarkers(markers)
+
+    const vwmaSeries = chart.addLineSeries({ color: '#3b82f6', lineWidth: 2, lineStyle: 2, crosshairMarkerVisible: false, lastValueVisible: true, priceLineVisible: false })
+    vwmaSeries.setData(historyData.filter(d => d.vwma > 0).map(d => ({ time: d.time, value: d.vwma })))
+
     const aovSeries = chart.addLineSeries({ color: '#8b5cf6', lineWidth: 2, priceScaleId: 'left' })
     chart.priceScale('left').applyOptions({ scaleMargins: { top: 0.62, bottom: 0.22 } })
+    aovSeries.setData(historyData.map(d => ({ time: d.time, value: d.aov_ratio })))
     aovSeries.createPriceLine({ price: 1.5, color: '#22c55e', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: '1.5x' })
     aovSeries.createPriceLine({ price: 0.6, color: '#ef4444', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: '0.6x' })
+
     const volSeries = chart.addHistogramSeries({ priceScaleId: 'vol', priceFormat: { type: 'volume' } })
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.67, bottom: 0.18 } })
+    volSeries.setData(historyData.map(d => ({ time: d.time, value: d.volume, color: d.close >= d.open ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)' })))
+
     const foreignSeries = chart.addHistogramSeries({ priceScaleId: 'foreign' })
     chart.priceScale('foreign').applyOptions({ scaleMargins: { top: 0.86, bottom: 0.02 } })
-
-    chartSeriesRef.current = {
-      candle: candleSeries, vwma: vwmaSeries, aov: aovSeries,
-      vol: volSeries, foreign: foreignSeries, nfLine: nfLineSeries,
-    }
+    foreignSeries.setData(historyData.map(d => ({ time: d.time, value: d.net_foreign, color: d.net_foreign >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)' })))
 
     const tooltipEl = document.createElement('div')
     tooltipEl.style.cssText = 'position:absolute;display:none;padding:8px 12px;background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:8px;font-size:11px;color:hsl(var(--foreground));z-index:100;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3);'
     chartContainerRef.current.appendChild(tooltipEl)
 
+    const candleData = historyData.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close }))
+
     chart.subscribeCrosshairMove((param: any) => {
       if (!param.point || !param.time) { tooltipEl.style.display = 'none'; return }
       const data = param.seriesData.get(candleSeries) as any
       if (!data) { tooltipEl.style.display = 'none'; return }
-      const idx = historyData.findIndex((d: any) => d.time === data.time || d.trading_date === data.time)
-      const prevClose = idx > 0 ? (historyData[idx - 1].close ?? historyData[idx - 1].open) : data.open
+      const idx = candleData.findIndex(d => d.time === data.time)
+      const prevClose = idx > 0 ? candleData[idx - 1].close : data.open
       const chgPct = prevClose > 0 ? ((data.close - prevClose) / prevClose) * 100 : 0
       const chgColor = chgPct >= 0 ? '#22c55e' : '#ef4444'
       tooltipEl.innerHTML = [
@@ -293,6 +317,7 @@ export default function StockDetailPage() {
     })
 
     chart.timeScale().fitContent()
+
     const handleResize = () => {
       if (chartContainerRef.current) {
         chart.applyOptions({ width: chartContainerRef.current.clientWidth, height: isFullscreen ? chartContainerRef.current.clientHeight : 600 })
@@ -304,68 +329,8 @@ export default function StockDetailPage() {
         chart.applyOptions({ width: chartContainerRef.current.clientWidth, height: isFullscreen ? Math.max(400, chartContainerRef.current.clientHeight) : 600 })
       }
     })
-    chartRef.current = chart
-    return () => { window.removeEventListener('resize', handleResize); chart.remove(); chartRef.current = null; chartSeriesRef.current = null }
-  }, [chartReady, activeTab, isFullscreen])
-
-  // ─── Update chart data (without destroying chart) ───────────────────────────
-  useEffect(() => {
-    const chart = chartRef.current
-    const series = chartSeriesRef.current
-    if (!chart || !series || !historyData.length) return
-
-    let cumSum = 0
-    const cumulativeNF = historyData.map((d: any) => { cumSum += d.net_foreign ?? d.net_foreign_value ?? 0; return cumSum })
-    const cnfMin = Math.min(...cumulativeNF)
-    const cnfMax = Math.max(...cumulativeNF)
-    const cnfRange = cnfMax - cnfMin || 1
-    const pLow  = Math.min(...historyData.map((d: any) => d.low ?? d.close).filter((v: number) => v > 0))
-    const pHigh = Math.max(...historyData.map((d: any) => d.high ?? d.close).filter((v: number) => v > 0))
-    const pRange = pHigh - pLow || 1
-    const targetLow  = pLow  + pRange * 0.15
-    const targetHigh = pLow  + pRange * 0.65
-
-    series.nfLine.setData(historyData.map((d: any, i: number) => ({
-      time: d.time ?? d.trading_date,
-      value: ((cumulativeNF[i] - cnfMin) / cnfRange) * (targetHigh - targetLow) + targetLow,
-    })))
-    series.candle.setData(historyData.map((d: any) => ({
-      time: d.time ?? d.trading_date,
-      open: d.open ?? d.open_price, high: d.high, low: d.low, close: d.close,
-    })))
-
-    const markers: any[] = []
-    historyData.forEach((d: any) => {
-      const t = d.time ?? d.trading_date
-      if (d.whale_signal || (d.aov_ratio ?? d.aov_ratio_ma20) >= 1.5)
-        markers.push({ time: t, position: 'aboveBar', color: '#10b981', shape: 'circle', size: 1.5, text: '★' })
-      if ((d.aov_ratio ?? d.aov_ratio_ma20) <= 0.6 && (d.aov_ratio ?? d.aov_ratio_ma20) > 0)
-        markers.push({ time: t, position: 'belowBar', color: '#ef4444', shape: 'circle', size: 1.5, text: '⚡' })
-      if (d.big_player_anomaly)
-        markers.push({ time: t, position: 'belowBar', color: '#ec4899', shape: 'circle', size: 1.5, text: '◆' })
-    })
-    markers.sort((a, b) => (a.time < b.time ? -1 : 1))
-    series.candle.setMarkers(markers)
-
-    series.vwma.setData(historyData.filter((d: any) => (d.vwma ?? d.vwma_20d ?? 0) > 0).map((d: any) => ({
-      time: d.time ?? d.trading_date, value: d.vwma ?? d.vwma_20d,
-    })))
-    series.aov.setData(historyData.map((d: any) => ({
-      time: d.time ?? d.trading_date, value: d.aov_ratio ?? d.aov_ratio_ma20 ?? 1,
-    })))
-    series.vol.setData(historyData.map((d: any) => ({
-      time: d.time ?? d.trading_date,
-      value: d.volume ?? 0,
-      color: (d.close >= (d.open ?? d.open_price) ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)'),
-    })))
-    series.foreign.setData(historyData.map((d: any) => ({
-      time: d.time ?? d.trading_date,
-      value: d.net_foreign ?? d.net_foreign_value ?? 0,
-      color: (d.net_foreign ?? d.net_foreign_value ?? 0) >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)',
-    })))
-
-    chart.timeScale().fitContent()
-  }, [historyData])
+    return () => { window.removeEventListener('resize', handleResize); chart.remove() }
+  }, [historyData, chartReady, isFullscreen, activeTab])
 
   // ─── Derived ───────────────────────────────────────────────────────────────
   const smiScore = smartMoneyIndex?.smart_money_score || 0

@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber } from '@/lib/utils'
 import { RefreshCw, X, AlertTriangle, SlidersHorizontal, Radar, ChevronLeft, ChevronRight, EyeOff, Zap, Filter, Clock, Flame, Globe, Building2 } from 'lucide-react'
 import Link from 'next/link'
@@ -123,11 +123,7 @@ export default function ScreenerPage() {
   const periodLabel = period === 30 ? '1M' : period === 90 ? '3M' : `${period}D`
 
   // ── Fetch (no period dependency — all periods fetched at once) ──────────────
-  const abortRef = useRef<AbortController | null>(null)
   const fetchData = useCallback(async () => {
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    abortRef.current = controller
     setLoading(true)
     setError(null)
     try {
@@ -150,13 +146,11 @@ export default function ScreenerPage() {
         LEFT JOIN market.vw_stock_latest    l ON s.stock_code = l.stock_code
         WHERE r.warning_flag IS NULL
       `)
-      if (controller.signal.aborted) return
       setRawData(data)
     } catch (err: any) {
-      if (controller.signal.aborted) return
       setError(err.message || 'Failed to fetch data')
     } finally {
-      if (!controller.signal.aborted) setLoading(false)
+      setLoading(false)
     }
   }, [])
 

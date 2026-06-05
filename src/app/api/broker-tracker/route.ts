@@ -213,11 +213,6 @@ export async function GET(req: NextRequest) {
       const cleanCode = validateStockCode(code)
       paramIdx++
       queryParams.push(cleanCode)
-      // Build trading_date filter from existing date params (avoid fragile .replace())
-      const detailParams = dateFilter.params
-      const detailClause = detailParams.length >= 2
-        ? `CAST(trading_date AS DATE) BETWEEN $1::DATE AND $2::DATE`
-        : `CAST(trading_date AS DATE) >= $1::DATE`
       query = `
         WITH local_broker_agg AS (
           SELECT
@@ -247,7 +242,7 @@ export async function GET(req: NextRequest) {
             SUM(foreign_buy_value)::DOUBLE  AS foreign_buy,
             SUM(foreign_sell_value)::DOUBLE AS foreign_sell
           FROM market.vw_stock_detail
-          WHERE ${detailClause}
+          WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
             AND stock_code = $${paramIdx}
         )
         SELECT
@@ -301,23 +296,6 @@ export async function GET(req: NextRequest) {
       const cleanCode = validateStockCode(code)
       paramIdx++
       queryParams.push(cleanCode)
-      // Compute prev_period boundaries safely in JS (avoid fragile SQL date arithmetic)
-      let prevStart: string, prevEnd: string
-      if (startDate && endDate) {
-        const s = new Date(startDate), e = new Date(endDate)
-        const duration = Math.max(1, e.getTime() - s.getTime())
-        const prevDur = new Date(s.getTime() - duration - 86400000)
-        const prevEndD = new Date(s.getTime() - 86400000)
-        prevStart = prevDur.toISOString().split('T')[0]
-        prevEnd   = prevEndD.toISOString().split('T')[0]
-      } else {
-        const d = parseInt(days || '5')
-        const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - d)
-        const prevCutoff = new Date(cutoff); prevCutoff.setDate(prevCutoff.getDate() - d)
-        prevStart = prevCutoff.toISOString().split('T')[0]
-        prevEnd   = new Date(cutoff.getTime() - 86400000).toISOString().split('T')[0]
-      }
-      queryParams.push(prevStart, prevEnd)
       query = `
         WITH current_period AS (
           SELECT broker_code, SUM(value)::DOUBLE AS net_val, MAX(broker_name) AS broker_name
@@ -328,7 +306,9 @@ export async function GET(req: NextRequest) {
         prev_period AS (
           SELECT broker_code, SUM(value)::DOUBLE AS net_val
           FROM broker_activity
-          WHERE CAST(date AS DATE) BETWEEN $${paramIdx + 1}::DATE AND $${paramIdx + 2}::DATE
+          WHERE CAST(date AS DATE) BETWEEN
+              ($1::DATE - ($2::DATE - $1::DATE) - INTERVAL '1 day')
+              AND ($1::DATE - INTERVAL '1 day')
             AND LEFT(stock_code,4) = $${paramIdx}
           GROUP BY broker_code
         )

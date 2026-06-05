@@ -70,8 +70,8 @@ export async function GET(req: NextRequest) {
     // ── 2. ACTIVITY FEED — recent transactions ───────────────────────────────
     } else if (action === 'feed') {
       const typeClause   = actionType  ? `AND action_type = '${actionType}'`  : ''
-      const stockCode    = (searchParams.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
-      const stockClause  = stockCode ? `AND stock_code = '${stockCode}'` : ''
+      const stockCode    = searchParams.get('code') ?? ''
+      const stockClause  = stockCode ? `AND stock_code = '${stockCode.toUpperCase()}'` : ''
       const srcFilter    = sourceType ? `AND source_type = '${sourceType}'` : ''
       const realFilter   = realOnly
         ? `AND (is_pengendali OR is_direksi OR is_komisaris
@@ -236,8 +236,8 @@ export async function GET(req: NextRequest) {
 
     // ── 6. LATEST POSITIONS ───────────────────────────────────────────────────
     } else if (action === 'positions') {
-      const code = (searchParams.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10)
-      const codeClause = code ? `WHERE stock_code = '${code}'` : `WHERE days_since_last_tx <= 90`
+      const code = searchParams.get('code') ?? ''
+      const codeClause = code ? `WHERE stock_code = '${code.toUpperCase()}'` : `WHERE days_since_last_tx <= 90`
       const data = await safeRun(`
         SELECT
           stock_code,

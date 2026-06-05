@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { DataTable } from '@/components/data-table'
 import { MetricCard } from '@/components/metric-card'
@@ -11,43 +11,6 @@ import { Shield, Star, TrendingUp, Users, AlertTriangle, Loader2, ArrowRight } f
 
 function fmtP(v: number) { if (v == null) return '—'; return `${v >= 0 ? '+' : ''}${v?.toFixed(2) ?? '0.00'}%` }
 
-const bPrimeCol = createColumnHelper<any>()
-const bPrimeColumns = [
-  bPrimeCol.accessor('stock_code', { header: 'Stock', cell: r => <Link href={`/stock/${r.getValue()}`} className="font-mono font-bold text-sm text-gold-400 hover:underline">{r.getValue()}</Link> }),
-  bPrimeCol.accessor('broker_score', { header: 'Broker', cell: r => <span className="font-bold text-amber-400">{r.getValue() ?? '—'}</span> }),
-  bPrimeCol.accessor('foreign_score', { header: 'Foreign', cell: r => <span className="font-bold text-blue-400">{r.getValue() ?? '—'}</span> }),
-  bPrimeCol.accessor('whale_score', { header: 'Whale', cell: r => <span>{r.getValue() ?? '—'}</span> }),
-  bPrimeCol.accessor('composite_score', { header: 'Score', cell: r => <span className="font-black">{Math.round(Number(r.getValue() ?? 0))}</span> }),
-  bPrimeCol.accessor('composite_tier', { header: 'Signal', cell: r => <TierBadge tier={String(r.getValue() ?? '')} /> }),
-  bPrimeCol.accessor('close', { header: 'Price', cell: r => Number(r.getValue() ?? 0).toLocaleString('id-ID') }),
-  bPrimeCol.accessor('return_5d', { header: '5D%', cell: r => <span className={Number(r.getValue() ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{fmtP(Number(r.getValue() ?? 0))}</span> }),
-  bPrimeCol.accessor('sector', { header: 'Sector', cell: r => <span className="text-xs text-muted-foreground">{String(r.getValue() ?? '')}</span> }),
-]
-
-const bConvCol = createColumnHelper<any>()
-const bConvColumns = [
-  bConvCol.accessor('stock_code', { header: 'Stock', cell: r => <Link href={`/stock/${r.getValue()}`} className="font-mono font-bold text-sm text-gold-400 hover:underline">{r.getValue()}</Link> }),
-  bConvCol.accessor('foreign_score', { header: 'Foreign Score', cell: r => <span className="font-bold text-blue-400">{r.getValue() ?? '—'}</span> }),
-  bConvCol.accessor('broker_score', { header: 'Broker Score', cell: r => <span className="font-bold text-amber-400">{r.getValue() ?? '—'}</span> }),
-  bConvCol.accessor('composite_score', { header: 'Composite', cell: r => <span className="font-black">{Math.round(Number(r.getValue() ?? 0))}</span> }),
-  bConvCol.accessor('composite_tier', { header: 'Signal', cell: r => <TierBadge tier={String(r.getValue() ?? '')} /> }),
-  bConvCol.accessor('close', { header: 'Price', cell: r => Number(r.getValue() ?? 0).toLocaleString('id-ID') }),
-  bConvCol.accessor('sector', { header: 'Sector', cell: r => <span className="text-xs text-muted-foreground">{String(r.getValue() ?? '')}</span> }),
-]
-
-const bLeaderCol = createColumnHelper<any>()
-const bLeaderColumns = [
-  bLeaderCol.accessor('stock_code', { header: 'Stock', cell: r => <Link href={`/stock/${r.getValue()}`} className="font-mono font-bold text-sm text-gold-400 hover:underline">{r.getValue()}</Link> }),
-  bLeaderCol.accessor('broker_score', { header: 'Bandar Score', cell: r => <span className="font-black text-amber-400">{r.getValue() ?? '—'}</span> }),
-  bLeaderCol.accessor('foreign_score', { header: 'Foreign', cell: r => <span>{r.getValue() ?? '—'}</span> }),
-  bLeaderCol.accessor('whale_score', { header: 'Whale', cell: r => <span>{r.getValue() ?? '—'}</span> }),
-  bLeaderCol.accessor('composite_score', { header: 'Composite', cell: r => <span className="font-black">{Math.round(Number(r.getValue() ?? 0))}</span> }),
-  bLeaderCol.accessor('composite_tier', { header: 'Signal', cell: r => <TierBadge tier={String(r.getValue() ?? '')} /> }),
-  bLeaderCol.accessor('close', { header: 'Price', cell: r => Number(r.getValue() ?? 0).toLocaleString('id-ID') }),
-  bLeaderCol.accessor('change_percent', { header: 'Chg%', cell: r => <span className={Number(r.getValue() ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{fmtP(Number(r.getValue() ?? 0))}</span> }),
-  bLeaderCol.accessor('sector', { header: 'Sector', cell: r => <span className="text-xs text-muted-foreground">{String(r.getValue() ?? '')}</span> }),
-]
-
 export default function BandarmologiPage() {
   const [prime, setPrime] = useState<any[]>([])
   const [convergence, setConvergence] = useState<any[]>([])
@@ -56,24 +19,15 @@ export default function BandarmologiPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const controller = new AbortController()
-    const { signal } = controller
     Promise.all([
-      fetch('/api/bandarmologi?action=prime', { signal }).then(r => r.json()).catch(() => []),
-      fetch('/api/bandarmologi?action=convergence', { signal }).then(r => r.json()).catch(() => []),
-      fetch('/api/bandarmologi?action=leaderboard', { signal }).then(r => r.json()).catch(() => []),
+      fetch('/api/bandarmologi?action=prime').then(r => r.json()).catch(() => []),
+      fetch('/api/bandarmologi?action=convergence').then(r => r.json()).catch(() => []),
+      fetch('/api/bandarmologi?action=leaderboard').then(r => r.json()).catch(() => []),
     ]).then(([p, c, l]) => {
-      if (signal.aborted) return
       setPrime(Array.isArray(p) ? p : p.data ?? [])
       setConvergence(Array.isArray(c) ? c : c.data ?? [])
       setLeaderboard(Array.isArray(l) ? l : l.data ?? [])
-    }).catch((e) => {
-      if (signal.aborted) return
-      setError(e.message)
-    }).finally(() => {
-      if (!signal.aborted) setLoading(false)
-    })
-    return () => controller.abort()
+    }).catch((e) => setError(e.message)).finally(() => setLoading(false))
   }, [])
 
   if (error) return (
@@ -93,6 +47,43 @@ export default function BandarmologiPage() {
   const highBroker = allData.filter((r: any) => (r.broker_score ?? 0) >= 10).length
   const highForeign = allData.filter((r: any) => (r.foreign_score ?? 0) >= 15).length
   const totalSignals = leaderboard.length
+
+  const primeCol = createColumnHelper<any>()
+  const primeColumns = [
+    primeCol.accessor('stock_code', { header: 'Stock', cell: r => <Link href={`/stock/${r.getValue()}`} className="font-mono font-bold text-sm text-gold-400 hover:underline">{r.getValue()}</Link> }),
+    primeCol.accessor('broker_score', { header: 'Broker', cell: r => <span className="font-bold text-amber-400">{r.getValue() ?? '—'}</span> }),
+    primeCol.accessor('foreign_score', { header: 'Foreign', cell: r => <span className="font-bold text-blue-400">{r.getValue() ?? '—'}</span> }),
+    primeCol.accessor('whale_score', { header: 'Whale', cell: r => <span>{r.getValue() ?? '—'}</span> }),
+    primeCol.accessor('composite_score', { header: 'Score', cell: r => <span className="font-black">{Math.round(Number(r.getValue() ?? 0))}</span> }),
+    primeCol.accessor('composite_tier', { header: 'Signal', cell: r => <TierBadge tier={String(r.getValue() ?? '')} /> }),
+    primeCol.accessor('close', { header: 'Price', cell: r => Number(r.getValue() ?? 0).toLocaleString('id-ID') }),
+    primeCol.accessor('return_5d', { header: '5D%', cell: r => <span className={Number(r.getValue() ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{fmtP(Number(r.getValue() ?? 0))}</span> }),
+    primeCol.accessor('sector', { header: 'Sector', cell: r => <span className="text-xs text-muted-foreground">{String(r.getValue() ?? '')}</span> }),
+  ]
+
+  const convCol = createColumnHelper<any>()
+  const convColumns = [
+    convCol.accessor('stock_code', { header: 'Stock', cell: r => <Link href={`/stock/${r.getValue()}`} className="font-mono font-bold text-sm text-gold-400 hover:underline">{r.getValue()}</Link> }),
+    convCol.accessor('foreign_score', { header: 'Foreign Score', cell: r => <span className="font-bold text-blue-400">{r.getValue() ?? '—'}</span> }),
+    convCol.accessor('broker_score', { header: 'Broker Score', cell: r => <span className="font-bold text-amber-400">{r.getValue() ?? '—'}</span> }),
+    convCol.accessor('composite_score', { header: 'Composite', cell: r => <span className="font-black">{Math.round(Number(r.getValue() ?? 0))}</span> }),
+    convCol.accessor('composite_tier', { header: 'Signal', cell: r => <TierBadge tier={String(r.getValue() ?? '')} /> }),
+    convCol.accessor('close', { header: 'Price', cell: r => Number(r.getValue() ?? 0).toLocaleString('id-ID') }),
+    convCol.accessor('sector', { header: 'Sector', cell: r => <span className="text-xs text-muted-foreground">{String(r.getValue() ?? '')}</span> }),
+  ]
+
+  const leaderCol = createColumnHelper<any>()
+  const leaderColumns = [
+    leaderCol.accessor('stock_code', { header: 'Stock', cell: r => <Link href={`/stock/${r.getValue()}`} className="font-mono font-bold text-sm text-gold-400 hover:underline">{r.getValue()}</Link> }),
+    leaderCol.accessor('broker_score', { header: 'Bandar Score', cell: r => <span className="font-black text-amber-400">{r.getValue() ?? '—'}</span> }),
+    leaderCol.accessor('foreign_score', { header: 'Foreign', cell: r => <span>{r.getValue() ?? '—'}</span> }),
+    leaderCol.accessor('whale_score', { header: 'Whale', cell: r => <span>{r.getValue() ?? '—'}</span> }),
+    leaderCol.accessor('composite_score', { header: 'Composite', cell: r => <span className="font-black">{Math.round(Number(r.getValue() ?? 0))}</span> }),
+    leaderCol.accessor('composite_tier', { header: 'Signal', cell: r => <TierBadge tier={String(r.getValue() ?? '')} /> }),
+    leaderCol.accessor('close', { header: 'Price', cell: r => Number(r.getValue() ?? 0).toLocaleString('id-ID') }),
+    leaderCol.accessor('change_percent', { header: 'Chg%', cell: r => <span className={Number(r.getValue() ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{fmtP(Number(r.getValue() ?? 0))}</span> }),
+    leaderCol.accessor('sector', { header: 'Sector', cell: r => <span className="text-xs text-muted-foreground">{String(r.getValue() ?? '')}</span> }),
+  ]
 
   return (
     <div className="sidebar-offset min-h-screen">
@@ -115,19 +106,19 @@ export default function BandarmologiPage() {
         <div className="glass rounded-2xl p-5 border border-white/5">
           <div className="flex items-center gap-2 mb-3"><Star size={18} className="text-amber-400" /><h2 className="text-lg font-bold">Broker Score Tracker</h2></div>
           <p className="text-xs text-muted-foreground mb-3">Top stocks ranked by broker score — measures institutional broker positioning strength across all sources.</p>
-          <DataTable data={prime} columns={bPrimeColumns} pageSize={15} emptyText="No data. Run Phase A views in MotherDuck." />
+          <DataTable data={prime} columns={primeColumns} pageSize={15} emptyText="No data. Run Phase A views in MotherDuck." />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="glass rounded-2xl p-5 border border-white/5">
             <div className="flex items-center gap-2 mb-3"><Users size={18} className="text-blue-400" /><h2 className="text-lg font-bold">Foreign Score Leaders</h2></div>
             <p className="text-xs text-muted-foreground mb-3">Stocks with strongest foreign flow signals — ranked by foreign_score component.</p>
-            <DataTable data={convergence} columns={bConvColumns} pageSize={12} emptyText="No data" />
+            <DataTable data={convergence} columns={convColumns} pageSize={12} emptyText="No data" />
           </div>
           <div className="glass rounded-2xl p-5 border border-white/5">
             <div className="flex items-center gap-2 mb-3"><TrendingUp size={18} className="text-amber-400" /><h2 className="text-lg font-bold">Bandar Leaderboard</h2></div>
             <p className="text-xs text-muted-foreground mb-3">Ranked by broker score — combines foreign, institutional, and whale positioning signals.</p>
-            <DataTable data={leaderboard} columns={bLeaderColumns} pageSize={10} emptyText="No data" />
+            <DataTable data={leaderboard} columns={leaderColumns} pageSize={10} emptyText="No data" />
           </div>
         </div>
       </div>
