@@ -101,12 +101,13 @@ Primary:     #c49a1a (Rich Gold)
 Card:        #faf9f9 (Clean White)
 ```
 
-### Blue Theme (AI-Modern)
+### Blue Theme (Canva Blue-Tosca)
 ```css
-Background:  #050812 (Ultra-deep Indigo)
-Foreground:  #f6f5f8 (Bright White)
-Primary:     #5aadff (Bright Cyan)
-Card:        #0a0d1c (Deep Indigo)
+Background:  #0a2832 (Dark Teal-Blue)
+Foreground:  #f8f9fa (Bright White)
+Primary:     #22d3ee (Vibrant Cyan)
+Secondary:   #14b8a6 (Warm Tosca)
+Card:        #0f3242 (Teal-Blue)
 ```
 
 ### Midnight Theme (Cyberpunk)

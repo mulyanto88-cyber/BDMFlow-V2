@@ -24,16 +24,17 @@ Border:          #d0c9d0    (Silver)
 
 **Use Case:** Daytime mode, formal presentations
 
-### Tertiary Theme: Blue (Indigo Premium)
+### Tertiary Theme: Blue (Canva Blue-Tosca)
 ```
-Background:      #050812    (Ultra-deep Indigo)
-Foreground:      #f6f5f8    (Bright White)
-Primary:         #5aadff    (Bright Cyan-Blue)
-Card:            #0a0d1c    (Deep Indigo)
-Border:          #1a1f3a    (Indigo)
+Background:      #0a2832    (Dark Teal-Blue)
+Foreground:      #f8f9fa    (Bright White)
+Primary:         #22d3ee    (Vibrant Cyan)
+Secondary:       #14b8a6    (Warm Tosca)
+Card:            #0f3242    (Teal-Blue)
+Border:          #1a4a5a    (Teal)
 ```
 
-**Use Case:** Tech-forward, AI-modern aesthetic
+**Use Case:** Modern creative design (Canva-inspired), vibrant yet professional
 
 ### Quaternary Theme: Midnight (Cyberpunk Cyan)
 ```

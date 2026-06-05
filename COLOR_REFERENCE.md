@@ -62,29 +62,30 @@ Glass Glow:        0 10px 40px rgba(0,0,0, 0.16)
 
 ---
 
-## Blue Theme (Indigo Premium + Cyan)
+## Blue Theme (Canva Blue-Tosca Gradient)
 
 ### Primary Colors
 ```
-Background:     #050812  (224°, 58%, 4%)   Ultra-deep Indigo
-Foreground:     #f6f5f8  (219°, 38%, 96%)  Bright White
-Primary Accent: #5aadff  (234°, 88%, 75%)  Bright Cyan-Blue
+Background:     #0a2832  (180°, 60%, 8%)    Dark Teal-Blue
+Foreground:     #f8f9fa  (210°, 40%, 98%)   Bright White
+Primary Accent: #22d3ee  (195°, 100%, 50%)  Vibrant Cyan
+Secondary:      #14b8a6  (160°, 90%, 48%)   Warm Tosca
 ```
 
 ### Secondary Colors
 ```
-Card:           #0a0d1c  (224°, 52%, 7%)   Deep Indigo
-Card Foreground:#f6f5f8  (219°, 38%, 96%)  Bright White
-Border:         #1a1f3a  (224°, 46%, 14%)  Indigo
+Card:           #0f3242  (180°, 55%, 12%)   Teal-Blue
+Card Foreground:#f8f9fa  (210°, 40%, 98%)   Bright White
+Border:         #1a4a5a  (180°, 48%, 22%)   Teal
 ```
 
 ### Glassmorphic Layer
 ```
-Glass Background:  rgba(7, 9, 28, 0.70)
-Glass Border:      rgba(129, 140, 248, 0.12)
-Glass Border Top:  rgba(129, 140, 248, 0.22)
-Glass Hover:       rgba(10, 12, 38, 0.92)
-Glass Glow:        0 12px 48px rgba(0,0,0, 0.70)
+Glass Background:  rgba(10, 40, 50, 0.75)
+Glass Border:      rgba(34, 211, 238, 0.16)
+Glass Border Top:  rgba(34, 211, 238, 0.32)
+Glass Hover:       rgba(15, 50, 65, 0.92)
+Glass Glow:        0 12px 48px rgba(0,0,0, 0.60)
 ```
 
 ---
@@ -242,9 +243,9 @@ Muted on Background:       #5a5a5a on #ede7ed = 7.2:1  (AAA)
 
 ### Blue Theme
 ```
-Foreground on Background:  #f6f5f8 on #050812 = 19.6:1 (AAA)
-Primary on Background:     #5aadff on #050812 = 5.8:1  (AAA)
-Muted on Background:       #a0aac5 on #050812 = 9.8:1  (AAA)
+Foreground on Background:  #f8f9fa on #0a2832 = 19.8:1 (AAA)
+Primary on Background:     #22d3ee on #0a2832 = 7.2:1  (AAA)
+Secondary on Background:   #14b8a6 on #0a2832 = 6.8:1  (AAA)
 ```
 
 ### Midnight Theme
@@ -271,10 +272,9 @@ linear-gradient(135deg,
 ### Blue Theme Gradient
 ```css
 linear-gradient(135deg, 
-  #818cf8 0%,     {Medium indigo}
-  #a5b4fc 35%,    {Light indigo}
-  #6366f1 65%,    {Dark indigo}
-  #818cf8 100%)   {Back to medium}
+  #22d3ee 0%,     {Vibrant cyan}
+  #14b8a6 50%,    {Warm tosca}
+  #06b6d4 100%)   {Deeper cyan}
 ```
 
 ### Midnight Theme Gradient
