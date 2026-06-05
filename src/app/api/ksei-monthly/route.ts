@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/api/ksei-monthly/route.ts
 // KSEI Monthly Smart Money Tracker
 // Data: ksei.monthly_snapshot (volume kepemilikan per tipe investor)

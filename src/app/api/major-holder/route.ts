@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/api/major-holder/route.ts
 // Data source: ksei.data5_mutasi (KSEI >5% daily PDF)
 // Key insight: ~23% of activity = account transfers (not real buy/sell)

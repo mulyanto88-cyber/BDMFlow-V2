@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // src/app/api/radar/route.ts
 // Watchlist Radar — multi-layer confluence scoring
 import { NextRequest, NextResponse } from 'next/server'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import {
   Zap, Globe, BarChart2, Eye, TrendingUp, Calculator,
