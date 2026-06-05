@@ -233,7 +233,7 @@
     --ticker-border:rgba(129, 140, 248, 0.10);
   }
 
-  /* ── GRAPHITE: Cyberpunk Cyan Premium ───────────────────── */
+  /* ── GRAPHITE: Plasma Edge (Cyberpunk Premium) ───────────── */
   .theme-midnight {
     --background:           160 46% 5%;           /* Deep plasma teal */
     --foreground:           0 0% 97%;              /* Crisp white */
@@ -241,66 +241,73 @@
     --card-foreground:      0 0% 97%;
     --popover:              160 44% 6%;            /* Ultra-dark teal */
     --popover-foreground:   0 0% 97%;
-    --primary:              163 100% 52%;         /* Vibrant neon cyan — AI modern */
+    --primary:              163 100% 52%;         /* Vibrant neon cyan — Plasma Edge */
     --primary-foreground:   160 46% 5%;
-    --secondary:            160 38% 13%;          /* Secondary teal */
-    --secondary-foreground: 0 0% 97%;
+    --secondary:            50  85% 50%;           /* Vibrant gold accent — Plasma accent */
+    --secondary-foreground: 160 46% 5%;
     --muted:                160 36% 11%;          /* Muted teal */
     --muted-foreground:     163 28% 65%;          /* Strong cyan-gray */
     --accent:               160 38% 16%;          /* Bold accent */
     --accent-foreground:    163 100% 74%;         /* Bright cyan */
-    --destructive:          350  82% 54%;
+    --destructive:          350  82% 54%;         /* Vibrant pink-magenta — Plasma destructive */
     --destructive-foreground: 0 0% 98%;
     --border:               160 35% 15%;          /* Sharp teal borders */
     --input:                160 35% 15%;
     --ring:                 163 100% 52%;         /* Neon cyan ring */
 
-    /* Glass — dark plasma teal premium */
+    /* Glass — dark plasma teal with vibrant edge */
     --glass-bg:           rgba(8, 28, 22, 0.78);
-    --glass-border:       rgba(0, 255, 180, 0.12);
-    --glass-border-top:   rgba(0, 255, 180, 0.25);
-    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.58);
+    --glass-border:       rgba(0, 255, 180, 0.14);
+    --glass-border-top:   rgba(0, 255, 180, 0.30);
+    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.58), 0 0 24px rgba(0,255,180,0.08);
     --glass-hover-bg:     rgba(14, 38, 30, 0.94);
-    --glass-hover-border: rgba(0, 255, 180, 0.36);
-    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.68), 0 0 32px rgba(0,255,180,0.18);
+    --glass-hover-border: rgba(0, 255, 180, 0.40);
+    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.68), 0 0 40px rgba(0,255,180,0.22), 0 0 16px rgba(255,215,0,0.10);
+
+    /* Plasma gradients — vibrant cyan-gold-magenta */
+    --plasma-gradient-edge:    linear-gradient(135deg, #00ffcc 0%, #ffd700 50%, #ff4d7d 100%);
+    --plasma-gradient-cyan:    linear-gradient(135deg, #00ffcc 0%, #06ffd2 35%, #00cc99 65%, #00ffcc 100%);
+    --plasma-gradient-gold:    linear-gradient(135deg, #ffd700 0%, #ffb800 50%, #ffa500 100%);
+    --plasma-gradient-magenta: linear-gradient(135deg, #ff4d7d 0%, #ff1744 50%, #d50000 100%);
 
     /* Panel */
     --panel-bg:     rgba(6, 22, 16, 0.85);
-    --panel-border: rgba(0, 255, 180, 0.10);
+    --panel-border: rgba(0, 255, 180, 0.12);
 
-    /* Body gradient accents — neon cyan shimmer modern */
-    --grad-1: rgba(0, 255, 180, 0.06);
-    --grad-2: rgba(0, 200, 140, 0.040);
-    --grad-3: rgba(0, 160, 120, 0.028);
+    /* Body gradient accents — plasma cyan-gold-magenta shimmer */
+    --grad-1: rgba(0, 255, 180, 0.07);
+    --grad-2: rgba(255, 215, 0, 0.048);
+    --grad-3: rgba(255, 77, 125, 0.032);
 
     /* Header */
     --header-bg:     rgba(4, 16, 12, 0.96);
-    --header-border: rgba(0, 255, 180, 0.12);
+    --header-border: rgba(0, 255, 180, 0.14);
 
     /* Sidebar */
     --sidebar-bg:     rgba(3, 12, 9, 0.99);
-    --sidebar-border: rgba(0, 255, 180, 0.10);
+    --sidebar-border: rgba(0, 255, 180, 0.12);
 
-    /* Shadows — deep with cyan glow premium */
+    /* Shadows — deep with plasma glow (cyan + gold) */
     --shadow-xs:   0 1px 2px  rgba(0,0,0,0.32);
     --shadow-sm:   0 2px 5px  rgba(0,0,0,0.45);
     --shadow-md:   0 6px 16px rgba(0,0,0,0.58);
     --shadow-lg:   0 16px 48px rgba(0,0,0,0.68);
     --shadow-xl:   0 32px 72px rgba(0,0,0,0.78);
-    --shadow-gold: 0 0 48px rgba(0,255,180,0.28);
+    --shadow-cyan: 0 0 48px rgba(0, 255, 180, 0.32);
+    --shadow-gold: 0 0 40px rgba(255, 215, 0, 0.28);
     --shadow-glow: 0 0 32px rgba(var(--primary-glow-rgb),0.28);
 
-    /* Scrollbar */
-    --scrollbar-thumb: rgba(0, 255, 180, 0.16);
-    --scrollbar-hover: rgba(0, 255, 180, 0.32);
+    /* Scrollbar — plasma cyan */
+    --scrollbar-thumb: rgba(0, 255, 180, 0.18);
+    --scrollbar-hover: rgba(0, 255, 180, 0.36);
 
-    /* Accent gradients — neon cyan modern */
-    --theme-gradient:   linear-gradient(135deg, #00ffcc 0%, #06ffd2 35%, #00cc99 65%, #00ffcc 100%);
+    /* Accent gradients — plasma edge (cyan-gold-magenta) */
+    --theme-gradient:   linear-gradient(135deg, #00ffcc 0%, #ffd700 40%, #ff4d7d 100%);
     --primary-glow-rgb: 0, 255, 180;
 
     /* Ticker */
     --ticker-bg:    rgba(4, 16, 12, 0.96);
-    --ticker-border:rgba(0, 255, 180, 0.10);
+    --ticker-border:rgba(0, 255, 180, 0.12);
   }
 
   /* ── Base resets ─────────────────────────────────────────── */
@@ -378,36 +385,55 @@
 .theme-blue .noise-overlay { opacity: 0.025; }
 .theme-midnight .noise-overlay { opacity: 0.040; }
 
-/* ── Plasma Edge — override hardcoded purple/blue → cyan ──── */
-.theme-midnight .from-purple-400 {
-  --tw-gradient-from: #00ffcc var(--tw-gradient-from-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,255,204,0));
+/* ── Plasma Edge Badges & Accents ───────────────────────── */
+.theme-midnight .badge-pro {
+  background: linear-gradient(135deg, rgba(0,255,204,0.22), rgba(0,255,204,0.12));
+  border: 1px solid rgba(0,255,204,0.48);
+  color: #00ffcc;
+  box-shadow: 0 0 20px rgba(0,255,204,0.22);
 }
-.theme-midnight .from-purple-500 {
-  --tw-gradient-from: #00e5b0 var(--tw-gradient-from-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,229,176,0));
+
+.theme-midnight .badge-hot {
+  background: linear-gradient(135deg, rgba(255,77,125,0.22), rgba(255,77,125,0.12));
+  border: 1px solid rgba(255,77,125,0.48);
+  color: #ff4d7d;
+  box-shadow: 0 0 20px rgba(255,77,125,0.22);
 }
-.theme-midnight .to-blue-400 {
-  --tw-gradient-to: #22d3ee var(--tw-gradient-to-position);
+
+.theme-midnight .badge-new {
+  background: linear-gradient(135deg, rgba(255,215,0,0.22), rgba(255,215,0,0.12));
+  border: 1px solid rgba(255,215,0,0.48);
+  color: #ffd700;
+  box-shadow: 0 0 20px rgba(255,215,0,0.22);
 }
-.theme-midnight .to-blue-500 {
-  --tw-gradient-to: #06b6d4 var(--tw-gradient-to-position);
+
+/* ── Metric Card Plasma Edge ────────────────────────────── */
+.theme-midnight .metric-card {
+  background: linear-gradient(135deg, rgba(0,255,180,0.06), rgba(255,215,0,0.03));
+  border: 1px solid rgba(0,255,180,0.12);
+  box-shadow: 0 0 20px rgba(0,255,180,0.08);
 }
-.theme-midnight .text-purple-400,
-.theme-midnight .text-purple-500 {
-  color: #00e5b0;
+
+.theme-midnight .metric-card:hover {
+  border-color: rgba(0,255,180,0.28);
+  box-shadow: 0 0 40px rgba(0,255,180,0.20), 0 0 16px rgba(255,215,0,0.12);
 }
-.theme-midnight .text-blue-400,
-.theme-midnight .text-blue-500 {
-  color: #22d3ee;
+
+.theme-midnight .metric-value {
+  background: linear-gradient(135deg, #00ffcc 0%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.theme-midnight .border-purple-400\/40,
-.theme-midnight .border-purple-500\/30 {
-  border-color: rgba(0, 255, 180, 0.35);
-}
-.theme-midnight .bg-purple-500\/10,
-.theme-midnight .bg-purple-400\/10 {
-  background-color: rgba(0, 255, 180, 0.10);
+
+/* ── Plasma gradient text overlay ────────────────────────── */
+.theme-midnight .gradient-plasma {
+  background: var(--plasma-gradient-edge);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease-in-out infinite;
 }
 
 /* ── Glass Card ───────────────────────────────────────────── */
@@ -699,9 +725,31 @@
    🎬 ANIMATION SYSTEM
    ============================================================ */
 
+/* ── Animations ──────────────────────────────────────────── */
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0%   50%; }
-  50%       { background-position: 100% 50%; }
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes plasma-pulse {
+  0%   { text-shadow: 0 0 10px rgba(0,255,180,0.4), 0 0 20px rgba(255,215,0,0.2); }
+  50%  { text-shadow: 0 0 20px rgba(0,255,180,0.6), 0 0 40px rgba(255,215,0,0.4), 0 0 60px rgba(255,77,125,0.2); }
+  100% { text-shadow: 0 0 10px rgba(0,255,180,0.4), 0 0 20px rgba(255,215,0,0.2); }
+}
+
+@keyframes plasma-glow {
+  0%   { box-shadow: 0 0 20px rgba(0,255,180,0.3); }
+  50%  { box-shadow: 0 0 40px rgba(0,255,180,0.5), 0 0 60px rgba(255,215,0,0.3); }
+  100% { box-shadow: 0 0 20px rgba(0,255,180,0.3); }
+}
+
+.theme-midnight .plasma-pulse {
+  animation: plasma-pulse 3s ease-in-out infinite;
+}
+
+.theme-midnight .plasma-glow {
+  animation: plasma-glow 3s ease-in-out infinite;
 }
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(10px); }

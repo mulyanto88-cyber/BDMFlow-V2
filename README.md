@@ -109,17 +109,46 @@ Primary:     #5aadff (Bright Cyan)
 Card:        #0a0d1c (Deep Indigo)
 ```
 
-### Midnight Theme (Cyberpunk)
+### Midnight Theme (Plasma Edge - Cyberpunk)
 ```css
-Background:  #091e17 (Deep Teal)
-Foreground:  #f8f9f8 (Crisp White)
-Primary:     #00ffcc (Neon Cyan)
-Card:        #0e2419 (Dark Teal)
+Background:    #091e17 (Deep Teal)
+Foreground:    #f8f9f8 (Crisp White)
+Primary:       #00ffcc (Neon Cyan)
+Secondary:     #ffd700 (Vibrant Gold)
+Destructive:   #ff4d7d (Plasma Magenta)
+Gradient:      Cyan → Gold → Magenta (Plasma Edge Effect)
 ```
+
+**Features:** Ultra-vibrant plasma gradients, neon glow shadows (cyan + gold), cyberpunk aesthetic, high-contrast badges with gradient overlays, plasma pulse animations.
 
 ---
 
-## 🎯 Component Library
+## 🌊 Plasma Edge Theme Special Features
+
+The **Midnight (Plasma Edge)** theme includes exclusive cyberpunk-inspired effects:
+
+### Plasma Gradients
+```css
+--plasma-gradient-edge:    cyan → gold → magenta (main)
+--plasma-gradient-cyan:    cyan multicolor shift
+--plasma-gradient-gold:    gold-orange warmth
+--plasma-gradient-magenta: magenta-red intensity
+```
+
+### Glow Effects
+- **Cyan Glow:** Primary element emphasis
+- **Gold Glow:** Secondary accent highlights
+- **Plasma Pulse:** Animated text with multi-color shadow
+- **Plasma Glow:** Animated card borders with vibrant aura
+
+### Usage Classes
+```jsx
+<span className="gradient-plasma">Plasma text</span>
+<div className="plasma-pulse">Animated heading</div>
+<div className="plasma-glow">Glowing element</div>
+```
+
+---
 
 ### Glass Card
 Premium glassmorphic component with automatic theming:
@@ -321,7 +350,15 @@ For questions or issues:
 
 ## 📝 Version History
 
-### v4.0 (Current)
+### v4.1 (Latest)
+- Plasma Edge theme enhancements
+- Vibrant cyan-gold-magenta gradients
+- Plasma pulse & glow animations
+- Enhanced badge styling with gradients
+- Neon shadow effects for Midnight theme
+- Dynamic metric card gradients
+
+### v4.0
 - Modern premium design system
 - 4 sophisticated themes
 - Enhanced shadows and depth
