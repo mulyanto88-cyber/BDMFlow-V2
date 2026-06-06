@@ -213,19 +213,23 @@ export default function StockDetailPage() {
       const res = await fetch(`/api/stock-detail?action=chart&code=${code}&days=${days}`)
       const json = await res.json()
       if (Array.isArray(json.data)) {
-        setHistoryData(json.data.map((d: any) => ({
-          time: String(d.trading_date).split('T')[0],
-          open: Number(d.open_price) || Number(d.close) || 0,
-          high: Number(d.high) || Number(d.close) || 0,
-          low: Number(d.low) || Number(d.close) || 0,
-          close: Number(d.close) || 0,
-          volume: Number(d.volume) || 0,
-          net_foreign: Number(d.net_foreign_value) || 0,
-          aov_ratio: Number(d.aov_ratio_ma20) || 1,
-          vwma: Number(d.vwma_20d) || 0,
-          whale_signal: !!d.whale_signal,
-          big_player_anomaly: !!d.big_player_anomaly,
-        })))
+        const mapped = json.data
+          .filter((d: any) => d && d.trading_date)
+          .map((d: any) => ({
+            time: String(d.trading_date).split('T')[0],
+            open: Number(d.open_price) || Number(d.close) || 0,
+            high: Number(d.high) || Number(d.close) || 0,
+            low: Number(d.low) || Number(d.close) || 0,
+            close: Number(d.close) || 0,
+            volume: Number(d.volume) || 0,
+            net_foreign: Number(d.net_foreign_value) || 0,
+            aov_ratio: Number(d.aov_ratio_ma20) || 1,
+            vwma: Number(d.vwma_20d) || 0,
+            whale_signal: !!d.whale_signal,
+            big_player_anomaly: !!d.big_player_anomaly,
+          }))
+          .filter((d: any) => /^\d{4}-\d{2}-\d{2}$/.test(d.time))
+        if (mapped.length) setHistoryData(mapped)
       }
     } catch { /* keep last chart on error */ }
   }, [])
