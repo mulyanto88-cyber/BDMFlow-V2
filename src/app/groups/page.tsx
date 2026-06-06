@@ -1235,13 +1235,17 @@ function TabCatchup({ groups }: { groups: GroupDaily[] }) {
           WHERE ms.Date = (SELECT MAX(Date) FROM ksei.monthly_snapshot)
         ),
         broker_net AS (
+          -- smart-broker net (FOREIGN + LOCAL_INST), non-zero-sum.
+          -- SUM(value) over ALL brokers ≈ 0 (zero-sum tape) — was meaningless.
           SELECT
-            stock_code,
-            ROUND(SUM(value) / 1e9, 2)
+            LEFT(ba.stock_code, 4) AS stock_code,
+            ROUND(SUM(ba.value) / 1e9, 2)
               AS broker_net_miliar
-          FROM main.broker_activity
-          WHERE date >= (SELECT max_date FROM latest) - INTERVAL '7 days'
-          GROUP BY stock_code
+          FROM main.broker_activity ba
+          JOIN main.broker_classification bc ON bc.broker_code = ba.broker_code
+          WHERE ba.date >= (SELECT max_date FROM latest) - INTERVAL '7 days'
+            AND UPPER(bc.category) IN ('FOREIGN','LOCAL_INST')
+          GROUP BY LEFT(ba.stock_code, 4)
         )
         SELECT
           s.stock_code,
