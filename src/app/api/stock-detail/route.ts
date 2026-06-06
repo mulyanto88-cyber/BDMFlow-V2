@@ -173,10 +173,11 @@ export async function GET(req: NextRequest) {
   // ── Price chart history ───────────────────────────────────────────────────
   if (action === 'chart') {
     const rows = await run(`
-      SELECT trading_date::VARCHAR, open_price::DOUBLE, high::DOUBLE, low::DOUBLE,
-             close::DOUBLE, volume::BIGINT, net_foreign_value::DOUBLE,
-             vwma_20d::DOUBLE, aov_ratio_ma20::DOUBLE,
-             whale_signal::BOOLEAN, big_player_anomaly::BOOLEAN
+      SELECT trading_date::VARCHAR AS trading_date, open_price::DOUBLE AS open_price,
+             high::DOUBLE AS high, low::DOUBLE AS low, close::DOUBLE AS close,
+             volume::BIGINT AS volume, net_foreign_value::DOUBLE AS net_foreign_value,
+             vwma_20d::DOUBLE AS vwma_20d, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
+             whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly
       FROM market.daily_transactions
       WHERE stock_code = $1
         AND CAST(trading_date AS DATE) >= (SELECT MAX(CAST(trading_date AS DATE)) FROM market.daily_transactions) - INTERVAL '${days} days'
