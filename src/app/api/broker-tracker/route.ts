@@ -147,13 +147,22 @@ export async function GET(req: NextRequest) {
         SELECT
           s.stock_code, s.sector, s.close, s.change_percent,
           s.foreign_30d, s.broker_net, s.whale_signal, s.big_player_anomaly,
-          s.aov_ratio_ma20, s.smart_money_score, s.signal,
+          s.aov_ratio_ma20,
+          -- smart money score now reflects validated composite v2 (normalized 0-100)
+          ROUND(COALESCE(v2.v2_score, 0) / 73.0 * 100, 0)  AS smart_money_score,
+          s.signal,
           k.broker_net_miliar,
-          k.local_smart_miliar_saham,
-          k.foreign_smart_miliar_saham,
-          k.confirmation AS ksei_confirmation
+          k.ksei_local_smart_flow_miliar    AS local_smart_miliar_saham,
+          k.ksei_foreign_smart_flow_miliar  AS foreign_smart_miliar_saham,
+          k.confirmation AS ksei_confirmation,
+          -- composite v2 context
+          COALESCE(v2.v2_score, 0)  AS v2_score,
+          v2.tier_v2,
+          v2.flow_context,
+          v2.rank_overall
         FROM market.vw_smart_money_score s
         LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
+        LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
         WHERE s.stock_code = $${paramIdx}
         LIMIT 1`
 
