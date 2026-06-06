@@ -52,6 +52,38 @@ function fmtFlow(v: number): string {
   return `${sign}${abs.toLocaleString('id-ID')}`
 }
 
+// ─── Scorecard helpers ──────────────────────────────────────────────────────
+function tierCls(t: string): string {
+  switch (t) {
+    case 'STRONG_BUY': return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+    case 'BUY':        return 'bg-green-500/15 text-green-400 border border-green-500/30'
+    case 'ACCUMULATE': return 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+    case 'WATCH':      return 'bg-slate-500/15 text-slate-300 border border-slate-500/20'
+    default:           return 'bg-slate-500/10 text-muted-foreground border border-white/10'
+  }
+}
+function ScoreBar({ label, v, max }: { label: string; v: number; max: number }) {
+  const pct = Math.max(0, Math.min(100, (Number(v || 0) / max) * 100))
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[9px] text-muted-foreground w-12 flex-shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+        <div className="h-full rounded-full bg-gold-400/70" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[9px] font-mono text-muted-foreground w-9 text-right">{Number(v || 0)}/{max}</span>
+    </div>
+  )
+}
+function ScoreKPI({ label, val, pos }: { label: string; val: string; pos?: boolean }) {
+  const c = pos === undefined ? 'text-foreground' : pos ? 'text-emerald-400' : 'text-red-400'
+  return (
+    <div className="flex flex-col">
+      <span className="text-[8px] text-muted-foreground uppercase tracking-wider">{label}</span>
+      <span className={`font-bold ${c}`}>{val}</span>
+    </div>
+  )
+}
+
 const TABS = [
   { id: 'overview',   label: 'Overview',   icon: Target },
   { id: 'broker',     label: 'Broker DNA', icon: Building2 },
@@ -86,6 +118,8 @@ export default function StockDetailPage() {
   const [brokerConsistency, setBrokerConsistency] = useState<any[]>([])
   const [volumeSpikes, setVolumeSpikes] = useState<any[]>([])
   const [whaleActivity, setWhaleActivity] = useState<any>(null)
+  const [scorecard, setScorecard] = useState<any>(null)
+  const [verdict, setVerdict] = useState<any>(null)
 
   const [brokerRolling, setBrokerRolling] = useState<any>(null)
   const [brokerBuyers, setBrokerBuyers] = useState<any[]>([])
@@ -136,6 +170,8 @@ export default function StockDetailPage() {
 
       setStockData(json.stockData)
       setSmartMoneyIndex(json.smartMoneyIndex)
+      setScorecard(json.scorecard || null)
+      setVerdict(json.verdict || null)
       setForeignDivergence(json.foreignDivergence)
       setForeignFlowTrend(json.foreignFlowTrend || [])
       setConcentrationIndex(json.concentrationIndex || null)
@@ -170,9 +206,41 @@ export default function StockDetailPage() {
     loadedTabs.current.add('overview')
   }, [])
 
+  // ─── Fetch chart only (decoupled from heavy package — period toggle is cheap) ──
+  const fetchChart = useCallback(async (code: string, days: number) => {
+    if (!code) return
+    try {
+      const res = await fetch(`/api/stock-detail?action=chart&code=${code}&days=${days}`)
+      const json = await res.json()
+      if (Array.isArray(json.data)) {
+        setHistoryData(json.data.map((d: any) => ({
+          time: String(d.trading_date).split('T')[0],
+          open: Number(d.open_price) || Number(d.close) || 0,
+          high: Number(d.high) || Number(d.close) || 0,
+          low: Number(d.low) || Number(d.close) || 0,
+          close: Number(d.close) || 0,
+          volume: Number(d.volume) || 0,
+          net_foreign: Number(d.net_foreign_value) || 0,
+          aov_ratio: Number(d.aov_ratio_ma20) || 1,
+          vwma: Number(d.vwma_20d) || 0,
+          whale_signal: !!d.whale_signal,
+          big_player_anomaly: !!d.big_player_anomaly,
+        })))
+      }
+    } catch { /* keep last chart on error */ }
+  }, [])
+
+  // Heavy 14-query package loads ONCE per stock (no longer re-fires on period change)
   useEffect(() => {
     if (stockCode) fetchAllData(stockCode, period)
-  }, [stockCode, period, fetchAllData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stockCode, fetchAllData])
+
+  // Only the cheap chart query re-runs when the timeframe changes
+  useEffect(() => {
+    if (stockCode) fetchChart(stockCode, period)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stockCode, period, fetchChart])
 
   // ─── Lazy-load tab data ────────────────────────────────────────────────────
   const loadTab = useCallback(async (tab: string) => {
@@ -506,6 +574,52 @@ export default function StockDetailPage() {
       {/* ══ TAB: Overview ═══════════════════════════════════════════════════ */}
       {activeTab === 'overview' && (
         <div className="space-y-4">
+          {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
+          {(scorecard || verdict) && (
+            <div className="glass rounded-2xl p-4 border border-white/[0.06]">
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Verdict (auto-generated) */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">{verdict?.emoji}</span>
+                    <h3 className="font-black text-sm">{verdict?.headline}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{verdict?.detail}</p>
+                  {scorecard && (
+                    <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-[11px]">
+                      <ScoreKPI label="Return 5D"   val={`${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        pos={Number(scorecard.return_5d) >= 0} />
+                      <ScoreKPI label="Return 20D"  val={`${Number(scorecard.return_20d ?? 0).toFixed(1)}%`}       pos={Number(scorecard.return_20d) >= 0} />
+                      <ScoreKPI label="AOV"         val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`} />
+                      <ScoreKPI label="Foreign 20D" val={`${Number(scorecard.foreign_20d_miliar ?? 0).toFixed(1)} M`} pos={Number(scorecard.foreign_20d_miliar) >= 0} />
+                      <ScoreKPI label="Rank v2"     val={`#${scorecard.rank_overall ?? '—'}`} />
+                    </div>
+                  )}
+                </div>
+                {/* Score + tier + breakdown */}
+                {scorecard && (
+                  <div className="lg:w-72 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-white/[0.06] lg:pl-4 pt-3 lg:pt-0">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div>
+                        <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Composite v2</div>
+                        <div className="text-2xl font-black leading-none">{scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span></div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${tierCls(scorecard.tier_v2)}`}>{scorecard.tier_v2}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
+                      <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
+                      <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
+                      <ScoreBar label="Foreign" v={scorecard.foreign_pts} max={6} />
+                    </div>
+                    <div className="text-[9px] text-muted-foreground mt-2">
+                      v1: {scorecard.v1_tier} ({scorecard.v1_score}) · flow: {scorecard.flow_context}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Chart */}
           <div ref={chartWrapRef} className={`glass rounded-2xl p-4 border border-white/[0.06] relative group ${isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-background flex flex-col' : ''}`}>
             <div className="relative z-10 flex items-center justify-between mb-3 flex-wrap gap-2">

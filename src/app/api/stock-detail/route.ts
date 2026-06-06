@@ -3,6 +3,29 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
+// ── Plain-language verdict from the evidence-validated v2 scorecard + flow context ──
+function buildVerdict(sc: any, fd: any, sd: any) {
+  if (!sc) return { emoji: '⚪', headline: 'Di luar universe v2', detail: 'Saham tidak masuk skor v2 (likuiditas < Rp 500 jt/hari). Sinyal kurang andal.' }
+  const tier = sc.tier_v2 as string, flow = sc.flow_context as string
+  const f20 = Number(sc.foreign_20d_miliar ?? 0)
+  const aov = Number(sc.aov_ratio_ma20 ?? 0)
+  const fgn = f20 >= 0 ? `asing net beli +${f20.toFixed(1)}M/20d` : `asing net jual ${f20.toFixed(1)}M/20d`
+  if (tier === 'STRONG_BUY' || tier === 'BUY') {
+    if (flow === 'MOMENTUM_UP' || flow === 'BREAKOUT_ATTEMPT')
+      return { emoji: '🟢', headline: `${tier} — momentum aktif`, detail: `Big player + harga di atas VWMA, AOV ${aov.toFixed(1)}x. ${fgn}.` }
+    if (flow === 'ACCUM_ON_WEAKNESS')
+      return { emoji: '🟢', headline: `${tier} — akumulasi saat lemah`, detail: `Jejak big player muncul saat koreksi — kohort dengan hit-rate tertinggi historis. ${fgn}.` }
+    return { emoji: '🟢', headline: `${tier} (rank #${sc.rank_overall})`, detail: `Skor v2 kuat. ${fgn}.` }
+  }
+  if (tier === 'ACCUMULATE')
+    return { emoji: '🟡', headline: 'ACCUMULATE — pantau', detail: `Jejak akumulasi ada tapi belum konfirmasi penuh (AOV ${aov.toFixed(1)}x). ${fgn}.` }
+  if (flow === 'DOWNTREND')
+    return { emoji: '🔻', headline: 'Hindari — downtrend', detail: `Harga di bawah VWMA tanpa jejak big player, ${fgn}. Risiko pisau jatuh.` }
+  if (String(sd?.divergence_type || '').includes('DISTRIB') || fd?.divergence_type === 'DISTRIBUTION')
+    return { emoji: '🔻', headline: 'Waspada distribusi', detail: sd?.interpretation || fd?.interpretation || 'Smart money mendistribusi.' }
+  return { emoji: '⚪', headline: 'Netral', detail: `Belum ada sinyal big player signifikan (${String(flow || '').toLowerCase()}). ${fgn}.` }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code   = (searchParams.get('code') || '').toUpperCase().trim().replace(/[^A-Z0-9]/g, '')
@@ -244,9 +267,9 @@ export async function GET(req: NextRequest) {
   try {
     // Batch 1 — Core data (7 queries)
     let latestRows: any[] = [], smRows: any[] = [], histRows: any[] = [], brokerRows: any[] = [],
-        ownerRows: any[] = [], whaleRows: any[] = [], foreignRows: any[] = [];
+        ownerRows: any[] = [], whaleRows: any[] = [], foreignRows: any[] = [], scoreRows: any[] = [];
     try {
-      [latestRows, smRows, histRows, brokerRows, ownerRows, whaleRows, foreignRows] = await Promise.all([
+      [latestRows, smRows, histRows, brokerRows, ownerRows, whaleRows, foreignRows, scoreRows] = await Promise.all([
       
       // 1. Latest stock data
       run(`SELECT * FROM market.vw_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
@@ -297,6 +320,7 @@ export async function GET(req: NextRequest) {
                  ROW_NUMBER() OVER (ORDER BY trading_date DESC) AS rn
           FROM market.daily_transactions
           WHERE stock_code = $1
+            AND CAST(trading_date AS DATE) >= (SELECT CAST(MAX(trading_date) AS DATE) FROM market.daily_transactions) - 45
         ),
         agg AS (
           SELECT
@@ -335,6 +359,26 @@ export async function GET(req: NextRequest) {
           END AS interpretation
         FROM agg
       `, [code]),
+
+      // 8. Composite v2 scorecard + v1 component breakdown (materialized — cheap single-row lookup)
+      run(`
+        SELECT v2.v2_score::INTEGER AS v2_score, v2.tier_v2, v2.flow_context,
+               v2.aov_pts::INTEGER AS aov_pts, v2.vwma_pts::INTEGER AS vwma_pts,
+               v2.whale_pts::INTEGER AS whale_pts, v2.foreign_pts::INTEGER AS foreign_pts,
+               v2.foreign_20d_miliar::DOUBLE AS foreign_20d_miliar,
+               v2.rank_overall::BIGINT AS rank_overall,
+               v2.c85::DOUBLE AS c85, v2.c95::DOUBLE AS c95, v2.c99::DOUBLE AS c99,
+               v2.aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
+               v2.return_5d::DOUBLE AS return_5d, v2.return_20d::DOUBLE AS return_20d,
+               c.composite_score::INTEGER AS v1_score, c.composite_tier AS v1_tier,
+               c.foreign_score::INTEGER AS foreign_score, c.broker_score::INTEGER AS broker_score,
+               c.whale_score::INTEGER AS whale_score, c.price_score::INTEGER AS price_score,
+               c.ksei_score::INTEGER AS ksei_score, c.insider_score::INTEGER AS insider_score
+        FROM market.tb_composite_v2 v2
+        LEFT JOIN market.vw_c_composite_score c ON c.stock_code = v2.stock_code
+        WHERE v2.stock_code = $1
+        LIMIT 1
+      `, [code]).catch(() => []),
       ])
     } catch (e: any) {
       console.error('[stock-detail] Batch 1 failed:', e.message)
@@ -585,6 +629,8 @@ export async function GET(req: NextRequest) {
       brokerConsistency: brokerConsRows,
       volumeSpikes: volSpikeRows,
       whaleActivity: whaleActRows[0] ?? null,
+      scorecard: scoreRows[0] ?? null,
+      verdict: buildVerdict(scoreRows[0] ?? null, foreignRows[0] ?? null, stealthRows[0] ?? null),
     })
   } catch (err: any) {
     const msg = err.message || String(err)

@@ -29,6 +29,8 @@ interface StockRow {
   daily_value: number   // raw IDR (BIGINT from DB)
   vwma_20d: number
   above_vwma: boolean
+  tier_v2: string | null
+  flow_context: string | null
 }
 
 type SortField = 'radar_score' | 'smart_score' | 'change_percent' | 'net_foreign_period' | 'aov_max' | 'spike_count' | 'close' | 'stock_code' | 'daily_value'
@@ -42,6 +44,23 @@ const SIGNAL_STYLE: Record<string, string> = {
   '🚀 STRONG BUY': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
   '👀 WATCH':      'bg-amber-500/20  text-amber-400  border border-amber-500/30',
   '➖ NEUTRAL':    'bg-slate-500/20  text-slate-400  border border-slate-500/20',
+}
+
+// ─── Composite v2 tier + flow context (evidence-validated score) ───────────────
+const TIER_STYLE: Record<string, string> = {
+  STRONG_BUY: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
+  BUY:        'bg-green-500/15   text-green-400   border border-green-500/30',
+  ACCUMULATE: 'bg-amber-500/15   text-amber-400   border border-amber-500/30',
+  WATCH:      'bg-slate-500/15   text-slate-300   border border-slate-500/20',
+  NEUTRAL:    'bg-slate-500/10   text-muted-foreground border border-white/10',
+}
+const FLOW_LABEL: Record<string, string> = {
+  MOMENTUM_UP:        '🚀 momentum',
+  BREAKOUT_ATTEMPT:   '📈 breakout',
+  ACCUM_ON_WEAKNESS:  '🩸 akum lemah',
+  HOLDING_ABOVE_VWMA: '▲ atas VWMA',
+  CONSOLIDATING:      '◦ konsolidasi',
+  DOWNTREND:          '🔻 downtrend',
 }
 
 interface PresetFilter {
@@ -131,6 +150,7 @@ export default function ScreenerPage() {
         SELECT
           s.stock_code, s.sector, s.close, s.change_percent, s.smart_money_score,
           s.whale_signal, s.big_player_anomaly, s.signal,
+          s.tier_v2, s.flow_context,
           s.aov_max_1d,  s.aov_max_7d,  s.aov_max_14d,  s.aov_max_30d,  s.aov_max_90d,
           s.spike_1d,    s.spike_7d,    s.spike_14d,    s.spike_30d,    s.spike_90d,
           s.foreign_1d,  s.foreign_7d,  s.foreign_14d,  s.foreign_30d,  s.foreign_90d,
@@ -185,6 +205,8 @@ export default function ScreenerPage() {
         daily_value:          Number(r.daily_value || 0),
         vwma_20d:             vwma,
         above_vwma:           vwma > 0 && close > vwma,
+        tier_v2:              r.tier_v2 ?? null,
+        flow_context:         r.flow_context ?? null,
       }
     })
   }, [rawData, period])
@@ -469,6 +491,7 @@ export default function ScreenerPage() {
                     <th className="p-2 text-center cursor-pointer hover:text-foreground hidden lg:table-cell"
                       onClick={() => toggleSort('radar_score')}>Radar<SortArrow col="radar_score" /></th>
                     <th className="p-2 text-center hidden md:table-cell">Dir</th>
+                    <th className="p-2 text-center">Tier v2</th>
                     <th className="p-2 text-center">Signal</th>
                   </tr>
                 </thead>
@@ -548,6 +571,22 @@ export default function ScreenerPage() {
                       {/* Broker Direction */}
                       <td className="p-2 text-center hidden md:table-cell">
                         <BrokerDir r={r} />
+                      </td>
+
+                      {/* Tier v2 + flow context */}
+                      <td className="p-2 text-center">
+                        {r.tier_v2 ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${TIER_STYLE[r.tier_v2] || TIER_STYLE.NEUTRAL}`}>
+                              {r.tier_v2}
+                            </span>
+                            {r.flow_context && (
+                              <span className="text-[8px] text-muted-foreground/70" title={r.flow_context}>
+                                {FLOW_LABEL[r.flow_context] || r.flow_context}
+                              </span>
+                            )}
+                          </div>
+                        ) : <span className="text-muted-foreground/30">—</span>}
                       </td>
 
                       {/* Signal */}
