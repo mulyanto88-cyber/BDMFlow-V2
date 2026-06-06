@@ -16,11 +16,11 @@ const PERIODS = ['1d','7d','14d','30d','90d']
 const CONF_LABELS = ['Triple Confirm','Vol + AOV','Vol + Foreign','AOV + Foreign','Vol Spike','AOV Spike']
 
 function confBadge(type: string) {
-  if (type.includes('Triple'))  return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-  if (type.includes('Vol + AOV')) return 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-  if (type.includes('Foreign'))   return 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-  if (type.includes('Vol'))       return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-  if (type.includes('AOV'))       return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+  if (type.includes('Ekstrem + Trend')) return 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40'  // validated premium combo
+  if (type.includes('Ekstrem'))         return 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+  if (type.includes('Whale'))           return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+  if (type.includes('AOV'))             return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+  if (type.includes('Vol'))             return 'bg-sky-500/20 text-sky-300 border-sky-500/30'
   return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
 }
 
@@ -31,7 +31,7 @@ export default function VolumeAovPage() {
   const [error, setError]       = useState<string|null>(null)
   const [period, setPeriod]     = useState('7d')
   const [sector, setSector]     = useState('')
-  const [minConf, setMinConf]   = useState(2)
+  const [minConf, setMinConf]   = useState(3)
   const [search, setSearch]     = useState('')
 
   const load = useCallback(async () => {
@@ -55,8 +55,8 @@ export default function VolumeAovPage() {
     return rows.filter(r => r.stock_code?.includes(q) || r.sector?.includes(q))
   }, [rows, search])
 
-  const tripleCount = rows.filter(r => r.spike_type?.includes('Triple')).length
-  const highConfCount = rows.filter(r => r.conf_score >= 3).length
+  const aovExtremeCount = rows.filter(r => Number(r.aov_ratio_ma20) >= 3).length
+  const highConfCount = rows.filter(r => r.conf_score >= 5).length
 
   return (
     <div className="sidebar-offset min-h-screen bg-background text-foreground">
@@ -88,14 +88,14 @@ export default function VolumeAovPage() {
         {/* ── KPI Cards ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-3 stagger">
           <div className="metric-card card-hover text-center">
-            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">Triple Confirm</div>
-            <div className="text-[30px] font-black font-mono leading-none text-purple-400">{tripleCount}</div>
-            <div className="text-[10px] text-muted-foreground/40 mt-1">Vol + AOV + Foreign</div>
+            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">AOV Ekstrem</div>
+            <div className="text-[30px] font-black font-mono leading-none text-purple-400">{aovExtremeCount}</div>
+            <div className="text-[10px] text-muted-foreground/40 mt-1">order size ≥ 3x (edge tertinggi)</div>
           </div>
           <div className="metric-card card-hover text-center">
-            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">High Conf (≥3)</div>
+            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">High Conf (≥5)</div>
             <div className="text-[30px] font-black font-mono leading-none text-primary">{highConfCount}</div>
-            <div className="text-[10px] text-muted-foreground/40 mt-1">3+ kondisi terpenuhi</div>
+            <div className="text-[10px] text-muted-foreground/40 mt-1">skor edge-weighted ≥ 5</div>
           </div>
           <div className="metric-card card-hover text-center">
             <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">Total Saham</div>
@@ -132,7 +132,7 @@ export default function VolumeAovPage() {
         </select>
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground text-xs">Min konfirmasi:</span>
-          {[1,2,3,4,5].map(n => (
+          {[2,3,4,5,6].map(n => (
             <button key={n} onClick={() => setMinConf(n)}
               className={[
                 'w-7 h-7 rounded-lg text-[11px] font-bold transition-all duration-150',
@@ -193,11 +193,11 @@ export default function VolumeAovPage() {
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <div className="flex justify-center gap-0.5">
-                      {Array.from({length:5}).map((_,i) => (
-                        <div key={i} className={`w-2.5 h-2.5 rounded-sm ${i < r.conf_score ? 'bg-amber-400' : 'bg-muted'}`} />
+                      {Array.from({length:8}).map((_,i) => (
+                        <div key={i} className={`w-2 h-2 rounded-sm ${i < r.conf_score ? 'bg-amber-400' : 'bg-muted'}`} />
                       ))}
                     </div>
-                    <div className="text-muted-foreground mt-0.5">{r.conf_score}/5</div>
+                    <div className="text-muted-foreground mt-0.5">{r.conf_score}/8</div>
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={`px-1.5 py-0.5 rounded border text-xs ${confBadge(r.spike_type || '')}`}>
