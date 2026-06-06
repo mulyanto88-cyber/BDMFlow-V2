@@ -1,4 +1,4 @@
-  // src/app/api/broker-tracker/route.ts
+// src/app/api/broker-tracker/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
@@ -253,6 +253,16 @@ export async function GET(req: NextRequest) {
           FROM market.vw_stock_detail
           WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
             AND stock_code = $${paramIdx}
+        ),
+        inst_broker_agg AS (
+          SELECT SUM(ba.value)::DOUBLE AS inst_net
+          FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
+          WHERE ${dateFilter.clause} AND LEFT(ba.stock_code,4) = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_INST'
+        ),
+        retail_broker_agg AS (
+          SELECT SUM(ba.value)::DOUBLE AS retail_net
+          FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
+          WHERE ${dateFilter.clause} AND LEFT(ba.stock_code,4) = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_RETAIL'
         )
         SELECT
           COALESCE(lb.broker_net_val, 0)     AS broker_net_val,
@@ -264,6 +274,10 @@ export async function GET(req: NextRequest) {
           COALESCE(ff.foreign_net_val, 0)     AS foreign_net_val,
           COALESCE(ff.foreign_buy, 0)         AS foreign_buy,
           COALESCE(ff.foreign_sell, 0)        AS foreign_sell,
+          -- smart (foreign brokers + local institutional) vs retail — the real bandar split (non-zero-sum)
+          COALESCE(ia.inst_net, 0)            AS inst_broker_net_val,
+          COALESCE(ra.retail_net, 0)          AS retail_broker_net_val,
+          (COALESCE(fb.foreign_broker_net_val, 0) + COALESCE(ia.inst_net, 0)) AS smart_broker_net_val,
           CASE
             WHEN COALESCE(lb.broker_net_val, 0) > 0 AND COALESCE(ff.foreign_net_val, 0) < 0 THEN 'LOCAL_BUY_FOREIGN_SELL'
             WHEN COALESCE(lb.broker_net_val, 0) < 0 AND COALESCE(ff.foreign_net_val, 0) > 0 THEN 'LOCAL_SELL_FOREIGN_BUY'
@@ -271,7 +285,7 @@ export async function GET(req: NextRequest) {
             WHEN COALESCE(lb.broker_net_val, 0) < 0 AND COALESCE(ff.foreign_net_val, 0) < 0 THEN 'BOTH_SELL'
             ELSE 'NEUTRAL'
           END AS divergence_type
-        FROM local_broker_agg lb, foreign_broker_agg fb, foreign_flow_agg ff`
+        FROM local_broker_agg lb, foreign_broker_agg fb, foreign_flow_agg ff, inst_broker_agg ia, retail_broker_agg ra`
 
     // ── 8. MULTI-BROKER HISTORY ────────────────────────────────────────────
     } else if (action === 'multi_broker_history') {
