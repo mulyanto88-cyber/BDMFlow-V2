@@ -119,7 +119,7 @@ export default function StockDetailPage() {
   const [volumeSpikes, setVolumeSpikes] = useState<any[]>([])
   const [whaleActivity, setWhaleActivity] = useState<any>(null)
   const [scorecard, setScorecard] = useState<any>(null)
-  const [verdict, setVerdict] = useState<any>(null)
+  const [scVerdict, setScVerdict] = useState<any>(null)
 
   const [brokerRolling, setBrokerRolling] = useState<any>(null)
   const [brokerBuyers, setBrokerBuyers] = useState<any[]>([])
@@ -171,7 +171,7 @@ export default function StockDetailPage() {
       setStockData(json.stockData)
       setSmartMoneyIndex(json.smartMoneyIndex)
       setScorecard(json.scorecard || null)
-      setVerdict(json.verdict || null)
+      setScVerdict(json.verdict || null)
       setForeignDivergence(json.foreignDivergence)
       setForeignFlowTrend(json.foreignFlowTrend || [])
       setConcentrationIndex(json.concentrationIndex || null)
@@ -575,16 +575,16 @@ export default function StockDetailPage() {
       {activeTab === 'overview' && (
         <div className="space-y-4">
           {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
-          {(scorecard || verdict) && (
+          {(scorecard || scVerdict) && (
             <div className="glass rounded-2xl p-4 border border-white/[0.06]">
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* Verdict (auto-generated) */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{verdict?.emoji}</span>
-                    <h3 className="font-black text-sm">{verdict?.headline}</h3>
+                    <span className="text-lg">{scVerdict?.emoji}</span>
+                    <h3 className="font-black text-sm">{scVerdict?.headline}</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{verdict?.detail}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{scVerdict?.detail}</p>
                   {scorecard && (
                     <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-[11px]">
                       <ScoreKPI label="Return 5D"   val={`${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        pos={Number(scorecard.return_5d) >= 0} />
