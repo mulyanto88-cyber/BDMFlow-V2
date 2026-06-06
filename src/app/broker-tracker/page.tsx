@@ -2892,6 +2892,8 @@ export default function BrokerTrackerPage() {
               </div>
             )}
 
+            {/* Time Horizon — only for Tracker (Screener uses Periode → fixed materialized window) */}
+            {activeTab === 'tracker' && (
             <div className="space-y-1.5 flex-1 min-w-0">
               <label className="text-[10px] uppercase font-bold text-gray-500 ml-1 flex items-center gap-1.5">
                 <Calendar className="w-3 h-3" /> Time Horizon
@@ -2921,6 +2923,7 @@ export default function BrokerTrackerPage() {
                 </div>
               </div>
             </div>
+            )}
 
             <button onClick={() => loadData()} disabled={loading}
               className="bg-gold-400 text-black px-7 py-2 rounded-xl font-black text-xs
