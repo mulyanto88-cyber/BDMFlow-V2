@@ -127,6 +127,9 @@ interface DivergenceData {
   foreign_net_val: number;
   foreign_buy: number;
   foreign_sell: number;
+  inst_broker_net_val?: number;
+  retail_broker_net_val?: number;
+  smart_broker_net_val?: number;
   divergence_type: 'LOCAL_BUY_FOREIGN_SELL' | 'LOCAL_SELL_FOREIGN_BUY' | 'BOTH_BUY' | 'BOTH_SELL' | 'NEUTRAL';
 }
 
@@ -1132,51 +1135,45 @@ function VerdictStrip({ buyers, sellers, divergence, stockCtx }: {
   const avgC     = validC.length > 0 ? validC.reduce((s,r) => s+(r.buy_consistency_pct??0), 0) / validC.length : 0;
   const stars    = avgC >= 70 ? 5 : avgC >= 55 ? 4 : avgC >= 40 ? 3 : avgC >= 25 ? 2 : 1;
 
-  const localNet   = divergence?.broker_net_val ?? netTotal;
-  const foreignNet = divergence?.foreign_net_val ?? 0;
+  const localNet   = divergence?.broker_net_val ?? netTotal;   // all non-foreign (zero-sum mirror of foreign) — display only
+  const foreignNet = divergence?.foreign_net_val ?? 0;          // EOD foreign flow — display only
 
-  // Threshold: minimum 1 juta Rp supaya tidak false signal dari rounding error
-  // INCO case: localNet=-289K ≈ 0 (bukan distribusi sungguhan!)
-  const LOCAL_THRESHOLD   = 1_000_000;   // 1 juta Rp
-  const FOREIGN_THRESHOLD = 1_000_000;
-  const localSig   = Math.abs(localNet)   > LOCAL_THRESHOLD   ? Math.sign(localNet)   : 0;
-  const foreignSig = Math.abs(foreignNet) > FOREIGN_THRESHOLD ? Math.sign(foreignNet) : 0;
+  // ── Verdict from SMART (foreign brokers + local institutional) vs RETAIL.
+  // Broker net is ZERO-SUM at stock level (local = -foreign always), so the old
+  // "local vs foreign" verdict was a tautology that always read "Akumulasi Lokal"
+  // whenever foreign sold. Real signal = smart-vs-retail + foreign EOD flow.
+  const smartNet   = divergence?.smart_broker_net_val ?? (divergence?.foreign_broker_net_val ?? 0);
+  const retailNet  = divergence?.retail_broker_net_val ?? 0;
+  const foreignEod = divergence?.foreign_net_val ?? 0;
 
-  // Fallback: kalau divergence null, gunakan netTotal dari tracker
-  const effectiveNet = divergence ? localNet : netTotal;
-  const effectiveNetSig = Math.abs(effectiveNet) > LOCAL_THRESHOLD ? Math.sign(effectiveNet) : 0;
+  const TH = 1_000_000; // 1 juta Rp threshold (hindari noise rounding)
+  const smartSig   = Math.abs(smartNet)   > TH ? Math.sign(smartNet)   : 0;
+  const retailSig  = Math.abs(retailNet)  > TH ? Math.sign(retailNet)  : 0;
+  const foreignSig = Math.abs(foreignEod) > TH ? Math.sign(foreignEod) : 0;
 
   let verdictLabel = 'Sinyal Netral', color = 'yellow';
   let desc = 'Belum ada sinyal akumulasi atau distribusi yang dominan.';
 
-  // Format L/F values for desc
   const lFmt = (v: number) => `${v >= 0 ? '+' : ''}${(v/1e9).toFixed(2)} M`;
 
-  if (localSig > 0 && foreignSig > 0) {
-    verdictLabel = 'Konfirmasi Dua Arah 🔥'; color = 'emerald';
-    desc = `Broker lokal (${lFmt(localNet)}) DAN foreign (${lFmt(foreignNet)}) sama-sama net buy — sinyal konvergensi tertinggi, conviction akumulasi sangat kuat.`;
-  } else if (localSig > 0 && foreignSig < 0) {
-    verdictLabel = 'Akumulasi Lokal 🟢'; color = 'emerald';
-    desc = `Broker lokal net buy (${lFmt(localNet)}) sementara foreign distribusi (${lFmt(foreignNet)}). Ini pola rotasi ownership: asing jual, institusi lokal mengambil posisi. Sering bullish jangka menengah.`;
-  } else if (localSig < 0 && foreignSig > 0) {
-    verdictLabel = 'Asing Masuk ⚠️'; color = 'blue';
-    desc = `Foreign net buy (${lFmt(foreignNet)}) tapi broker lokal distribusi (${lFmt(localNet)}). Konflik kepentingan — pantau apakah lokal menjual ke asing (bullish) atau asing masuk sebelum exit besar.`;
-  } else if (localSig < 0 && foreignSig < 0) {
+  if (smartSig > 0 && retailSig < 0) {
+    verdictLabel = 'Akumulasi Bandar 🟢'; color = 'emerald';
+    desc = `Smart money (broker asing + institusi lokal) net buy ${lFmt(smartNet)} sementara retail net jual ${lFmt(retailNet)}. Bandar mengakumulasi, retail melepas — pola bullish klasik.`;
+  } else if (smartSig < 0 && retailSig > 0) {
+    verdictLabel = 'Distribusi ke Retail 🔴'; color = 'red';
+    desc = `Smart money net JUAL ${lFmt(smartNet)}, retail net beli ${lFmt(retailNet)} (menampung). Foreign EOD flow ${lFmt(foreignEod)}. Bandar keluar, retail nyangkut — bearish.`;
+  } else if (smartSig > 0 && retailSig > 0) {
+    verdictLabel = 'Akumulasi Luas 🟢'; color = 'emerald';
+    desc = `Smart money (${lFmt(smartNet)}) DAN retail (${lFmt(retailNet)}) sama-sama net buy. Momentum beli luas — pastikan bukan euforia puncak.`;
+  } else if (smartSig < 0 && retailSig < 0) {
     verdictLabel = 'Distribusi Masif 🔴'; color = 'red';
-    desc = `Lokal (${lFmt(localNet)}) DAN foreign (${lFmt(foreignNet)}) sama-sama net sell — semua pihak keluar. Hindari posisi baru, risiko tekanan jual berlanjut tinggi.`;
-  } else if (localSig > 0 || effectiveNetSig > 0) {
-    verdictLabel = 'Akumulasi 🟢'; color = 'emerald';
-    desc = `Net buy dominan dari broker lokal (${lFmt(localNet)}). Data foreign flow belum tersedia atau netral.`;
-  } else if (localSig < 0 || effectiveNetSig < 0) {
-    verdictLabel = 'Distribusi 🔴'; color = 'red';
-    desc = `Net sell dari broker lokal (${lFmt(localNet)}). Waspadai tekanan jual lanjutan.`;
-  }
-  else if (foreignSig > 0) {
-    verdictLabel = 'Foreign Akumulasi 🔵'; color = 'blue';
-    desc = `Foreign net buy (${lFmt(foreignNet)}), broker lokal netral (< 1M). Monitor apakah lokal akan follow masuk.`;
+    desc = `Smart money (${lFmt(smartNet)}) DAN retail (${lFmt(retailNet)}) sama-sama net sell — semua pihak keluar. Hindari posisi baru.`;
   } else if (foreignSig < 0) {
     verdictLabel = 'Foreign Distribusi ⚠️'; color = 'yellow';
-    desc = `Foreign net sell (${lFmt(foreignNet)}), broker lokal netral. Waspadai tekanan dari sisi asing.`;
+    desc = `Foreign EOD net jual ${lFmt(foreignEod)}; sisi smart/retail broker relatif netral. Waspadai tekanan asing.`;
+  } else if (foreignSig > 0) {
+    verdictLabel = 'Foreign Akumulasi 🔵'; color = 'blue';
+    desc = `Foreign EOD net beli ${lFmt(foreignEod)}; broker lokal relatif netral. Monitor apakah lokal follow.`;
   }
 
   const colorMap = {
@@ -1692,11 +1689,13 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
   setActiveTab: (t: ActiveTab) => void
   loadData: (overrideCode?: string, overrideTab?: ActiveTab) => Promise<void>
 }) {
-  const cleanCount = data.filter(r => (r.sell_pressure_pct ?? 100) < 40).length;
+  // NOTE: sell_pressure_pct ≈ 100% for every stock (broker tape is zero-sum: total_sell≈total_buy),
+  // so the old "Clean Accum (<40%)" metric was always 0. Replaced with smart-broker concentration.
+  const concCount  = data.filter(r => ((r as any).smart_concentration_pct ?? 0) >= 50).length;
   const whaleCount = data.filter(r => r.whale_signal).length;
   const highScore  = data.filter(r => (r.composite_score ?? 0) >= 20).length;
-  const avgSp      = data.length > 0
-    ? data.reduce((s, r) => s + (r.sell_pressure_pct ?? 0), 0) / data.length : 0;
+  const avgConc    = data.length > 0
+    ? data.reduce((s, r) => s + (((r as any).smart_concentration_pct ?? 0)), 0) / data.length : 0;
 
   const SortIcon  = ({ active, dir }: { active: boolean; dir: 'asc' | 'desc' }) =>
     active ? (dir === 'desc' ? <span className="text-gold-400">▼</span> : <span className="text-gold-400">▲</span>)
@@ -1707,8 +1706,8 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
       {/* KPI Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Total Kandidat', value: data.length,  color: 'text-gold-400',     sub: 'net akumulasi > 0' },
-          { label: 'Clean Accum',    value: cleanCount,   color: 'text-emerald-400',  sub: 'sell pressure < 40%' },
+          { label: 'Total Kandidat', value: data.length,  color: 'text-gold-400',     sub: 'smart net > 0' },
+          { label: 'Konsentrasi',    value: concCount,    color: 'text-emerald-400',  sub: 'top broker ≥ 50%' },
           { label: 'Whale Signal',   value: whaleCount,   color: 'text-purple-400',   sub: 'anomali order besar' },
           { label: 'Score Tinggi',   value: highScore,    color: 'text-blue-400',     sub: 'composite score ≥ 20' },
         ].map(k => (
@@ -1724,9 +1723,9 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-bold">Quick Filter:</span>
         {[
-          { label: '🟢 Clean Only', action: () => { setFilterMaxSellPct(40); setFilterMinNet(1); } },
-          { label: '⭐ High Score', action: () => { setFilterMinNet(2); setFilterMaxSellPct(70); } },
-          { label: '🔄 Reset',      action: () => { setFilterMinNet(0.5); setFilterMaxSellPct(85); setFilterSmScore(0); } },
+          { label: '🟢 Net ≥ 1M',   action: () => { setFilterMinNet(1); } },
+          { label: '⭐ Net ≥ 2M',   action: () => { setFilterMinNet(2); } },
+          { label: '🔄 Reset',      action: () => { setFilterMinNet(0.5); setFilterMaxSellPct(100); setFilterSmScore(0); } },
         ].map(p => (
           <button key={p.label} onClick={p.action}
             className="text-[10px] font-bold px-3 py-1.5 rounded-lg border border-border/50 bg-white/[0.03] hover:bg-white/[0.08] hover:border-gold-400/30 text-muted-foreground hover:text-foreground transition-all">
@@ -1734,7 +1733,7 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
           </button>
         ))}
         <span className="ml-auto text-[10px] text-muted-foreground/40">
-          Avg Sell%: <span className={avgSp < 40 ? 'text-emerald-400 font-bold' : avgSp < 70 ? 'text-amber-400 font-bold' : 'text-red-400 font-bold'}>{avgSp.toFixed(0)}%</span>
+          Avg Konsentrasi: <span className={avgConc >= 40 ? 'text-emerald-400 font-bold' : 'text-muted-foreground font-bold'}>{avgConc.toFixed(0)}%</span>
         </span>
       </div>
 
@@ -2207,7 +2206,7 @@ export default function BrokerTrackerPage() {
   const [screenerSortDir,  setScreenerSortDir]  = useState<'asc' | 'desc'>('desc');
   const [filterSmScore,    setFilterSmScore]    = useState(0);
   const [filterMinNet,     setFilterMinNet]     = useState(0.5);   // min net miliar
-  const [filterMaxSellPct, setFilterMaxSellPct] = useState(85);    // max sell pressure %
+  const [filterMaxSellPct, setFilterMaxSellPct] = useState(100);   // max sell pressure % (100 = no filter; sell_pressure ≈100% due to zero-sum tape)
   const [screenerPeriod,   setScreenerPeriod]   = useState(5);     // 5d / 14d / 30d / 60d / 90d
 
   // ── Date ──────────────────────────────────────────────────────────────────
@@ -2862,22 +2861,8 @@ export default function BrokerTrackerPage() {
                     onChange={e => setFilterPowerScore(Number(e.target.value))}
                     className="w-28 accent-yellow-400" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">
-                    Min SM Score: <span className="text-gold-400">{filterSmScore}</span>
-                  </label>
-                  <select value={filterSmScore} onChange={e => setFilterSmScore(Number(e.target.value))}
-                    className="bg-background border border-white/10 rounded-lg px-3 py-2 text-[11px]
-                               text-gray-300 outline-none focus:border-yellow-400/40 [color-scheme:dark]">
-                    <option value={0}>Semua Score</option>
-                    <option value={1}>≥ 1</option>
-                    <option value={2}>≥ 2</option>
-                    <option value={3}>≥ 3</option>
-                    <option value={4}>≥ 4 (Strong)</option>
-                    <option value={5}>5 (Maximum)</option>
-                  </select>
-                </div>
-                {/* ★ New quality filters */}
+                {/* ★ Quality filters (Min SM Score & Max Sell% removed: SM score is legacy/weak;
+                    sell_pressure ≈ 100% always due to zero-sum broker tape) */}
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">
                     Min Net: <span className="text-emerald-400">{filterMinNet.toFixed(1)} M</span>
@@ -2885,14 +2870,6 @@ export default function BrokerTrackerPage() {
                   <input type="range" min={0} max={10} step={0.5} value={filterMinNet}
                     onChange={e => setFilterMinNet(Number(e.target.value))}
                     className="w-28 accent-emerald-400" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">
-                    Max Sell%: <span className={filterMaxSellPct < 50 ? 'text-emerald-400' : filterMaxSellPct < 70 ? 'text-yellow-400' : 'text-red-400'}>{filterMaxSellPct}%</span>
-                  </label>
-                  <input type="range" min={20} max={100} step={5} value={filterMaxSellPct}
-                    onChange={e => setFilterMaxSellPct(Number(e.target.value))}
-                    className="w-28 accent-red-400" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">Periode</label>
@@ -2915,6 +2892,8 @@ export default function BrokerTrackerPage() {
               </div>
             )}
 
+            {/* Time Horizon — only for Tracker (Screener uses Periode → fixed materialized window) */}
+            {activeTab === 'tracker' && (
             <div className="space-y-1.5 flex-1 min-w-0">
               <label className="text-[10px] uppercase font-bold text-gray-500 ml-1 flex items-center gap-1.5">
                 <Calendar className="w-3 h-3" /> Time Horizon
@@ -2944,6 +2923,7 @@ export default function BrokerTrackerPage() {
                 </div>
               </div>
             </div>
+            )}
 
             <button onClick={() => loadData()} disabled={loading}
               className="bg-gold-400 text-black px-7 py-2 rounded-xl font-black text-xs

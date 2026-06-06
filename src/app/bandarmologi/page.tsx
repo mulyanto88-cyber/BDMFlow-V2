@@ -44,8 +44,8 @@ export default function BandarmologiPage() {
 
   // KPIs from data
   const allData = [...prime, ...convergence, ...leaderboard]
-  const highBroker = allData.filter((r: any) => (r.broker_score ?? 0) >= 10).length
-  const highForeign = allData.filter((r: any) => (r.foreign_score ?? 0) >= 15).length
+  const highBroker = allData.filter((r: any) => (r.broker_score ?? 0) >= 12).length
+  const highForeign = allData.filter((r: any) => (r.foreign_score ?? 0) >= 18).length
   const totalSignals = leaderboard.length
 
   const primeCol = createColumnHelper<any>()

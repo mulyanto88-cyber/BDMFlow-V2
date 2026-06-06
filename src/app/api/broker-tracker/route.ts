@@ -1,4 +1,4 @@
-  // src/app/api/broker-tracker/route.ts
+// src/app/api/broker-tracker/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
@@ -147,13 +147,22 @@ export async function GET(req: NextRequest) {
         SELECT
           s.stock_code, s.sector, s.close, s.change_percent,
           s.foreign_30d, s.broker_net, s.whale_signal, s.big_player_anomaly,
-          s.aov_ratio_ma20, s.smart_money_score, s.signal,
+          s.aov_ratio_ma20,
+          -- smart money score now reflects validated composite v2 (normalized 0-100)
+          ROUND(COALESCE(v2.v2_score, 0) / 73.0 * 100, 0)  AS smart_money_score,
+          s.signal,
           k.broker_net_miliar,
-          k.local_smart_miliar_saham,
-          k.foreign_smart_miliar_saham,
-          k.confirmation AS ksei_confirmation
+          k.ksei_local_smart_flow_miliar    AS local_smart_miliar_saham,
+          k.ksei_foreign_smart_flow_miliar  AS foreign_smart_miliar_saham,
+          k.confirmation AS ksei_confirmation,
+          -- composite v2 context
+          COALESCE(v2.v2_score, 0)  AS v2_score,
+          v2.tier_v2,
+          v2.flow_context,
+          v2.rank_overall
         FROM market.vw_smart_money_score s
         LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
+        LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
         WHERE s.stock_code = $${paramIdx}
         LIMIT 1`
 
@@ -244,6 +253,16 @@ export async function GET(req: NextRequest) {
           FROM market.vw_stock_detail
           WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
             AND stock_code = $${paramIdx}
+        ),
+        inst_broker_agg AS (
+          SELECT SUM(ba.value)::DOUBLE AS inst_net
+          FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
+          WHERE ${dateFilter.clause} AND LEFT(ba.stock_code,4) = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_INST'
+        ),
+        retail_broker_agg AS (
+          SELECT SUM(ba.value)::DOUBLE AS retail_net
+          FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
+          WHERE ${dateFilter.clause} AND LEFT(ba.stock_code,4) = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_RETAIL'
         )
         SELECT
           COALESCE(lb.broker_net_val, 0)     AS broker_net_val,
@@ -255,6 +274,10 @@ export async function GET(req: NextRequest) {
           COALESCE(ff.foreign_net_val, 0)     AS foreign_net_val,
           COALESCE(ff.foreign_buy, 0)         AS foreign_buy,
           COALESCE(ff.foreign_sell, 0)        AS foreign_sell,
+          -- smart (foreign brokers + local institutional) vs retail — the real bandar split (non-zero-sum)
+          COALESCE(ia.inst_net, 0)            AS inst_broker_net_val,
+          COALESCE(ra.retail_net, 0)          AS retail_broker_net_val,
+          (COALESCE(fb.foreign_broker_net_val, 0) + COALESCE(ia.inst_net, 0)) AS smart_broker_net_val,
           CASE
             WHEN COALESCE(lb.broker_net_val, 0) > 0 AND COALESCE(ff.foreign_net_val, 0) < 0 THEN 'LOCAL_BUY_FOREIGN_SELL'
             WHEN COALESCE(lb.broker_net_val, 0) < 0 AND COALESCE(ff.foreign_net_val, 0) > 0 THEN 'LOCAL_SELL_FOREIGN_BUY'
@@ -262,7 +285,7 @@ export async function GET(req: NextRequest) {
             WHEN COALESCE(lb.broker_net_val, 0) < 0 AND COALESCE(ff.foreign_net_val, 0) < 0 THEN 'BOTH_SELL'
             ELSE 'NEUTRAL'
           END AS divergence_type
-        FROM local_broker_agg lb, foreign_broker_agg fb, foreign_flow_agg ff`
+        FROM local_broker_agg lb, foreign_broker_agg fb, foreign_flow_agg ff, inst_broker_agg ia, retail_broker_agg ra`
 
     // ── 8. MULTI-BROKER HISTORY ────────────────────────────────────────────
     } else if (action === 'multi_broker_history') {
