@@ -53,23 +53,25 @@ async function apiFetch(params: Record<string, string | number>) {
   return json.data ?? []
 }
 
+// radar_score practically maxes ~60 (p99≈42, p90≈27) — thresholds calibrated to that range,
+// not the old 0-100 assumption (where ≥70 emerald / ≥55 sky never appeared).
 function scoreColor(s: number) {
-  if (s >= 70) return 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
-  if (s >= 55) return 'text-sky-400 bg-sky-500/15 border-sky-500/30'
-  if (s >= 40) return 'text-amber-400 bg-amber-500/15 border-amber-500/30'
+  if (s >= 40) return 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
+  if (s >= 28) return 'text-sky-400 bg-sky-500/15 border-sky-500/30'
+  if (s >= 18) return 'text-amber-400 bg-amber-500/15 border-amber-500/30'
   return 'text-slate-400 bg-slate-500/10 border-slate-500/20'
 }
 
 function scoreBg(s: number) {
-  if (s >= 70) return 'bg-emerald-500'
-  if (s >= 55) return 'bg-sky-500'
-  if (s >= 40) return 'bg-amber-500'
+  if (s >= 40) return 'bg-emerald-500'
+  if (s >= 28) return 'bg-sky-500'
+  if (s >= 18) return 'bg-amber-500'
   return 'bg-slate-600'
 }
 
 function scoreGlow(s: number): string | undefined {
-  if (s >= 70) return '0 0 6px rgba(34,197,94,0.55)'
-  if (s >= 55) return '0 0 6px rgba(56,189,248,0.45)'
+  if (s >= 40) return '0 0 6px rgba(34,197,94,0.55)'
+  if (s >= 28) return '0 0 6px rgba(56,189,248,0.45)'
   return undefined
 }
 
@@ -176,7 +178,7 @@ export default function RadarPage() {
   }
 
   // KPIs
-  const highConviction = rows.filter(r => r.radar_score >= 60).length
+  const highConviction = rows.filter(r => r.radar_score >= 30).length
   const tripleConfl    = rows.filter(r => r.composite_signal?.includes('TRIPLE')).length
   const primeFor       = rows.filter(r => r.composite_signal?.includes('PRIME')).length
   const avgScore       = rows.length ? Math.round(rows.reduce((s, r) => s + r.radar_score, 0) / rows.length) : 0
@@ -217,7 +219,7 @@ export default function RadarPage() {
         {/* ── KPI Cards ───────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger">
           {([
-            { label: 'High Conviction (≥60)', value: highConviction, icon: Shield   as React.ElementType, color: 'text-emerald-400', accentColor: 'rgba(34,197,94,0.12)'  },
+            { label: 'High Conviction (≥30)', value: highConviction, icon: Shield   as React.ElementType, color: 'text-emerald-400', accentColor: 'rgba(34,197,94,0.12)'  },
             { label: 'Triple Confluence',      value: tripleConfl,    icon: Zap      as React.ElementType, color: 'text-gold-400',    accentColor: 'rgba(231,183,51,0.12)'  },
             { label: 'Prime Foreign Buy',      value: primeFor,       icon: Globe    as React.ElementType, color: 'text-sky-400',     accentColor: 'rgba(56,189,248,0.12)' },
             { label: 'Avg Radar Score',        value: avgScore,       icon: Activity as React.ElementType, color: 'text-amber-400',  accentColor: 'rgba(245,158,11,0.12)' },
@@ -322,7 +324,7 @@ export default function RadarPage() {
               onChange={e => { setMinScore(+e.target.value); setPage(1) }}
               className="px-2 py-2 rounded-lg bg-background/80 border border-border text-sm focus:outline-none"
             >
-              {[0, 20, 30, 40, 50, 60, 70].map(v => <option key={v} value={v}>{v}+</option>)}
+              {[0, 10, 20, 30, 40].map(v => <option key={v} value={v}>{v}+</option>)}
             </select>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -454,7 +456,7 @@ export default function RadarPage() {
                           <div
                             className={`h-full rounded-full ${scoreBg(r.radar_score)}`}
                             style={{
-                              width: `${r.radar_score}%`,
+                              width: `${Math.min(100, r.radar_score / 50 * 100)}%`,
                               boxShadow: scoreGlow(r.radar_score),
                             }}
                           />
