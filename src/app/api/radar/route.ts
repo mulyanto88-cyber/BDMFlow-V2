@@ -211,7 +211,7 @@ export async function GET(req: NextRequest) {
           sector,
           COUNT(*)::BIGINT                          AS stock_count,
           ROUND(AVG(radar_score), 1)                AS avg_radar_score,
-          COUNT(CASE WHEN radar_score >= 60 THEN 1 END)::BIGINT AS high_conviction,
+          COUNT(CASE WHEN radar_score >= 30 THEN 1 END)::BIGINT AS high_conviction,
           COUNT(CASE WHEN composite_signal LIKE '%TRIPLE%'
                        OR composite_signal LIKE '%PRIME%' THEN 1 END)::BIGINT AS strong_signals,
           ROUND(AVG(change_percent), 2)             AS avg_change,
