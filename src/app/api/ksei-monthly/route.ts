@@ -42,17 +42,19 @@ export async function GET(req: NextRequest) {
     // SCREENER — smart money momentum per saham
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'screener') {
-      const trendFilter  = trend  ? `AND smart_money_trend = '${trend}'` : ''
-      const divFilter    = div    ? `AND divergence_signal = '${div}'` : ''
-      const sectorFilter = sector ? `AND sector = '${sector.replace(/'/g, "''")}'` : ''
+      // Parameterized — trend/divergence/sector were string-interpolated (SQL injection risk)
+      const conditions: string[] = ['ABS(COALESCE(m0_smart,0)) > 0.01']
+      const params: any[] = []
+      if (trend)  { params.push(trend);  conditions.push(`smart_money_trend = $${params.length}`) }
+      if (div)    { params.push(div);    conditions.push(`divergence_signal = $${params.length}`) }
+      if (sector) { params.push(sector); conditions.push(`sector = $${params.length}`) }
 
       const data = await run(`
         SELECT * FROM ksei.tb_ksei_monthly_scored
-        WHERE ABS(COALESCE(m0_smart,0)) > 0.01
-          ${trendFilter} ${divFilter} ${sectorFilter}
+        WHERE ${conditions.join(' AND ')}
         ORDER BY ABS(COALESCE(m0_smart,0)) DESC
         LIMIT 300
-      `)
+      `, params)
       return NextResponse.json({ data })
     }
 

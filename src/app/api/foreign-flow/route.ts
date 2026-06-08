@@ -161,15 +161,17 @@ export async function GET(req: NextRequest) {
             mp.f60d, mp.f90d, mp.f120d,
             sms.smart_money_score,
             sms.whale_signal,
-            sms.broker_net::DOUBLE                 AS broker_net,
+            -- local institutional broker net (non-zero-sum); sms.broker_net was zero-sum ≈ 0
+            (COALESCE(br.local_inst_net_7d, 0) * 1e9)::DOUBLE AS broker_net,
             sms.signal,
             tact.net_foreign_7d_miliar::DOUBLE     AS tact_foreign_5d,
-            tact.broker_net_7d_miliar::DOUBLE      AS broker_net_5d,
+            COALESCE(br.local_inst_net_7d, 0)::DOUBLE AS broker_net_5d,
             tact.tactical_signal
           FROM mp
           LEFT JOIN market.company_profile                   cp   ON cp.stock_code   = mp.stock_code
           LEFT JOIN market.vw_smart_money_score              sms  ON sms.stock_code  = mp.stock_code
           LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = mp.stock_code
+          LEFT JOIN main.vw_broker_rolling_net               br   ON br.stock_code   = mp.stock_code
         `, [c])
       ])
       return NextResponse.json({ chart: chartRows, metrics: metricRows[0] ?? null })
@@ -184,26 +186,29 @@ export async function GET(req: NextRequest) {
           sms.close::DOUBLE                      AS close,
           sms.change_percent::DOUBLE             AS change_percent,
           sms.foreign_30d::DOUBLE                AS foreign_30d,
-          sms.broker_net::DOUBLE                 AS broker_net,
+          -- LOCAL axis = local institutional broker net (non-zero-sum). sms.broker_net was
+          -- SUM(value) of ALL brokers = zero-sum ≈ 0, making the old divergence patterns noise.
+          (COALESCE(br.local_inst_net_7d, 0) * 1e9)::DOUBLE AS broker_net,
           sms.whale_signal,
           sms.big_player_anomaly,
           sms.smart_money_score,
           sms.signal,
           tact.net_foreign_1d::DOUBLE            AS net_foreign_1d,
           tact.net_foreign_7d_miliar::DOUBLE     AS net_foreign_5d,
-          tact.broker_net_7d_miliar::DOUBLE      AS broker_net_5d,
+          COALESCE(br.local_inst_net_7d, 0)::DOUBLE AS broker_net_5d,
           tact.tactical_signal,
           CASE
-            WHEN sms.foreign_30d > 0 AND sms.broker_net > 0 AND sms.whale_signal = TRUE THEN 'TRIPLE_BUY'
-            WHEN sms.foreign_30d > 0 AND sms.broker_net > 0                             THEN 'BOTH_BUY'
-            WHEN sms.foreign_30d > 0 AND sms.broker_net < 0                             THEN 'FOREIGN_BUY_LOCAL_SELL'
-            WHEN sms.foreign_30d < 0 AND sms.broker_net > 0                             THEN 'LOCAL_BUY_FOREIGN_SELL'
-            WHEN sms.foreign_30d < 0 AND sms.broker_net < 0                             THEN 'BOTH_SELL'
+            WHEN sms.foreign_30d > 0 AND COALESCE(br.local_inst_net_7d,0) > 0 AND sms.whale_signal = TRUE THEN 'TRIPLE_BUY'
+            WHEN sms.foreign_30d > 0 AND COALESCE(br.local_inst_net_7d,0) > 0                             THEN 'BOTH_BUY'
+            WHEN sms.foreign_30d > 0 AND COALESCE(br.local_inst_net_7d,0) < 0                             THEN 'FOREIGN_BUY_LOCAL_SELL'
+            WHEN sms.foreign_30d < 0 AND COALESCE(br.local_inst_net_7d,0) > 0                             THEN 'LOCAL_BUY_FOREIGN_SELL'
+            WHEN sms.foreign_30d < 0 AND COALESCE(br.local_inst_net_7d,0) < 0                             THEN 'BOTH_SELL'
             ELSE 'NEUTRAL'
           END AS divergence_pattern
         FROM market.vw_smart_money_score sms
         LEFT JOIN market.company_profile                   cp   ON cp.stock_code  = sms.stock_code
         LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = sms.stock_code
+        LEFT JOIN main.vw_broker_rolling_net               br   ON br.stock_code  = sms.stock_code
         WHERE ABS(sms.foreign_30d) > 500000000
         ORDER BY ABS(sms.foreign_30d) DESC
         LIMIT 120
