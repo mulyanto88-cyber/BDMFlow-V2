@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Zap, Search, RefreshCw, Filter, ExternalLink } from 'lucide-react'
+import { Zap, RefreshCw, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 async function apiFetch(params: Record<string,string|number>) {
@@ -12,15 +12,12 @@ async function apiFetch(params: Record<string,string|number>) {
   return j.data ?? []
 }
 
-const PERIODS = ['1d','7d','14d','30d','90d']
-const CONF_LABELS = ['Triple Confirm','Vol + AOV','Vol + Foreign','AOV + Foreign','Vol Spike','AOV Spike']
-
 function confBadge(type: string) {
-  if (type.includes('Triple'))  return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-  if (type.includes('Vol + AOV')) return 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-  if (type.includes('Foreign'))   return 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-  if (type.includes('Vol'))       return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-  if (type.includes('AOV'))       return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+  if (type.includes('Ekstrem + Trend')) return 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40'  // validated premium combo
+  if (type.includes('Ekstrem'))         return 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+  if (type.includes('Whale'))           return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+  if (type.includes('AOV'))             return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+  if (type.includes('Vol'))             return 'bg-sky-500/20 text-sky-300 border-sky-500/30'
   return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
 }
 
@@ -29,34 +26,45 @@ export default function VolumeAovPage() {
   const [sectors, setSectors]   = useState<string[]>([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string|null>(null)
-  const [period, setPeriod]     = useState('7d')
   const [sector, setSector]     = useState('')
-  const [minConf, setMinConf]   = useState(2)
-  const [search, setSearch]     = useState('')
+  const [minConf, setMinConf]   = useState(3)
+  const [sort, setSort]         = useState<{ key: string; dir: 'asc'|'desc' }>({ key: 'conf_score', dir: 'desc' })
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
       const [data, secs] = await Promise.all([
-        apiFetch({ action:'screener', period, sector, min_conf: minConf }),
+        apiFetch({ action:'screener', sector, min_conf: minConf }),
         apiFetch({ action:'sectors' }),
       ])
       setRows(data)
       setSectors(secs.map((s:any) => s.sector))
     } catch(e:any) { setError(e.message) }
     finally { setLoading(false) }
-  }, [period, sector, minConf])
+  }, [sector, minConf])
 
   useEffect(() => { load() }, [load])
 
-  const filtered = useMemo(() => {
-    if (!search) return rows
-    const q = search.toUpperCase()
-    return rows.filter(r => r.stock_code?.includes(q) || r.sector?.includes(q))
-  }, [rows, search])
+  const toggleSort = (key: string) =>
+    setSort(s => s.key === key ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: 'desc' })
+  const sortArrow = (k: string) =>
+    sort.key === k ? <span className="text-primary ml-0.5">{sort.dir === 'desc' ? '▼' : '▲'}</span> : null
 
-  const tripleCount = rows.filter(r => r.spike_type?.includes('Triple')).length
-  const highConfCount = rows.filter(r => r.conf_score >= 3).length
+  const filtered = useMemo(() => {
+    const arr = [...rows]
+    const { key, dir } = sort
+    arr.sort((a, b) => {
+      const av = a[key], bv = b[key]
+      const cmp = (typeof av === 'string' || typeof bv === 'string')
+        ? String(av ?? '').localeCompare(String(bv ?? ''))
+        : Number(av ?? 0) - Number(bv ?? 0)
+      return dir === 'desc' ? -cmp : cmp
+    })
+    return arr
+  }, [rows, sort])
+
+  const aovExtremeCount = rows.filter(r => Number(r.aov_ratio_ma20) >= 3).length
+  const highConfCount = rows.filter(r => r.conf_score >= 5).length
 
   return (
     <div className="sidebar-offset min-h-screen bg-background text-foreground">
@@ -88,14 +96,14 @@ export default function VolumeAovPage() {
         {/* ── KPI Cards ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-3 stagger">
           <div className="metric-card card-hover text-center">
-            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">Triple Confirm</div>
-            <div className="text-[30px] font-black font-mono leading-none text-purple-400">{tripleCount}</div>
-            <div className="text-[10px] text-muted-foreground/40 mt-1">Vol + AOV + Foreign</div>
+            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">AOV Ekstrem</div>
+            <div className="text-[30px] font-black font-mono leading-none text-purple-400">{aovExtremeCount}</div>
+            <div className="text-[10px] text-muted-foreground/40 mt-1">order size ≥ 3x (edge tertinggi)</div>
           </div>
           <div className="metric-card card-hover text-center">
-            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">High Conf (≥3)</div>
+            <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">High Conf (≥5)</div>
             <div className="text-[30px] font-black font-mono leading-none text-primary">{highConfCount}</div>
-            <div className="text-[10px] text-muted-foreground/40 mt-1">3+ kondisi terpenuhi</div>
+            <div className="text-[10px] text-muted-foreground/40 mt-1">skor edge-weighted ≥ 5</div>
           </div>
           <div className="metric-card card-hover text-center">
             <div className="text-[10px] uppercase tracking-[0.15em] font-bold text-muted-foreground/50 mb-1">Total Saham</div>
@@ -105,26 +113,7 @@ export default function VolumeAovPage() {
         </div>
 
         {/* ── Filters ────────────────────────────────────────────────────── */}
-        <div className="panel flex flex-wrap gap-3 p-3">
-        <div className="relative flex-1 min-w-[160px]">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input type="text" placeholder="Cari kode..." value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-8 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none text-sm" />
-        </div>
-        <div className="flex gap-1">
-          {PERIODS.map(p => (
-            <button key={p} onClick={() => setPeriod(p)}
-              className={[
-                'text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all duration-150',
-                period === p
-                  ? 'bg-primary/[0.12] text-primary border border-primary/20'
-                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.04] border border-transparent',
-              ].join(' ')}>
-              {p.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        <div className="panel flex flex-wrap items-center gap-3 p-3">
         <select value={sector} onChange={e => setSector(e.target.value)}
           className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none">
           <option value="">Semua Sektor</option>
@@ -132,7 +121,7 @@ export default function VolumeAovPage() {
         </select>
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground text-xs">Min konfirmasi:</span>
-          {[1,2,3,4,5].map(n => (
+          {[2,3,4,5,6].map(n => (
             <button key={n} onClick={() => setMinConf(n)}
               className={[
                 'w-7 h-7 rounded-lg text-[11px] font-bold transition-all duration-150',
@@ -161,14 +150,14 @@ export default function VolumeAovPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-white/[0.02] border-b border-border/50 text-muted-foreground">
-                <th className="text-left px-3 py-3 font-medium">Saham</th>
-                <th className="text-right px-3 py-3 font-medium">Harga</th>
-                <th className="text-center px-3 py-3 font-medium">Konfirmasi</th>
-                <th className="text-left px-3 py-3 font-medium">Jenis Spike</th>
-                <th className="text-right px-3 py-3 font-medium">Vol Ratio</th>
-                <th className="text-right px-3 py-3 font-medium">AOV Ratio</th>
-                <th className="text-right px-3 py-3 font-medium hidden md:table-cell">Foreign Net</th>
-                <th className="text-center px-3 py-3 font-medium hidden lg:table-cell">Whale</th>
+                <th className="text-left px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('stock_code')}>Saham{sortArrow('stock_code')}</th>
+                <th className="text-right px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('close')}>Harga{sortArrow('close')}</th>
+                <th className="text-center px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('conf_score')}>Konfirmasi{sortArrow('conf_score')}</th>
+                <th className="text-left px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('spike_type')}>Jenis Spike{sortArrow('spike_type')}</th>
+                <th className="text-right px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('volume_ratio')}>Vol Ratio{sortArrow('volume_ratio')}</th>
+                <th className="text-right px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('aov_ratio_ma20')}>AOV Ratio{sortArrow('aov_ratio_ma20')}</th>
+                <th className="text-right px-3 py-3 font-medium hidden md:table-cell cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('net_foreign_value')}>Foreign Net{sortArrow('net_foreign_value')}</th>
+                <th className="text-center px-3 py-3 font-medium hidden lg:table-cell cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('whale_signal')}>Whale{sortArrow('whale_signal')}</th>
                 <th className="px-3 py-3" />
               </tr>
             </thead>
@@ -193,11 +182,11 @@ export default function VolumeAovPage() {
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <div className="flex justify-center gap-0.5">
-                      {Array.from({length:5}).map((_,i) => (
-                        <div key={i} className={`w-2.5 h-2.5 rounded-sm ${i < r.conf_score ? 'bg-amber-400' : 'bg-muted'}`} />
+                      {Array.from({length:8}).map((_,i) => (
+                        <div key={i} className={`w-2 h-2 rounded-sm ${i < r.conf_score ? 'bg-amber-400' : 'bg-muted'}`} />
                       ))}
                     </div>
-                    <div className="text-muted-foreground mt-0.5">{r.conf_score}/5</div>
+                    <div className="text-muted-foreground mt-0.5">{r.conf_score}/8</div>
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={`px-1.5 py-0.5 rounded border text-xs ${confBadge(r.spike_type || '')}`}>
@@ -236,8 +225,9 @@ export default function VolumeAovPage() {
 
         {/* ── Legend ─────────────────────────────────────────────────────── */}
         <div className="glass rounded-xl p-3 text-[11px] text-muted-foreground/60">
-          <span className="font-bold text-muted-foreground">Konfirmasi score (0–5): </span>
-          Volume ≥ 2× (+1) · AOV ≥ 1.5× (+1) · Foreign net buy (+1) · Whale signal (+1) · Above VWMA (+1). Min 3 = setidaknya 3 kondisi terpenuhi.
+          <span className="font-bold text-muted-foreground">Konfirmasi score (0–8, edge-weighted): </span>
+          AOV ≥3× <b>(+3)</b> / ≥2× (+2) / ≥1.5× (+1) · Whale (+2) · Big Player (+1) · Above VWMA (+1) · Volume ≥2× (+1).
+          Bobot diturunkan dari validasi forward-return: AOV = sinyal terkuat. Foreign 1-hari tidak diberi skor (edge ≈ 0).
         </div>
 
       </div>
