@@ -7,15 +7,12 @@ import { run } from '@/lib/db'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const action  = searchParams.get('action') || 'screener'
-  const period  = searchParams.get('period') || '7d'
   const sector  = searchParams.get('sector') || ''
   const minConf = parseInt(searchParams.get('min_conf') || '3')
   const minVal  = parseInt(searchParams.get('min_val') || '5000000000')
 
   try {
     if (action === 'screener') {
-      const periodMap: Record<string,string> = { '1d':'1','7d':'7','14d':'14','30d':'30','90d':'90' }
-      const days = periodMap[period] || '7'
       const sectorFilter = sector ? `AND cp.sector = '${sector.replace(/'/g,"''")}'` : ''
 
       // Edge-weighted confluence (max 8), from our fwd-20d validation:
@@ -32,17 +29,7 @@ export async function GET(req: NextRequest) {
       )`
 
       const data = await run(`
-        WITH latest AS (SELECT MAX(trading_date) AS d FROM market.daily_transactions),
-        period_data AS (
-          SELECT stock_code,
-                 COUNT(CASE WHEN aov_ratio_ma20 >= 1.5 THEN 1 END)::INTEGER AS aov_spikes,
-                 COUNT(CASE WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 THEN 1 END)::INTEGER AS vol_spikes,
-                 ROUND(SUM(net_foreign_value)/1e9,3)::DOUBLE AS foreign_net_miliar,
-                 COUNT(CASE WHEN whale_signal THEN 1 END)::INTEGER AS whale_days
-          FROM market.daily_transactions
-          WHERE CAST(trading_date AS DATE) >= (SELECT d FROM latest) - INTERVAL '${days} days'
-          GROUP BY stock_code
-        )
+        WITH latest AS (SELECT MAX(trading_date) AS d FROM market.daily_transactions)
         SELECT
           d.stock_code,
           d.close::DOUBLE AS close,
@@ -59,10 +46,6 @@ export async function GET(req: NextRequest) {
           d.signal AS signal,
           cp.sector,
           cp.group_name,
-          COALESCE(p.aov_spikes,0)      AS aov_spikes_period,
-          COALESCE(p.vol_spikes,0)      AS vol_spikes_period,
-          COALESCE(p.foreign_net_miliar,0) AS foreign_net_miliar,
-          COALESCE(p.whale_days,0)      AS whale_days_period,
           ${CONF}::INTEGER AS conf_score,
           CASE
             WHEN d.aov_ratio_ma20 >= 3.0 AND d.close::DOUBLE >= d.vwma_20d::DOUBLE THEN '🚀 AOV Ekstrem + Trend'
@@ -75,7 +58,6 @@ export async function GET(req: NextRequest) {
           END AS spike_type
         FROM market.daily_transactions d
         LEFT JOIN market.company_profile cp ON d.stock_code = cp.stock_code
-        LEFT JOIN period_data p ON d.stock_code = p.stock_code
         WHERE d.trading_date = (SELECT l.d FROM latest l)
           AND d.value > ${minVal} ${sectorFilter}
           AND ${CONF} >= ${minConf}
