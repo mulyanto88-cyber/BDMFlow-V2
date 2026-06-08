@@ -157,9 +157,20 @@ export default function SmartMoneyMatrix() {
 
   const fetchSmartScore = useCallback(async () => {
     try {
+      // Score repointed to validated composite v2 (normalized 0-100). The old
+      // smart_money_score was weak (binary, AOV triple-counted, 1-day broker zero-sum).
       const data = await mdQuery(`
-        SELECT * FROM market.vw_smart_money_score
-        ORDER BY smart_money_score DESC
+        SELECT s.stock_code, s.sector, s.close, s.change_percent, s.foreign_30d, s.broker_net,
+               s.whale_signal, s.big_player_anomaly, s.aov_ratio_ma20,
+               ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) AS smart_money_score,
+               CASE
+                 WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 70 THEN '🚀 STRONG BUY'
+                 WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 45 THEN '👀 WATCH'
+                 ELSE '➖ NEUTRAL'
+               END AS signal
+        FROM market.vw_smart_money_score s
+        LEFT JOIN market.tb_composite_v2 v2 ON v2.stock_code = s.stock_code
+        ORDER BY smart_money_score DESC, s.aov_ratio_ma20 DESC
         LIMIT 50
       `)
       setSmartScoreList(data as SmartScoreData[])
