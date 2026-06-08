@@ -189,17 +189,17 @@ function DeltaBadge({ value, prefix = '' }: { value: number; prefix?: string }) 
 }
 
 function SignalBadge({ signal }: { signal: string }) {
-  const map: Record<string, string> = {
-    'CORP_BUY': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    'CORP_SELL': 'bg-red-500/20 text-red-400 border-red-500/30',
-    'FOREIGN_BUY': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    'FOREIGN_SELL': 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-    'HIGH_ALERT': 'bg-red-600/30 text-red-300 border-red-500/50',
-    'INSIDER_BUY': 'bg-violet-500/20 text-violet-400 border-violet-500/30',
-  }
-  const cls = map[signal] || 'bg-white/[0.05] text-muted-foreground border-white/10'
+  // vw_insider_screener emits emoji labels ('🟢 Corp Acc', '🔴 Foreign Out', …),
+  // so key on substrings — the old exact-match map ('CORP_BUY') never matched → all grey.
+  let cls = 'bg-white/[0.05] text-muted-foreground border-white/10'
+  if      (signal.includes('Corp Acc'))    cls = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+  else if (signal.includes('Foreign In'))  cls = 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+  else if (signal.includes('Inst Dom'))    cls = 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+  else if (signal.includes('Insider'))     cls = 'bg-violet-500/20 text-violet-400 border-violet-500/30'
+  else if (signal.includes('Corp Dist'))   cls = 'bg-red-500/20 text-red-400 border-red-500/30'
+  else if (signal.includes('Foreign Out')) cls = 'bg-rose-500/20 text-rose-400 border-rose-500/30'
   return (
-    <span className={`text-[8px] px-1.5 py-0.5 rounded border font-bold ${cls}`}>{signal.replace(/_/g, ' ')}</span>
+    <span className={`text-[8px] px-1.5 py-0.5 rounded border font-bold ${cls}`}>{signal}</span>
   )
 }
 
