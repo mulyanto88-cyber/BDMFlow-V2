@@ -1,4 +1,5 @@
-const CACHE = 'bdmflow-v1'
+// Bump this version whenever the caching strategy changes — `activate` clears all older caches.
+const CACHE = 'bdmflow-v2'
 const ASSETS = ['/', '/manifest.webmanifest']
 
 self.addEventListener('install', (event) => {
@@ -19,6 +20,34 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
+
+  const url = new URL(event.request.url)
+  // Let the browser handle cross-origin (e.g. unpkg chart libs) directly — don't intercept.
+  if (url.origin !== self.location.origin) return
+
+  // FRESHNESS-CRITICAL: API data + page navigations (incl. RSC) must come from the network so the
+  // edge cache (s-maxage) governs freshness — NOT a stale SW copy. Fall back to cache only offline.
+  const needsFresh =
+    url.pathname.startsWith('/api/') ||
+    event.request.mode === 'navigate' ||
+    url.searchParams.has('_rsc')
+
+  if (needsFresh) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res.ok && res.type === 'basic') {
+            const clone = res.clone()
+            caches.open(CACHE).then((cache) => cache.put(event.request, clone))
+          }
+          return res
+        })
+        .catch(() => caches.match(event.request)) // offline fallback
+    )
+    return
+  }
+
+  // Static assets (JS/CSS/fonts/icons): cache-first for speed, refresh in the background.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetched = fetch(event.request).then((res) => {
