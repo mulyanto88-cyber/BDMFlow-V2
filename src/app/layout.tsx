@@ -10,6 +10,7 @@ import KeyboardProvider from '../../components/keyboard-provider'
 import InlineActionCenter from '../../components/inline-action-center'
 import MobileBottomNav from '../../components/mobile-bottom-nav'
 import PwaRegister from '../../components/pwa-register'
+import InstallButton from '../../components/install-button'
 import { AuthProvider } from '@/context/auth-context'
 
 const inter = Inter({
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <GlobalSearch />
 
             <div className="flex items-center gap-2 flex-shrink-0">
+              <InstallButton />
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/[0.06] bg-white/[0.03] text-[10px] text-muted-foreground/60">
                 <span className="pulse-dot" />
                 <span className="font-mono">T+1</span>
