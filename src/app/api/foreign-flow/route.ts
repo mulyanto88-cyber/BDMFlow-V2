@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
           mp AS (
             SELECT
               stock_code,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '1 day'
+              SUM(CASE WHEN trading_date = ld.max_date
                        THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f1d,
               SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '7 days'
                        THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f7d,
