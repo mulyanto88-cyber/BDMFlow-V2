@@ -2351,28 +2351,25 @@ export default function BrokerTrackerPage() {
 
     try {
       if (tab === 'tracker') {
-        const [trackRes, histRes, priceRes, ctxRes, divRes] = await Promise.all([
-          fetch(`/api/broker-tracker?action=tracker&code=${tick}&${params}`),
-          fetch(`/api/broker-tracker?action=history&code=${tick}&${params}`),
-          fetch(`/api/broker-tracker?action=price_history&code=${tick}&${params}`),
-          fetch(`/api/broker-tracker?action=stock_context&code=${tick}&${params}`),
+        // 1.3: tracker+history+price_history+stock_context in ONE request (action=bundle);
+        // divergence kept separate (heavier 5-CTE query). Wave-1 round-trips: 5 → 2.
+        const [bundleRes, divRes] = await Promise.all([
+          fetch(`/api/broker-tracker?action=bundle&code=${tick}&${params}`),
           fetch(`/api/broker-tracker?action=divergence&code=${tick}&${params}`),
         ]);
 
-        const [trackJson, histJson, priceJson, ctxJson, divJson] = await Promise.all([
-          trackRes.json(), histRes.json(), priceRes.json(), ctxRes.json(), divRes.json(),
-        ]);
+        const [bundleJson, divJson] = await Promise.all([bundleRes.json(), divRes.json()]);
 
-        if (trackJson.error) throw new Error(trackJson.error);
+        if (bundleJson.error) throw new Error(bundleJson.error);
 
-        const rawRows: TrackerRow[] = trackJson.data || [];
-        const ph: PriceRow[]        = !priceJson.error ? (priceJson.data || []) : [];
+        const rawRows: TrackerRow[] = bundleJson.tracker || [];
+        const ph: PriceRow[]        = bundleJson.price_history || [];
         const latestPrice           = ph.length > 0 ? ph[ph.length - 1].close : null;
 
         setPriceData(ph);
-        setHistoryData(!histJson.error  ? histJson.data  || [] : []);
-        setStockCtx(!ctxJson.error      ? (ctxJson.data?.[0] || null) : null);
-        setDivergence(!divJson.error    ? (divJson.data?.[0] || null) : null);
+        setHistoryData(bundleJson.history || []);
+        setStockCtx(bundleJson.stock_context?.[0] || null);
+        setDivergence(!divJson.error ? (divJson.data?.[0] || null) : null);
         setScreenerData([]);
 
         const enriched = await enrichTracker(rawRows, tick, params, latestPrice);
