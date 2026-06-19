@@ -124,6 +124,7 @@ const navGroups = [
       { href: '/smart-money',   label: 'Smart Money Matrix',  icon: icons.crown,   shortcut: '3' },
       { href: '/radar',         label: 'Watchlist Radar',     icon: icons.eye,     badge: 'PRO' },
       { href: '/msci-screener', label: 'MSCI Screener',       icon: icons.shield },
+      { href: '/ftse-screener', label: 'FTSE Screener',       icon: icons.globe, badge: 'NEW' },
     ]
   },
   {
