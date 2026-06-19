@@ -139,6 +139,7 @@ export default function StockDetailPage() {
     if ((window as any).LightweightCharts) { setChartReady(true); return }
     const script = document.createElement('script')
     script.src = 'https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js'
+    script.crossOrigin = 'anonymous' // COEP require-corp: load via CORS so the cross-origin script isn't blocked
     script.async = true
     script.onload = () => setChartReady(true)
     document.body.appendChild(script)
