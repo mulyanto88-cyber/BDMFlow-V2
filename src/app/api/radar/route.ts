@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
           fresh_insider_buy::BOOLEAN              AS fresh_insider_buy,
           fresh_insider_sell::BOOLEAN             AS fresh_insider_sell,
           is_split_suspect::BOOLEAN               AS is_split_suspect
-        FROM market.vw_watchlist_radar
+        FROM market.tb_radar
         ${where}
         ORDER BY radar_score DESC
         LIMIT ${limit}
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
                 fresh_insider_buy::BOOLEAN  AS fresh_insider_buy,
                 fresh_insider_sell::BOOLEAN AS fresh_insider_sell,
                 is_split_suspect::BOOLEAN   AS is_split_suspect
-              FROM market.vw_watchlist_radar
+              FROM market.tb_radar
               ${where}
               ORDER BY radar_score DESC
               LIMIT ${limit}
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
           COUNT(*)::BIGINT                   AS stock_count,
           COUNT(CASE WHEN composite_signal LIKE '%TRIPLE%' THEN 1 END)::BIGINT AS triple_confluence,
           COUNT(CASE WHEN whale_signal THEN 1 END)::BIGINT                     AS whale_count
-        FROM market.vw_watchlist_radar
+        FROM market.tb_radar
         WHERE warning_flag IS NULL AND close >= 100
         GROUP BY FLOOR(radar_score / 10) * 10
         ORDER BY score_band DESC
@@ -132,7 +132,7 @@ export async function GET(req: NextRequest) {
           ROUND(AVG(radar_score),1)          AS avg_score,
           ROUND(AVG(change_percent),2)       AS avg_chg,
           ROUND(AVG(ksei_net_smart_miliar),2) AS avg_ksei_smart
-        FROM market.vw_watchlist_radar
+        FROM market.tb_radar
         WHERE warning_flag IS NULL AND close >= 100
         GROUP BY composite_signal
         ORDER BY avg_score DESC
@@ -217,7 +217,7 @@ export async function GET(req: NextRequest) {
           ROUND(AVG(change_percent), 2)             AS avg_change,
           ROUND(SUM(ksei_net_smart_miliar), 2)      AS total_ksei_smart,
           ROUND(SUM(foreign_broker_net_7d), 2)      AS total_fg_broker_7d
-        FROM market.vw_watchlist_radar
+        FROM market.tb_radar
         WHERE warning_flag IS NULL AND close >= 100
         GROUP BY sector
         ORDER BY avg_radar_score DESC
