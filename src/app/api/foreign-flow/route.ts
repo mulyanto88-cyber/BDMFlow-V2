@@ -132,25 +132,23 @@ export async function GET(req: NextRequest) {
         safeRun(`
           WITH ld AS (SELECT MAX(trading_date) AS max_date FROM market.daily_transactions),
           mp AS (
+            -- TRADING-DAY windows: f1d = latest trading day, f7d = 7 most recent trading days, etc.
             SELECT
               stock_code,
-              SUM(CASE WHEN trading_date = ld.max_date
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f1d,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '7 days'
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f7d,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '14 days'
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f14d,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '30 days'
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f30d,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '60 days'
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f60d,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '90 days'
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f90d,
-              SUM(CASE WHEN trading_date >= ld.max_date - INTERVAL '120 days'
-                       THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f120d
-            FROM market.daily_transactions, ld
-            WHERE stock_code = $1
-              AND trading_date >= ld.max_date - INTERVAL '120 days'
+              SUM(CASE WHEN rn <= 1   THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f1d,
+              SUM(CASE WHEN rn <= 7   THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f7d,
+              SUM(CASE WHEN rn <= 14  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f14d,
+              SUM(CASE WHEN rn <= 30  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f30d,
+              SUM(CASE WHEN rn <= 60  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f60d,
+              SUM(CASE WHEN rn <= 90  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f90d,
+              SUM(CASE WHEN rn <= 120 THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f120d
+            FROM (
+              SELECT stock_code, net_foreign_value,
+                     ROW_NUMBER() OVER (ORDER BY trading_date DESC) AS rn
+              FROM market.daily_transactions, ld
+              WHERE stock_code = $1
+                AND trading_date >= ld.max_date - INTERVAL '250 days'
+            )
             GROUP BY stock_code
           )
           SELECT
@@ -164,7 +162,7 @@ export async function GET(req: NextRequest) {
             -- local institutional broker net (non-zero-sum); sms.broker_net was zero-sum ≈ 0
             (COALESCE(br.local_inst_net_7d, 0) * 1e9)::DOUBLE AS broker_net,
             sms.signal,
-            tact.net_foreign_7d_miliar::DOUBLE     AS tact_foreign_5d,
+            (mp.f7d / 1e9)::DOUBLE                 AS tact_foreign_5d,
             COALESCE(br.local_inst_net_7d, 0)::DOUBLE AS broker_net_5d,
             tact.tactical_signal
           FROM mp
@@ -179,6 +177,20 @@ export async function GET(req: NextRequest) {
     // ── 6. DIVERGENCE RADAR ──────────────────────────────────────────────────
     } else if (action === 'divergence') {
       const data = await safeRun(`
+        WITH ld AS (SELECT MAX(trading_date) AS max_date FROM market.daily_transactions),
+        ff AS (
+          -- TRADING-DAY foreign flow, computed inline (not from the view) so 1D/7D are correct
+          SELECT stock_code,
+            SUM(CASE WHEN rn <= 1 THEN net_foreign_value ELSE 0 END)::DOUBLE         AS nf_1d,
+            (SUM(CASE WHEN rn <= 7 THEN net_foreign_value ELSE 0 END) / 1e9)::DOUBLE AS nf_7d_miliar
+          FROM (
+            SELECT stock_code, net_foreign_value,
+                   ROW_NUMBER() OVER (PARTITION BY stock_code ORDER BY trading_date DESC) AS rn
+            FROM market.daily_transactions, ld
+            WHERE trading_date >= ld.max_date - INTERVAL '40 days'
+          )
+          GROUP BY stock_code
+        )
         SELECT
           sms.stock_code,
           cp.group_name                          AS company_name,
@@ -193,8 +205,8 @@ export async function GET(req: NextRequest) {
           sms.big_player_anomaly,
           sms.smart_money_score,
           sms.signal,
-          tact.net_foreign_1d::DOUBLE            AS net_foreign_1d,
-          tact.net_foreign_7d_miliar::DOUBLE     AS net_foreign_5d,
+          ff.nf_1d                               AS net_foreign_1d,
+          ff.nf_7d_miliar                        AS net_foreign_5d,
           COALESCE(br.local_inst_net_7d, 0)::DOUBLE AS broker_net_5d,
           tact.tactical_signal,
           CASE
@@ -209,6 +221,7 @@ export async function GET(req: NextRequest) {
         LEFT JOIN market.company_profile                   cp   ON cp.stock_code  = sms.stock_code
         LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = sms.stock_code
         LEFT JOIN main.vw_broker_rolling_net               br   ON br.stock_code  = sms.stock_code
+        LEFT JOIN ff                                              ON ff.stock_code = sms.stock_code
         WHERE ABS(sms.foreign_30d) > 500000000
         ORDER BY ABS(sms.foreign_30d) DESC
         LIMIT 120
