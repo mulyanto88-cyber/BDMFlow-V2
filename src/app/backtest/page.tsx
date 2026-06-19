@@ -134,6 +134,7 @@ export default function BacktestPage() {
     if ((window as any).LightweightCharts) { setChartScriptLoaded(true); return }
     const s = document.createElement('script')
     s.src = 'https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js'
+    s.crossOrigin = 'anonymous' // COEP require-corp: load via CORS so the cross-origin script isn't blocked
     s.async = true; s.onload = () => setChartScriptLoaded(true)
     document.body.appendChild(s)
   }, [])
