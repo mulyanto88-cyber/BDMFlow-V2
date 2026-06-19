@@ -1,4 +1,4 @@
-  // src/app/api/broker-tracker/route.ts
+// src/app/api/broker-tracker/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
@@ -61,6 +61,87 @@ export async function GET(req: NextRequest) {
   let paramIdx   = dateFilter.params.length
 
   try {
+    // ── 0. BUNDLE (1.3) — tracker+history+price_history+stock_context in ONE round-trip ──
+    // NOTE: these 4 SELECTs are duplicated from the individual actions below so the stock-load
+    // wave is a single request. Keep in sync until broker-tracker is split (Phase 2.2).
+    if (action === 'bundle') {
+      const cleanCode = validateStockCode(code)
+      const p  = [...dateFilter.params, cleanCode]
+      const ci = dateFilter.params.length + 1
+      const [tracker, history, price_history, stock_context] = await Promise.all([
+        run(`
+        SELECT
+          ba.broker_code,
+          MAX(ba.broker_name)                                                AS broker_name,
+          CASE WHEN LOWER(COALESCE(bc.category,'')) = 'foreign' THEN 'F' ELSE 'L' END AS broker_lf,
+          COALESCE(bc.is_prime, false)                                       AS is_prime,
+          SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE        AS buy_val,
+          SUM(CASE WHEN ba.value>0 THEN ba.lot   ELSE 0 END)::DOUBLE        AS buy_lot,
+          SUM(CASE WHEN ba.value>0 THEN ba.freq  ELSE 0 END)::BIGINT        AS buy_freq,
+          ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::DOUBLE   AS sell_val,
+          ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot   ELSE 0 END))::DOUBLE   AS sell_lot,
+          SUM(CASE WHEN ba.value<0 THEN ba.freq  ELSE 0 END)::BIGINT        AS sell_freq,
+          SUM(ba.value)::DOUBLE                                              AS net_val,
+          SUM(ba.lot)::DOUBLE                                                AS net_lot,
+          (SUM(CASE WHEN ba.value>0 THEN ba.freq ELSE 0 END)
+           + SUM(CASE WHEN ba.value<0 THEN ba.freq ELSE 0 END))::BIGINT     AS total_freq,
+          (SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)
+           / NULLIF(SUM(CASE WHEN ba.value>0 THEN ba.lot ELSE 0 END)*100.0,0))
+          ::DOUBLE                                                           AS buy_avg_price,
+          (ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))
+           / NULLIF(ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot ELSE 0 END))*100.0,0))
+          ::DOUBLE                                                           AS sell_avg_price
+        FROM broker_activity ba
+        LEFT JOIN broker_classification bc ON bc.broker_code = ba.broker_code
+        WHERE ${dateFilter.clause}
+          AND LEFT(ba.stock_code,4) = $${ci}
+        GROUP BY ba.broker_code, bc.category, bc.is_prime
+        ORDER BY net_val DESC`, p),
+        run(`
+        SELECT
+          CAST(date AS VARCHAR)                                              AS date,
+          SUM(value)::DOUBLE                                                 AS daily_net_val,
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE               AS daily_buy_val,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE          AS daily_sell_val,
+          SUM(lot)::DOUBLE                                                    AS daily_net_lot,
+          SUM(CASE WHEN value>0 THEN freq ELSE 0 END)::BIGINT                AS daily_buy_freq,
+          SUM(CASE WHEN value<0 THEN freq ELSE 0 END)::BIGINT                AS daily_sell_freq,
+          (SUM(CASE WHEN value>0 THEN value ELSE 0 END)
+           / NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))
+          ::DOUBLE                                                            AS daily_avg_price
+        FROM broker_activity
+        WHERE ${dateFilter.clause}
+          AND LEFT(stock_code,4) = $${ci}
+        GROUP BY date
+        ORDER BY date ASC`, p),
+        run(`
+        SELECT
+          CAST(trading_date AS VARCHAR) AS date,
+          close, change_percent, volume, net_foreign_value, whale_signal, big_player_anomaly
+        FROM market.vw_stock_detail
+        WHERE CAST(trading_date AS DATE) BETWEEN $1::DATE AND $2::DATE
+          AND stock_code = $${ci}
+        ORDER BY trading_date ASC`, p),
+        run(`
+        SELECT
+          s.stock_code, s.sector, s.close, s.change_percent,
+          s.foreign_30d, s.broker_net, s.whale_signal, s.big_player_anomaly, s.aov_ratio_ma20,
+          ROUND(COALESCE(v2.v2_score, 0) / 73.0 * 100, 0)  AS smart_money_score,
+          s.signal,
+          k.broker_net_miliar,
+          k.ksei_local_smart_flow_miliar    AS local_smart_miliar_saham,
+          k.ksei_foreign_smart_flow_miliar  AS foreign_smart_miliar_saham,
+          k.confirmation AS ksei_confirmation,
+          COALESCE(v2.v2_score, 0)  AS v2_score, v2.tier_v2, v2.flow_context, v2.rank_overall
+        FROM market.tb_smart_money_score s
+        LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
+        LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
+        WHERE s.stock_code = $${ci}
+        LIMIT 1`, p),
+      ])
+      return NextResponse.json({ tracker, history, price_history, stock_context })
+    }
+
     // ── 1. TRACKER ─────────────────────────────────────────────────────────
     if (action === 'tracker') {
       const cleanCode = validateStockCode(code)
