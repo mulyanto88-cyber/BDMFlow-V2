@@ -28,13 +28,14 @@ pool.on('error', (err) => {
   console.error('[db] Pool error:', err.message)
 })
 
+const MAX_CACHE_ENTRIES = 300
 const queryCache = new Map<string, { data: any; expires: number }>()
 const activeQueries = new Map<string, Promise<any>>()
 
 export async function run<T extends QueryResultRow = any>(
   query: string,
   params: any[] = [],
-  ttlMs: number = 60000 // Default 60s cache
+  ttlMs: number = 1_800_000 // Default 30 min — market data is T+1 (refreshed once daily ~20:00 WIB)
 ): Promise<T[]> {
   const hash = createHash('md5').update(query + JSON.stringify(params)).digest('hex')
   
@@ -55,6 +56,12 @@ export async function run<T extends QueryResultRow = any>(
         client = await pool.connect()
         const result = await client.query<T>(query, params)
         if (ttlMs > 0) {
+          // Bound the in-memory cache so long-running servers don't leak memory. Map preserves
+          // insertion order, so deleting the first key evicts the oldest entry.
+          if (queryCache.size >= MAX_CACHE_ENTRIES) {
+            const oldest = queryCache.keys().next().value
+            if (oldest !== undefined) queryCache.delete(oldest)
+          }
           queryCache.set(hash, { data: result.rows, expires: Date.now() + ttlMs })
         }
         return result.rows
