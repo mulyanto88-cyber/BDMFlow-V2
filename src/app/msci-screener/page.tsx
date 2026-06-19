@@ -19,16 +19,17 @@ interface RawRow {
   close: number;
   tradeable_shares: number;
   free_float: number;
-  sum_value_3m: number;
   days_3m: number;
-  sum_value_12m: number;
-  days_12m: number;
   total_days_3m: number;
+  med_sum_3m: number;
+  n_months_3m: number;
+  med_sum_12m: number;
+  n_months_12m: number;
   top_holders_pct: number;
   target_date: string;
 }
 
-type MsciStatus = 'CURRENT' | 'AT_RISK' | 'CANDIDATE' | 'NOT_ELIGIBLE';
+type MsciStatus = 'CURRENT' | 'AT_RISK' | 'CANDIDATE' | 'NEARLY' | 'NOT_ELIGIBLE';
 type StatusFilter = 'ALL' | MsciStatus;
 type Category = 'STANDARD' | 'SMALLCAP';
 
@@ -49,6 +50,9 @@ interface MsciRow extends RawRow {
   pass_atvr_12m: boolean;
   pass_fot_3m: boolean;
   is_eligible: boolean;
+  is_nearly: boolean;
+  liquidity_ok: boolean;
+  push_upside_pct: number;
   msci_status: MsciStatus;
 }
 
@@ -59,6 +63,9 @@ const HSC_THRESHOLD = 85;
 // MSCI keeps an existing constituent while its size/ATVR stays ≥ 2/3 of the inclusion bar
 // (documented ATVR maintenance buffer = 2/3 → 10% for EM). Applied to size as a conservative proxy.
 const MAINTAIN_FACTOR = 2 / 3;
+// "Nearly eligible": a non-member clearing ≥ this fraction of EVERY criterion (but not the full bar).
+// Close enough that a modest markup could push it in — prime owner-driven inclusion candidates.
+const NEAR_FACTOR = 0.75;
 const LS_STD = 'msci_standard_constituents';
 const LS_SC  = 'msci_smallcap_constituents';
 
@@ -74,6 +81,7 @@ const STATUS_UI: Record<MsciStatus, { label: string; badgeCls: string; rowCls: s
   CURRENT:      { label: 'Current',      badgeCls: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', rowCls: '',                      dotCls: 'bg-emerald-400' },
   AT_RISK:      { label: 'At Risk',      badgeCls: 'bg-red-500/10     text-red-300     border-red-500/30',     rowCls: 'bg-red-500/[0.025]',    dotCls: 'bg-red-400' },
   CANDIDATE:    { label: 'Candidate',    badgeCls: 'bg-blue-500/10    text-blue-300    border-blue-500/30',    rowCls: 'bg-blue-500/[0.025]',   dotCls: 'bg-blue-400' },
+  NEARLY:       { label: 'Nearly',       badgeCls: 'bg-amber-500/10   text-amber-300   border-amber-500/30',   rowCls: 'bg-amber-500/[0.02]',   dotCls: 'bg-amber-400' },
   NOT_ELIGIBLE: { label: 'Not Eligible', badgeCls: 'bg-white/5        text-gray-500    border-white/10',       rowCls: '',                      dotCls: 'bg-gray-600' },
 };
 
@@ -173,6 +181,7 @@ export default function MSCIScreenerPage() {
   const [search, setSearch]             = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [onlyPassed, setOnlyPassed]     = useState(false);
+  const [onlyNearly, setOnlyNearly]     = useState(false);
   const [excludeHsc, setExcludeHsc]     = useState(false);
   const [sortCol, setSortCol]           = useState<string>('full_mc_usd');
   const [sortDir, setSortDir]           = useState<'asc' | 'desc'>('desc');
@@ -252,11 +261,12 @@ export default function MSCIScreenerPage() {
       const floatMcIdr  = fullMcIdr * (row.free_float / 100);
       const floatMcUsd  = floatMcIdr / exchangeRate / 1_000_000;
 
-      // ATVR = annualized traded value ÷ free-float-adjusted market cap (MSCI denominator = Float MC).
-      const atvr3m  = floatMcIdr > 0 && row.days_3m > 0
-        ? (row.sum_value_3m  / floatMcIdr) * (252 / row.days_3m)  * 100 : 0;
-      const atvr12m = floatMcIdr > 0 && row.days_12m > 0
-        ? (row.sum_value_12m / floatMcIdr) * (252 / row.days_12m) * 100 : 0;
+      // MSCI ATVR: average monthly (median daily value × trading days) ÷ float MC, annualized ×12.
+      // Median per month screens out one-off block-trade spikes (vs a plain sum/mean).
+      const atvr3m  = floatMcIdr > 0 && row.n_months_3m > 0
+        ? (row.med_sum_3m  / row.n_months_3m)  / floatMcIdr * 12 * 100 : 0;
+      const atvr12m = floatMcIdr > 0 && row.n_months_12m > 0
+        ? (row.med_sum_12m / row.n_months_12m) / floatMcIdr * 12 * 100 : 0;
       const fot3m   = row.total_days_3m > 0 ? (row.days_3m / row.total_days_3m) * 100 : 0;
 
       const isHsc              = row.top_holders_pct >= HSC_THRESHOLD || row.free_float < 10;
@@ -281,11 +291,28 @@ export default function MSCIScreenerPage() {
         atvr12m    >= atvr12mMin       * MAINTAIN_FACTOR &&
         passFot3m;
 
+      // "Nearly eligible" — clears ≥ NEAR_FACTOR of EVERY criterion but not the full bar.
+      const isNearly =
+        !isEligible &&
+        fullMcUsd  >= fullMcMin        * NEAR_FACTOR &&
+        floatMcUsd >= requiredFloatUsd * NEAR_FACTOR &&
+        atvr3m     >= atvr3mMin        * NEAR_FACTOR &&
+        atvr12m    >= atvr12mMin       * NEAR_FACTOR &&
+        fot3m      >= fot3mMin         * NEAR_FACTOR;
+
+      // Liquidity already cleared? Then size is the only gate → a price markup can lift it in.
+      const liquidityOk = passAtvr3m && passAtvr12m && passFot3m;
+      // % price rise needed to clear BOTH size thresholds (price scales Full & Float MC linearly).
+      const fullGap  = fullMcUsd  > 0 ? fullMcMin        / fullMcUsd  - 1 : Infinity;
+      const floatGap = floatMcUsd > 0 ? requiredFloatUsd / floatMcUsd - 1 : Infinity;
+      const pushUpsidePct = Math.max(0, fullGap, floatGap) * 100;
+
       const isCurrent = activeList.includes(row.stock_code);
       let msci_status: MsciStatus = 'NOT_ELIGIBLE';
       if      (isCurrent  && meetsMaintain)  msci_status = 'CURRENT';   // within buffer → stays in
       else if (isCurrent  && !meetsMaintain) msci_status = 'AT_RISK';   // below buffer → potential OUT
       else if (!isCurrent && isEligible)     msci_status = 'CANDIDATE'; // clears full bar → potential IN
+      else if (!isCurrent && isNearly)       msci_status = 'NEARLY';    // near band → potential push-in
 
       return {
         ...row,
@@ -295,11 +322,12 @@ export default function MSCIScreenerPage() {
         is_hsc: isHsc, requires_multiplier: requiresMultiplier, required_float_usd: requiredFloatUsd,
         pass_full_mc: passFullMc, pass_float_mc: passFloatMc,
         pass_atvr_3m: passAtvr3m, pass_atvr_12m: passAtvr12m, pass_fot_3m: passFot3m,
-        is_eligible: isEligible, msci_status,
+        is_eligible: isEligible, is_nearly: isNearly, liquidity_ok: liquidityOk,
+        push_upside_pct: pushUpsidePct, msci_status,
       };
     }).sort((a, b) => {
       if (activeList.length > 0) {
-        const ord: Record<MsciStatus, number> = { AT_RISK: 0, CANDIDATE: 1, CURRENT: 2, NOT_ELIGIBLE: 3 };
+        const ord: Record<MsciStatus, number> = { AT_RISK: 0, CANDIDATE: 1, NEARLY: 2, CURRENT: 3, NOT_ELIGIBLE: 4 };
         return ord[a.msci_status] - ord[b.msci_status] || b.full_mc_usd - a.full_mc_usd;
       }
       return b.full_mc_usd - a.full_mc_usd;
@@ -317,15 +345,17 @@ export default function MSCIScreenerPage() {
     return sorted
       .filter(r => statusFilter === 'ALL' || r.msci_status === statusFilter)
       .filter(r => !onlyPassed  || r.is_eligible)
+      .filter(r => !onlyNearly  || r.is_nearly)
       .filter(r => !excludeHsc  || !r.is_hsc)
       .filter(r => !search || r.stock_code.includes(search) || (r.company_name ?? '').toUpperCase().includes(search));
-  }, [computed, statusFilter, onlyPassed, excludeHsc, search, sortCol, sortDir]);
+  }, [computed, statusFilter, onlyPassed, onlyNearly, excludeHsc, search, sortCol, sortDir]);
 
   const counts = useMemo(() => ({
     eligible:  computed.filter(d => d.is_eligible).length,
     current:   computed.filter(d => d.msci_status === 'CURRENT').length,
     atRisk:    computed.filter(d => d.msci_status === 'AT_RISK').length,
     candidate: computed.filter(d => d.msci_status === 'CANDIDATE').length,
+    nearly:    computed.filter(d => d.msci_status === 'NEARLY').length,
     hsc:       computed.filter(d => d.is_eligible && d.is_hsc).length,
     mult:      computed.filter(d => d.is_eligible && d.requires_multiplier).length,
   }), [computed]);
@@ -474,6 +504,7 @@ export default function MSCIScreenerPage() {
                 </div>
               </div>
               <div className="text-right space-y-1">
+                <p className="text-[9px] text-gray-500">Hampir eligible: <span className="text-amber-400 font-bold">{counts.nearly}</span></p>
                 <p className="text-[9px] text-gray-500">Multiplier 1.8x: <span className="text-blue-400 font-bold">{counts.mult}</span></p>
                 <p className="text-[9px] text-gray-500">HSC Warning: <span className="text-yellow-400 font-bold">{counts.hsc}</span></p>
               </div>
@@ -639,6 +670,7 @@ export default function MSCIScreenerPage() {
                     { key: 'ALL',          label: 'Semua',        cls: 'border-gold-400/40 bg-gold-400/10 text-gold-400' },
                     { key: 'AT_RISK',      label: '⚠ At Risk',    cls: 'border-red-500/40     bg-red-500/10     text-red-300'     },
                     { key: 'CANDIDATE',    label: '🎯 Candidate',  cls: 'border-blue-500/40    bg-blue-500/10    text-blue-300'    },
+                    { key: 'NEARLY',       label: '◐ Hampir',     cls: 'border-amber-500/40   bg-amber-500/10   text-amber-300'   },
                     { key: 'CURRENT',      label: '✓ Current',    cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
                     { key: 'NOT_ELIGIBLE', label: 'Not Eligible', cls: 'border-white/20        bg-white/5        text-gray-400'    },
                   ] as const).map(({ key, label, cls }) => (
@@ -659,6 +691,15 @@ export default function MSCIScreenerPage() {
                 {onlyPassed && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
               </div>
               <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">Hanya yang Lolos</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer group" title="Hampir eligible — kandidat yang berpotensi 'didorong' agar masuk MSCI">
+              <input type="checkbox" checked={onlyNearly} onChange={e => setOnlyNearly(e.target.checked)} className="hidden" />
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
+                onlyNearly ? 'bg-amber-500 border-amber-500' : 'bg-background border-white/20 group-hover:border-white/40'
+              }`}>
+                {onlyNearly && <Target className="w-3.5 h-3.5 text-black" />}
+              </div>
+              <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">Hampir Eligible</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer group">
               <input type="checkbox" checked={excludeHsc} onChange={e => setExcludeHsc(e.target.checked)} className="hidden" />
@@ -766,12 +807,22 @@ export default function MSCIScreenerPage() {
                               <div className={`w-1.5 h-1.5 rounded-full ${sc.dotCls}`} />
                               {sc.label}
                             </div>
+                            {row.msci_status === 'NEARLY' && (
+                              <p className="text-[8px] text-amber-400/80 mt-1 font-bold">
+                                {row.liquidity_ok ? `≈ +${row.push_upside_pct.toFixed(0)}% → masuk` : 'likuiditas blm cukup'}
+                              </p>
+                            )}
                           </td>
                         )}
                         <td className="px-4 py-3 text-center">
                           {row.is_eligible ? (
                             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gold-400/30 bg-gold-400/10 text-gold-400 text-[10px] font-black">
                               <CheckCircle2 className="w-3.5 h-3.5" /> PASSED
+                            </div>
+                          ) : row.is_nearly ? (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[10px] font-black"
+                              title={row.liquidity_ok ? `Likuiditas sudah cukup — perlu ~+${row.push_upside_pct.toFixed(0)}% harga untuk lolos market cap` : 'Mendekati ambang, likuiditas belum cukup'}>
+                              <Target className="w-3.5 h-3.5" /> NEARLY{row.liquidity_ok ? ` · +${row.push_upside_pct.toFixed(0)}%` : ''}
                             </div>
                           ) : (
                             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 bg-white/5 text-gray-600 text-[10px] font-bold">
