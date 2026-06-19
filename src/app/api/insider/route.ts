@@ -190,7 +190,7 @@ export async function GET(req: NextRequest) {
           sml.change_percent::DOUBLE         AS price_change_pct
         FROM main.vw_insider_conviction_score cs
         LEFT JOIN market.company_profile  cp  ON cp.stock_code  = cs.stock_code
-        LEFT JOIN market.vw_stock_latest  sml ON sml.stock_code = cs.stock_code
+        LEFT JOIN market.tb_stock_latest  sml ON sml.stock_code = cs.stock_code
         WHERE cs.conviction_score IS NOT NULL
         ORDER BY
           CASE
@@ -282,7 +282,7 @@ export async function GET(req: NextRequest) {
             l.change_percent::DOUBLE AS price_change_pct
           FROM main.vw_insider_activity_feed iaf
           LEFT JOIN market.company_profile cp ON cp.stock_code = iaf.stock_code
-          LEFT JOIN market.vw_stock_latest l  ON l.stock_code  = iaf.stock_code
+          LEFT JOIN market.tb_stock_latest l  ON l.stock_code  = iaf.stock_code
           WHERE days_ago <= ${days}
             AND ABS(pct_change) < 100  -- exclude overflow
             ${sourceType ? `AND source_type = '${sourceType}'` : ''}

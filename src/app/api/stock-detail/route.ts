@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
             ROUND(retail_net_7d::DOUBLE, 3)          AS retail_net_7d,
             foreign_brokers_buying_7d::BIGINT        AS foreign_brokers_buying_7d,
             local_inst_brokers_buying_7d::BIGINT     AS local_inst_brokers_buying_7d
-          FROM main.vw_broker_rolling_net WHERE stock_code = $1
+          FROM main.tb_broker_rolling_net WHERE stock_code = $1
         `, [code]).catch(() => []),
         run(`
           SELECT ba.broker_code, MAX(ba.broker_name) AS broker_name,
@@ -276,7 +276,7 @@ export async function GET(req: NextRequest) {
       run(`SELECT * FROM market.vw_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
       
       // 2. Smart Money Score
-      run(`SELECT * FROM market.vw_smart_money_score WHERE stock_code = $1`, [code]),
+      run(`SELECT * FROM market.tb_smart_money_score WHERE stock_code = $1`, [code]),
       
       // 3. Chart history — FIX: CAST trading_date AS DATE
       run(`

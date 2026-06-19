@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
           s.close::DOUBLE AS close, ROUND(s.change_percent::DOUBLE,2) AS change_percent,
           s.sector, s.group_name, s.signal, s.whale_signal::BOOLEAN
         FROM flow f
-        LEFT JOIN market.vw_stock_latest s ON f.stock_code = s.stock_code
+        LEFT JOIN market.tb_stock_latest s ON f.stock_code = s.stock_code
         WHERE (ABS(f.fg_net) > 0.1 OR ABS(f.inst_net) > 0.1)
         ${sectorFilter}
         ORDER BY f.fg_net DESC
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
                ROUND(SUM(CASE WHEN ba.side='SELL' THEN ABS(ba.value) ELSE 0 END)/1e9,3) AS sell_miliar,
                s.close::DOUBLE AS close, ROUND(s.change_percent::DOUBLE,2) AS change_percent, s.sector
         FROM main.broker_activity ba
-        LEFT JOIN market.vw_stock_latest s ON ba.stock_code = s.stock_code
+        LEFT JOIN market.tb_stock_latest s ON ba.stock_code = s.stock_code
         WHERE ba.broker_code = '${code.replace(/'/g,"''")}'
           AND ba.date >= (SELECT d FROM max_dt) - INTERVAL '${days} days'
         GROUP BY ba.stock_code, s.close, s.change_percent, s.sector

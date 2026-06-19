@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
         FROM ksei.data5_mutasi d
         LEFT JOIN transfers t  ON t.tanggal_data = d.tanggal_data AND t.kode_efek = d.kode_efek
         LEFT JOIN market.company_profile cp ON d.kode_efek = cp.stock_code
-        LEFT JOIN market.vw_stock_latest  l ON d.kode_efek = l.stock_code
+        LEFT JOIN market.tb_stock_latest  l ON d.kode_efek = l.stock_code
         WHERE d.tanggal_data >= CURRENT_DATE - ${days}
           AND d.aksi != 'Holding'
           ${codeFilter} ${lfFilter} ${transFilter}
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
         FROM ksei.data5_mutasi d
         LEFT JOIN transfers t  ON t.tanggal_data = d.tanggal_data AND t.kode_efek = d.kode_efek
         LEFT JOIN market.company_profile cp ON d.kode_efek = cp.stock_code
-        LEFT JOIN market.vw_stock_latest  l ON d.kode_efek = l.stock_code
+        LEFT JOIN market.tb_stock_latest  l ON d.kode_efek = l.stock_code
         WHERE d.tanggal_data >= CURRENT_DATE - ${days}
           AND d.aksi IN ('Buying','Accumulation')
           ${codeFilter} ${lfFilter}
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
         FROM ksei.data5_mutasi d
         LEFT JOIN transfers t  ON t.tanggal_data = d.tanggal_data AND t.kode_efek = d.kode_efek
         LEFT JOIN market.company_profile cp ON d.kode_efek = cp.stock_code
-        LEFT JOIN market.vw_stock_latest  l ON d.kode_efek = l.stock_code
+        LEFT JOIN market.tb_stock_latest  l ON d.kode_efek = l.stock_code
         WHERE d.tanggal_data >= CURRENT_DATE - ${days}
           AND d.aksi = 'Reduction'
           ${codeFilter} ${lfFilter}
@@ -165,7 +165,7 @@ export async function GET(req: NextRequest) {
         FROM ksei.data5_mutasi d
         CROSS JOIN latest
         LEFT JOIN market.company_profile cp ON d.kode_efek = cp.stock_code
-        LEFT JOIN market.vw_stock_latest  l ON d.kode_efek = l.stock_code
+        LEFT JOIN market.tb_stock_latest  l ON d.kode_efek = l.stock_code
         WHERE d.tanggal_data = latest.max_date
           AND d.jumlah_saham_curr > 0
           ${codeFilter} ${lfFilter}

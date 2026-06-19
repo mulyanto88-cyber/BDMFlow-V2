@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
               ORDER BY radar_score DESC
               LIMIT ${limit}
             ) r
-            LEFT JOIN market.vw_stock_latest s ON r.stock_code = s.stock_code
+            LEFT JOIN market.tb_stock_latest s ON r.stock_code = s.stock_code
             WHERE COALESCE(s.value, 0) >= ${minValue}
             ORDER BY r.radar_score DESC
           `)
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
             ROUND(retail_net_7d::DOUBLE, 3)          AS retail_7d,
             foreign_brokers_buying_7d::BIGINT        AS fg_brokers_buying,
             local_inst_brokers_buying_7d::BIGINT     AS inst_brokers_buying
-          FROM main.vw_broker_rolling_net
+          FROM main.tb_broker_rolling_net
           WHERE stock_code = $1
         `, [code]),
 

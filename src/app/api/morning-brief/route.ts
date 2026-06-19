@@ -23,7 +23,7 @@ export async function GET() {
                r.whale_signal::BOOLEAN, r.fresh_insider_buy::BOOLEAN,
                ROUND(r.aov_ratio_ma20::DOUBLE,2) AS aov_ratio, s.value::DOUBLE AS daily_value
         FROM market.tb_radar r
-        INNER JOIN market.vw_stock_latest s ON r.stock_code = s.stock_code
+        INNER JOIN market.tb_stock_latest s ON r.stock_code = s.stock_code
         WHERE r.warning_flag IS NULL AND s.close > 100 AND s.value > 5000000000
         ORDER BY r.radar_score DESC LIMIT 8
       `),

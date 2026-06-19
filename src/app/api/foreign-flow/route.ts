@@ -167,9 +167,9 @@ export async function GET(req: NextRequest) {
             tact.tactical_signal
           FROM mp
           LEFT JOIN market.company_profile                   cp   ON cp.stock_code   = mp.stock_code
-          LEFT JOIN market.vw_smart_money_score              sms  ON sms.stock_code  = mp.stock_code
+          LEFT JOIN market.tb_smart_money_score              sms  ON sms.stock_code  = mp.stock_code
           LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = mp.stock_code
-          LEFT JOIN main.vw_broker_rolling_net               br   ON br.stock_code   = mp.stock_code
+          LEFT JOIN main.tb_broker_rolling_net               br   ON br.stock_code   = mp.stock_code
         `, [c])
       ])
       return NextResponse.json({ chart: chartRows, metrics: metricRows[0] ?? null })
@@ -217,10 +217,10 @@ export async function GET(req: NextRequest) {
             WHEN sms.foreign_30d < 0 AND COALESCE(br.local_inst_net_7d,0) < 0                             THEN 'BOTH_SELL'
             ELSE 'NEUTRAL'
           END AS divergence_pattern
-        FROM market.vw_smart_money_score sms
+        FROM market.tb_smart_money_score sms
         LEFT JOIN market.company_profile                   cp   ON cp.stock_code  = sms.stock_code
         LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = sms.stock_code
-        LEFT JOIN main.vw_broker_rolling_net               br   ON br.stock_code  = sms.stock_code
+        LEFT JOIN main.tb_broker_rolling_net               br   ON br.stock_code  = sms.stock_code
         LEFT JOIN ff                                              ON ff.stock_code = sms.stock_code
         WHERE ABS(sms.foreign_30d) > 500000000
         ORDER BY ABS(sms.foreign_30d) DESC

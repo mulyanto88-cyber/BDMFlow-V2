@@ -1,4 +1,4 @@
-// src/app/api/broker-tracker/route.ts
+  // src/app/api/broker-tracker/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
@@ -160,7 +160,7 @@ export async function GET(req: NextRequest) {
           v2.tier_v2,
           v2.flow_context,
           v2.rank_overall
-        FROM market.vw_smart_money_score s
+        FROM market.tb_smart_money_score s
         LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
         LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
         WHERE s.stock_code = $${paramIdx}
