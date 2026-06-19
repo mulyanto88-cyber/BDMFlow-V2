@@ -54,14 +54,20 @@ interface MsciRow extends RawRow {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_EXCHANGE_RATE = 15500;
+const DEFAULT_EXCHANGE_RATE = 17700;
 const HSC_THRESHOLD = 85;
+// MSCI keeps an existing constituent while its size/ATVR stays ≥ 2/3 of the inclusion bar
+// (documented ATVR maintenance buffer = 2/3 → 10% for EM). Applied to size as a conservative proxy.
+const MAINTAIN_FACTOR = 2 / 3;
 const LS_STD = 'msci_standard_constituents';
 const LS_SC  = 'msci_smallcap_constituents';
 
 const CONFIGS = {
-  STANDARD: { label: 'Standard (Large/Mid)', fullMc: 2964, floatMc: 1482, fif: 15, atvr3m: 15, atvr12m: 15, fot3m: 70 },
-  SMALLCAP:  { label: 'Small Cap',           fullMc: 250,  floatMc: 125,  fif: 15, atvr3m: 15, atvr12m: 15, fot3m: 70 },
+  // MSCI EM liquidity: 3M/12M ATVR ≥ 15%. Frequency of Trading: the Standard Index excludes < 90%,
+  // the investable universe / Small Cap uses ≥ 80%. Size refs (fullMc/floatMc, USD mn) are global
+  // minimums that MSCI updates each May/Nov SAIR — refresh them after each review.
+  STANDARD: { label: 'Standard (Large/Mid)', fullMc: 2964, floatMc: 1482, fif: 15, atvr3m: 15, atvr12m: 15, fot3m: 90 },
+  SMALLCAP:  { label: 'Small Cap',           fullMc: 250,  floatMc: 125,  fif: 15, atvr3m: 15, atvr12m: 15, fot3m: 80 },
 };
 
 const STATUS_UI: Record<MsciStatus, { label: string; badgeCls: string; rowCls: string; dotCls: string }> = {
@@ -239,22 +245,25 @@ export default function MSCIScreenerPage() {
   // ── Compute ──────────────────────────────────────────────────────────────────
   const computed: MsciRow[] = useMemo(() => {
     return data.map(row => {
-      const outstanding = row.tradeable_shares / (row.free_float / 100);
-      const fullMcIdr   = outstanding * row.close;
+      // tradeable_shares = TOTAL listed shares (verified: TLKM/ASII match their total share counts,
+      // not free float). Full MC = total shares × price;  Float MC = Full MC × free-float%.
+      const fullMcIdr   = row.tradeable_shares * row.close;
       const fullMcUsd   = fullMcIdr / exchangeRate / 1_000_000;
-      const floatMcIdr  = row.tradeable_shares * row.close;
+      const floatMcIdr  = fullMcIdr * (row.free_float / 100);
       const floatMcUsd  = floatMcIdr / exchangeRate / 1_000_000;
 
+      // ATVR = annualized traded value ÷ free-float-adjusted market cap (MSCI denominator = Float MC).
       const atvr3m  = floatMcIdr > 0 && row.days_3m > 0
         ? (row.sum_value_3m  / floatMcIdr) * (252 / row.days_3m)  * 100 : 0;
       const atvr12m = floatMcIdr > 0 && row.days_12m > 0
         ? (row.sum_value_12m / floatMcIdr) * (252 / row.days_12m) * 100 : 0;
       const fot3m   = row.total_days_3m > 0 ? (row.days_3m / row.total_days_3m) * 100 : 0;
 
-      const isHsc             = row.top_holders_pct >= HSC_THRESHOLD || row.free_float < 10;
+      const isHsc              = row.top_holders_pct >= HSC_THRESHOLD || row.free_float < 10;
       const requiresMultiplier = row.free_float < fifMin;
-      const requiredFloatUsd  = requiresMultiplier ? floatMcMin * 1.8 : floatMcMin;
+      const requiredFloatUsd   = requiresMultiplier ? floatMcMin * 1.8 : floatMcMin;
 
+      // Inclusion bar — full thresholds (drives "PASSED" and ADDITION / Candidate)
       const passFullMc  = fullMcUsd  >= fullMcMin;
       const passFloatMc = floatMcUsd >= requiredFloatUsd;
       const passAtvr3m  = atvr3m     >= atvr3mMin;
@@ -262,11 +271,21 @@ export default function MSCIScreenerPage() {
       const passFot3m   = fot3m      >= fot3mMin;
       const isEligible  = passFullMc && passFloatMc && passAtvr3m && passAtvr12m && passFot3m;
 
+      // Maintenance bar — asymmetric & looser: MSCI keeps an existing constituent while size/ATVR
+      // stay ≥ 2/3 of the requirement (FOT stays a hard screen). Stops false "OUT" on members that
+      // only dip slightly below the inclusion line.
+      const meetsMaintain =
+        fullMcUsd  >= fullMcMin        * MAINTAIN_FACTOR &&
+        floatMcUsd >= requiredFloatUsd * MAINTAIN_FACTOR &&
+        atvr3m     >= atvr3mMin        * MAINTAIN_FACTOR &&
+        atvr12m    >= atvr12mMin       * MAINTAIN_FACTOR &&
+        passFot3m;
+
       const isCurrent = activeList.includes(row.stock_code);
       let msci_status: MsciStatus = 'NOT_ELIGIBLE';
-      if      (isCurrent  && isEligible)  msci_status = 'CURRENT';
-      else if (isCurrent  && !isEligible) msci_status = 'AT_RISK';
-      else if (!isCurrent && isEligible)  msci_status = 'CANDIDATE';
+      if      (isCurrent  && meetsMaintain)  msci_status = 'CURRENT';   // within buffer → stays in
+      else if (isCurrent  && !meetsMaintain) msci_status = 'AT_RISK';   // below buffer → potential OUT
+      else if (!isCurrent && isEligible)     msci_status = 'CANDIDATE'; // clears full bar → potential IN
 
       return {
         ...row,
@@ -657,7 +676,7 @@ export default function MSCIScreenerPage() {
             <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <p className="text-[10px] text-amber-300/70 leading-relaxed">
               <strong className="text-amber-300">Catatan:</strong> Lolos screener ≠ pasti masuk MSCI. MSCI juga mempertimbangkan:
-              <span className="text-gray-500"> (1) Buffer zone ±10-20% di sekitar cutoff — saham yang tipis-tipis lolos umumnya belum dimasukkan;
+              <span className="text-gray-500"> (1) Buffer asimetris: member lama dipertahankan selama metrik ≥ 2/3 ambang (sudah dimodelkan di kolom Status), tapi penambahan baru sering perlu buffer ukuran ekstra (±1,5×) — saham yang tipis lolos belum tentu langsung masuk;
               (2) Minimum listing 12 bulan untuk saham IPO baru;
               (3) Country-level weight cap & regional diversification;
               (4) Indonesia Market Accessibility Review (sedang berjalan 2025-2026 — penyebab 6 saham dikeluarkan Mei 2026);
