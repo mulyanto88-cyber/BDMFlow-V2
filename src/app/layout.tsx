@@ -31,8 +31,8 @@ export const viewport: Viewport = {
   themeColor: '#030712',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Pinch-zoom intentionally allowed. Locking it (maximumScale:1 / userScalable:false) fails
+  // WCAG 1.4.4 and stops users enlarging the dense, small-text data tables on a phone.
 }
 
 export const metadata: Metadata = {
