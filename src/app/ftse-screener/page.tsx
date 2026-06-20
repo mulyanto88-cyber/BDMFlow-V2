@@ -484,7 +484,7 @@ export default function FTSEScreenerPage() {
                 <p className="text-sm text-gray-500">Mengkalkulasi kriteria FTSE...</p>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse" style={{ minWidth: 1300 }}>
+              <table className="w-full text-left border-collapse mobile-pin" style={{ minWidth: 1300 }}>
                 <thead className="bg-background border-b border-white/5 sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-3 text-[10px] uppercase tracking-widest text-gray-500 w-10">#</th>
