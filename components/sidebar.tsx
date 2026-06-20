@@ -430,7 +430,10 @@ export default function Sidebar() {
           'transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
           'md:translate-x-0',
-          (expanded || hoverExpand) ? 'w-[220px]' : 'w-[60px]',
+          // Mobile drawer renders the EXPANDED content, so it must be full-width when open
+          // (previously stayed at 60px → content clipped). pb clears the fixed bottom-nav.
+          (expanded || hoverExpand || mobileOpen) ? 'w-[220px]' : 'w-[60px]',
+          mobileOpen ? 'pb-20 md:pb-0' : '',
         ].join(' ')}
         style={{
           borderRight: '1px solid rgba(255,255,255,0.04)',
