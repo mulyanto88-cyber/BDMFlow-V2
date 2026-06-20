@@ -945,4 +945,19 @@
   }
   .mobile-pin thead th:nth-child(2) { z-index: 15; } /* header corner above the sticky header */
 }
+
+/* ============================================================
+   📱 MOBILE TAP TARGETS (WCAG 2.5.8)
+   On phones, give the densest controls a larger minimum hit area. Content stays centered, so the
+   visual size of e.g. a checkbox glyph is unchanged — only the tappable region grows. Verify on a
+   phone and tune/remove if any control ends up looking too tall.
+   ============================================================ */
+@media (max-width: 767px) {
+  button,
+  a[role="button"],
+  label.cursor-pointer { min-height: 36px; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select,
+  textarea { min-height: 40px; }
+}
 .text-\[9\.5px\] { font-size: 11px !important; }
