@@ -914,4 +914,35 @@
 .text-\[8px\]    { font-size: 10px !important; }
 .text-\[8\.5px\] { font-size: 10px !important; }
 .text-\[9px\]    { font-size: 11px !important; }
+
+/* ============================================================
+   📱 MOBILE READABILITY FLOOR
+   On phones (<768px) bump the densest UI text to ≥11px (Apple's legible minimum); desktop keeps
+   its denser scale. Pairs with pinch-zoom now re-enabled in the viewport.
+   ============================================================ */
+@media (max-width: 767px) {
+  .text-\[8px\],
+  .text-\[8\.5px\],
+  .text-\[9px\],
+  .text-\[10px\] { font-size: 11px !important; }
+}
+
+/* ============================================================
+   📱 MOBILE WIDE-TABLE: pin the stock-code column
+   For wide data tables marked `.mobile-pin` (structure: # | code | …), on phones hide the leading
+   row-number column to save width and keep the 2nd column (stock code) sticky on the left so it
+   stays visible while scrolling the data sideways. Easy to remove if it looks off.
+   ============================================================ */
+@media (max-width: 767px) {
+  .mobile-pin th:first-child,
+  .mobile-pin td:first-child { display: none; }
+  .mobile-pin th:nth-child(2),
+  .mobile-pin td:nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: hsl(var(--background));
+  }
+  .mobile-pin thead th:nth-child(2) { z-index: 15; } /* header corner above the sticky header */
+}
 .text-\[9\.5px\] { font-size: 11px !important; }
