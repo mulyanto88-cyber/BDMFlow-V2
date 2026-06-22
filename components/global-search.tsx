@@ -67,6 +67,18 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  // Mobile search FAB (and ⌘K) dispatch this event — focus the box so the keyboard opens.
+  useEffect(() => {
+    const openSearch = () => {
+      const el = inputRef.current
+      if (!el) return
+      el.scrollIntoView({ block: 'center' })
+      el.focus()
+    }
+    window.addEventListener('open-global-search', openSearch)
+    return () => window.removeEventListener('open-global-search', openSearch)
+  }, [])
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setHighlighted(h => Math.min(h + 1, suggestions.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlighted(h => Math.max(h - 1, -1)) }
