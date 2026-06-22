@@ -33,6 +33,20 @@ export const metadata: Metadata = {
   title: 'BDMFlow — IDX Flow Intelligence',
   description: 'Track Smart Money, Whale Positions & Institutional Flow on IDX. Daily precision. Institutional grade.',
   keywords: ['saham', 'IDX', 'KSEI', 'bandarmologi', 'smart money', 'whale', 'screener', 'BDMFlow', 'flow intelligence'],
+  metadataBase: new URL('https://bdm-flow-v2.vercel.app'),
+  openGraph: {
+    title: 'BDMFlow — IDX Flow Intelligence',
+    description: 'Lacak Smart Money, Foreign Flow & KSEI di pasar saham Indonesia — Screener Pro, Broker Tracker, Backtest, MSCI/FTSE.',
+    url: 'https://bdm-flow-v2.vercel.app',
+    siteName: 'BDMFlow',
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BDMFlow — IDX Flow Intelligence',
+    description: 'Lacak Smart Money, Foreign Flow & KSEI di pasar saham Indonesia.',
+  },
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
@@ -49,6 +63,7 @@ export const metadata: Metadata = {
   },
   applicationName: 'BDMFlow',
   formatDetection: { telephone: false },
+  other: { 'mobile-web-app-capable': 'yes' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
