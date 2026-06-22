@@ -1,5 +1,5 @@
 // Bump this version whenever the caching strategy changes — `activate` clears all older caches.
-const CACHE = 'bdmflow-v3'
+const CACHE = 'bdmflow-v4'
 const ASSETS = ['/', '/manifest.webmanifest']
 
 self.addEventListener('install', (event) => {
@@ -46,7 +46,7 @@ self.addEventListener('fetch', (event) => {
           }
           return res
         })
-        .catch(() => caches.match(event.request)) // offline fallback
+        .catch(() => caches.match(event.request).then((c) => c || Response.error())) // offline fallback
     )
     return
   }
@@ -63,8 +63,9 @@ self.addEventListener('fetch', (event) => {
           return res
         })
         // Swallow network failures so a background refresh never becomes an uncaught
-        // rejection (the sw.js "Failed to fetch" log); fall back to cache when present.
-        .catch(() => cached)
+        // rejection; fall back to cache, or a network-error Response so respondWith never
+        // receives undefined (the "Failed to convert value to 'Response'" log).
+        .catch(() => cached || Response.error())
       return cached || fetched
     })
   )
