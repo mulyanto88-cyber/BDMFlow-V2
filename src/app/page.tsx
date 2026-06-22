@@ -6,6 +6,7 @@ import {
   Shield, CheckCircle, ArrowRight, Star, Search,
   Activity, Brain, Building2, Lock,
 } from 'lucide-react'
+import FeatureShowcase from '../../components/feature-showcase'
 
 // ── Features data ─────────────────────────────────────────────────────────────
 const FEATURES = [
@@ -133,10 +134,10 @@ export default function LandingPage() {
             Mulai Gratis <ArrowRight size={15} />
           </Link>
           <Link
-            href="/dashboard"
+            href="/auth"
             className="flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-foreground/80 border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-200"
           >
-            Lihat Dashboard
+            Masuk
           </Link>
         </div>
 
@@ -207,6 +208,9 @@ export default function LandingPage() {
           })}
         </div>
       </section>
+
+      {/* ════════════════════ SCREENSHOT SHOWCASE ════════════════════ */}
+      <FeatureShowcase />
 
       {/* ════════════════════ VALUE PROPS ════════════════════ */}
       <section>
@@ -403,10 +407,10 @@ export default function LandingPage() {
                 Daftar Gratis <ArrowRight size={15} />
               </Link>
               <Link
-                href="/dashboard"
+                href="/auth"
                 className="text-sm font-bold text-muted-foreground/60 hover:text-foreground/80 transition-colors"
               >
-                Lihat Dashboard dulu →
+                Sudah punya akun? Masuk →
               </Link>
             </div>
           </div>
