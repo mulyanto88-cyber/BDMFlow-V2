@@ -144,7 +144,6 @@ const navGroups = [
     items: [
       { href: '/ksei-monthly',  label: 'KSEI Smart Money',    icon: icons.crown,    badge: 'NEW' },
       { href: '/ksei1persen',   label: 'KSEI >1% Bulanan',    icon: icons.eye,      badge: 'PRO' },
-      { href: '/major-holder',  label: 'KSEI >5% Harian',     icon: icons.building, badge: 'NEW' },
       { href: '/insider',       label: 'Insider Radar',        icon: icons.insider },
     ]
   },
