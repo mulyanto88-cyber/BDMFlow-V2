@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { LayoutDashboard, TrendingUp, Zap, Search, ShieldAlert } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/',            label: 'Market',   icon: <LayoutDashboard className="w-5 h-5" /> },
+  { href: '/dashboard',   label: 'Market',   icon: <LayoutDashboard className="w-5 h-5" /> },
   { href: '/radar',       label: 'Radar',    icon: <Search           className="w-5 h-5" /> },
   { href: '/smart-money', label: 'Smart $',  icon: <Zap              className="w-5 h-5" /> },
   { href: '/groups',      label: 'Groups',   icon: <TrendingUp       className="w-5 h-5" /> },
