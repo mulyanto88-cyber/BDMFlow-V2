@@ -55,7 +55,7 @@ export default function FeatureShowcase() {
           Cuplikan Platform
         </p>
         <h2 className="text-2xl md:text-3xl font-black text-foreground">
-          Lihat langsung, bukan sekadar janji
+          Lihat langsung dari dalam platform
         </h2>
         <p className="text-sm text-muted-foreground/65 max-w-xl mx-auto">
           Tampilan nyata fitur-fitur BDMFlow IDX — daftar gratis untuk mengakses semuanya.
