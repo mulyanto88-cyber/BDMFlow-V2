@@ -4,6 +4,7 @@ import './globals.css'
 import KeyboardProvider from '../../components/keyboard-provider'
 import PwaRegister from '../../components/pwa-register'
 import AppShell from '../../components/app-shell'
+import VercelAnalytics from '../../components/analytics'
 import { AuthProvider } from '@/context/auth-context'
 
 const inter = Inter({
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id" className="dark bg-background" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}>
         <PwaRegister />
+        <VercelAnalytics />
         <div className="noise-overlay" aria-hidden="true" />
 
         <AuthProvider>
