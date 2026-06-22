@@ -36,35 +36,35 @@ async function fetchActionSignals(): Promise<ActionSignal[]> {
       body: JSON.stringify({
         query: `
           WITH signals AS (
-            SELECT stock_code, 'WHALE' AS type, 'HIGH' AS severity,
+            (SELECT stock_code, 'WHALE' AS type, 'HIGH' AS severity,
                    'Whale Activity Detected' AS title,
                    'Unusual volume spike with institutional footprint' AS detail,
                    NOW()::VARCHAR AS ts
             FROM market.vw_stock_latest
             WHERE whale_signal = true
-            LIMIT 3
+            LIMIT 3)
 
             UNION ALL
 
-            SELECT share_code, 'INSIDER', alert_level,
+            (SELECT share_code, 'INSIDER', alert_level,
                    investor_name || ' - ' || action,
                    CAST(pct_point_change AS VARCHAR) || '% change',
                    NOW()::VARCHAR
             FROM ksei.vw_insider_alerts
             WHERE alert_level = 'HIGH'
-            LIMIT 3
+            LIMIT 3)
 
             UNION ALL
 
-            SELECT Code, 'STEALTH', 'MEDIUM',
+            (SELECT Code, 'STEALTH', 'MEDIUM',
                    'Stealth Accumulation',
                    CAST(CP_Flow_Miliar AS VARCHAR) || 'M CP Flow',
                    NOW()::VARCHAR
             FROM ksei.vw_stealth_accumulation
             WHERE Signal != 'NORMAL'
-            LIMIT 2
+            LIMIT 2)
           )
-          SELECT * FROM signals ORDER BY severity DESC LIMIT 5
+          SELECT * FROM signals ORDER BY CASE severity WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END DESC LIMIT 5
         `,
       }),
     })
