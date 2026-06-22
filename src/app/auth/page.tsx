@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
+import { track } from '@/lib/analytics'
 
 type Mode = 'login' | 'register'
 
@@ -35,11 +36,11 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await signIn(email, password)
         if (error) setError(error)
-        else router.replace('/dashboard')
+        else { track('login_success', { method: 'email' }); router.replace('/dashboard') }
       } else {
         const { error } = await signUp(email, password, name)
         if (error) setError(error)
-        else setSuccess(true)
+        else { track('signup_submitted', { method: 'email' }); setSuccess(true) }
       }
     } finally {
       setSub(false)
@@ -48,6 +49,7 @@ export default function AuthPage() {
 
   async function handleGoogle() {
     setError(''); setSub(true)
+    track('signin_click', { method: 'google' })
     const { error } = await signInWithGoogle()
     // On success the browser redirects to Google, so we only reset on error.
     if (error) { setError(error); setSub(false) }
