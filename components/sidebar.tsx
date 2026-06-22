@@ -394,10 +394,8 @@ export default function Sidebar() {
         />
       )}
 
-      {!mobileOpen && (
-        <div className="fixed top-0 left-0 z-40 w-5 h-full md:hidden"
-          onTouchStart={() => setMobileOpen(true)} aria-hidden="true" />
-      )}
+      {/* Removed the 20px left-edge touch-to-open strip: on mobile it opened the menu on any
+          incidental edge touch. Use the hamburger button (below) to open the drawer. */}
 
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
