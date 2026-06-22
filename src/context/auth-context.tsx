@@ -1,109 +1,138 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { useAuth } from '@/context/auth-context'
-import Sidebar from './sidebar'
-import TickerTape from './ticker-tape'
-import GlobalSearch from './global-search'
-import ThemeToggle from './theme-toggle'
-import LiveClock from './live-clock'
-import InlineActionCenter from './inline-action-center'
-import MobileBottomNav from './mobile-bottom-nav'
-import InstallButton from './install-button'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { User, Session } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
-// Pages reachable WITHOUT an account. Everything else requires a (free) login.
-const PUBLIC_ROUTES = ['/', '/auth', '/pricing']
-const isPublic = (path: string) => PUBLIC_ROUTES.includes(path)
+type AuthState = {
+  user: User | null
+  session: Session | null
+  loading: boolean
+  isPro: boolean
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>
+  signOut: () => Promise<void>
+  signInWithGoogle: () => Promise<{ error: string | null }>
+}
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { user, loading } = useAuth()
-  const publicPage = isPublic(pathname)
+const AuthContext = createContext<AuthState>({
+  user: null, session: null, loading: true, isPro: false,
+  signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
+  signOut: async () => {},
+  signInWithGoogle: async () => ({ error: null }),
+})
 
-  // Auth gate: send unauthenticated visitors to the landing page (which carries Daftar/Login CTAs).
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser]       = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isPro, setIsPro]     = useState(false)
+
   useEffect(() => {
-    if (!loading && !user && !publicPage) router.replace('/')
-  }, [loading, user, publicPage, router])
+    let cancelled = false
+    const timeout = setTimeout(() => {
+      if (!cancelled) setLoading(false)
+    }, 8000)
 
-  // Public pages (landing, auth) render clean — no sidebar / header / ticker / bottom-nav.
-  if (publicPage) {
-    return (
-      <main className="px-3 sm:px-5 lg:px-7 py-4 md:py-6 pb-16">
-        {children}
-      </main>
-    )
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (cancelled) return
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (session?.user) checkPlan(session.user.id)
+      })
+      .catch((err) => {
+        console.warn('[auth] getSession failed:', err?.message)
+      })
+      .finally(() => {
+        if (!cancelled) {
+          clearTimeout(timeout)
+          setLoading(false)
+        }
+      })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) checkPlan(session.user.id)
+      else setIsPro(false)
+    })
+
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  async function checkPlan(userId: string) {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', userId)
+        .single()
+      setIsPro(data?.plan === 'pro')
+    } catch (err) {
+      console.warn('[auth] checkPlan failed:', (err as Error)?.message)
+    }
   }
 
-  // Protected page while auth resolves or just before redirect → minimal loader (no shell flash).
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-gold-400/30 border-t-gold-400 animate-spin" />
-      </div>
-    )
+  async function signIn(email: string, password: string) {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      return { error: error?.message ?? null }
+    } catch (err: any) {
+      return { error: err?.message || 'Gagal masuk. Periksa koneksi dan coba lagi.' }
+    }
   }
 
-  // Authenticated → full app shell.
+  async function signUp(email: string, password: string, name: string) {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: `${origin}/auth`,
+        },
+      })
+      return { error: error?.message ?? null }
+    } catch (err: any) {
+      return { error: err?.message || 'Gagal daftar. Periksa koneksi dan coba lagi.' }
+    }
+  }
+
+  async function signOut() {
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('[auth] signOut failed:', (err as Error)?.message)
+    }
+    setIsPro(false)
+  }
+
+  async function signInWithGoogle() {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${origin}/auth` },
+      })
+      return { error: error?.message ?? null }
+    } catch (err: any) {
+      return { error: err?.message || 'Gagal masuk dengan Google.' }
+    }
+  }
+
   return (
-    <>
-      <Sidebar />
-
-      <div className="sidebar-offset flex flex-col min-h-screen transition-all duration-200">
-
-        <header className="app-header sticky top-0 z-30 h-14 flex items-center px-5 gap-3">
-          <div className="flex items-center gap-2 md:hidden">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs flex-shrink-0 font-mono"
-              style={{
-                background: 'linear-gradient(135deg,#e7b733,#c49a1a)',
-                color: '#0a122c',
-                boxShadow: '0 2px 10px rgba(231,183,51,0.30)',
-              }}
-            >B</div>
-            <p className="text-sm font-black gradient-gold">BDMFlow</p>
-          </div>
-
-          <div className="hidden md:flex items-center gap-3 flex-1">
-            <LiveClock />
-          </div>
-
-          <GlobalSearch />
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <InstallButton />
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/[0.06] bg-white/[0.03] text-[10px] text-muted-foreground/60">
-              <span className="pulse-dot" />
-              <span className="font-mono">T+1</span>
-            </div>
-            <ThemeToggle />
-            <span className="badge-pro">PRO</span>
-          </div>
-        </header>
-
-        <TickerTape />
-
-        <main className="flex-1 px-3 sm:px-5 lg:px-7 py-4 md:py-5 pb-20 md:pb-5">
-          {children}
-        </main>
-
-        <footer className="hidden md:block border-t border-white/[0.04] py-3.5 px-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[10.5px] text-muted-foreground/40">
-            <p>
-              © 2026 <span className="font-semibold text-muted-foreground/60">BDMFlow</span>
-              {' '}· IDX Flow Intelligence · Data sourced from KSEI &amp; IDX.
-            </p>
-            <p className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70 animate-pulse" />
-              Not financial advice. DYOR.
-            </p>
-          </div>
-        </footer>
-      </div>
-
-      <MobileBottomNav />
-      <InlineActionCenter />
-    </>
+    <AuthContext.Provider value={{ user, session, loading, isPro, signIn, signUp, signOut, signInWithGoogle }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
+
+export const useAuth = () => useContext(AuthContext)
