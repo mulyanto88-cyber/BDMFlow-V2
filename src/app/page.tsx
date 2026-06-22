@@ -7,6 +7,7 @@ import {
   Activity, Brain, Building2, Lock,
 } from 'lucide-react'
 import FeatureShowcase from '../../components/feature-showcase'
+import TrackLink from '../../components/track-link'
 
 // ── Features data ─────────────────────────────────────────────────────────────
 const FEATURES = [
@@ -123,8 +124,10 @@ export default function LandingPage() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
+          <TrackLink
             href="/auth"
+            event="cta_click"
+            data={{ cta: 'hero_daftar' }}
             className="flex items-center gap-2 px-7 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95"
             style={{
               background: 'linear-gradient(135deg, #e7b733, #f0c040)',
@@ -132,13 +135,15 @@ export default function LandingPage() {
             }}
           >
             Mulai Gratis <ArrowRight size={15} />
-          </Link>
-          <Link
+          </TrackLink>
+          <TrackLink
             href="/auth"
+            event="cta_click"
+            data={{ cta: 'hero_masuk' }}
             className="flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-foreground/80 border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-200"
           >
             Masuk
-          </Link>
+          </TrackLink>
         </div>
 
         {/* Trust strip */}
@@ -303,12 +308,14 @@ export default function LandingPage() {
               </li>
             </ul>
 
-            <Link
+            <TrackLink
               href="/auth"
+              event="cta_click"
+              data={{ cta: 'pricing_daftar' }}
               className="w-full py-3 rounded-xl text-sm font-bold text-center border border-border/50 bg-white/[0.04] hover:bg-white/[0.08] text-foreground/70 hover:text-foreground transition-all duration-200"
             >
               Daftar Gratis
-            </Link>
+            </TrackLink>
           </div>
 
           {/* PRO */}
@@ -400,8 +407,10 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <Link
+              <TrackLink
                 href="/auth"
+                event="cta_click"
+                data={{ cta: 'final_daftar' }}
                 className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95"
                 style={{
                   background: 'linear-gradient(135deg, #e7b733, #f0c040)',
@@ -409,13 +418,15 @@ export default function LandingPage() {
                 }}
               >
                 Daftar Gratis <ArrowRight size={15} />
-              </Link>
-              <Link
+              </TrackLink>
+              <TrackLink
                 href="/auth"
+                event="cta_click"
+                data={{ cta: 'final_masuk' }}
                 className="text-sm font-bold text-muted-foreground/60 hover:text-foreground/80 transition-colors"
               >
                 Sudah punya akun? Masuk →
-              </Link>
+              </TrackLink>
             </div>
           </div>
         </div>
