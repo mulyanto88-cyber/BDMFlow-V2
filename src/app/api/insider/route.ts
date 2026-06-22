@@ -271,7 +271,7 @@ export async function GET(req: NextRequest) {
         WITH base AS (
           SELECT
             insider_name,
-            stock_code,
+            iaf.stock_code,
             action_type,
             pct_change::DOUBLE AS pct_change,
             transaction_date,
