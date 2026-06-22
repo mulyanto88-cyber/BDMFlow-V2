@@ -351,6 +351,7 @@ export default function InsiderPage() {
   const [insiderFilter, setInsiderFilter] = useState('')
   const [sourceFilter, setSourceFilter] = useState<'' | 'IDX' | 'KSEI'>('')
   const [realOnly, setRealOnly] = useState(false)
+  const [pctBand, setPctBand] = useState<'' | 'major' | 'mid' | 'minor'>('')
   const [searchQ, setSearchQ] = useState('')
   const [sortBy, setSortBy]   = useState<string>('conviction_score')
   const [sortAsc, setSortAsc] = useState(false)
@@ -418,23 +419,31 @@ export default function InsiderPage() {
   useEffect(() => { load() }, [load])
 
   // ── Derived / filtered data ───────────────────────────────────────────────
+  // Ownership % band — pakai pct_current (ukuran kepemilikan saat ini)
+  const inBand = useCallback((pct: number) =>
+    pctBand === 'major' ? pct >= 5
+    : pctBand === 'mid'   ? (pct >= 1 && pct < 5)
+    : pctBand === 'minor' ? pct < 1
+    : true,
+  [pctBand])
+
   const filteredFeed = useMemo(() => {
-    let rows = feed
+    let rows = feed.filter(r => inBand(r.pct_current))
     if (searchQ) {
       const q = searchQ.toUpperCase()
       rows = rows.filter(r => r.stock_code.includes(q) || r.insider_name.toUpperCase().includes(q))
     }
     return rows
-  }, [feed, searchQ])
+  }, [feed, searchQ, inBand])
 
   const filteredAlerts = useMemo(() => {
-    let rows = alerts
+    let rows = alerts.filter(r => inBand(r.pct_current))
     if (searchQ) {
       const q = searchQ.toUpperCase()
       rows = rows.filter(r => r.stock_code.includes(q) || r.insider_name.toUpperCase().includes(q))
     }
     return rows
-  }, [alerts, searchQ])
+  }, [alerts, searchQ, inBand])
 
   const sortedScreener = useMemo(() => {
     let rows = [...screener]
@@ -619,9 +628,9 @@ export default function InsiderPage() {
             ))}
           </div>
 
-          {/* Insider type filter */}
-          <div className="flex gap-1">
-            {[['', 'SEMUA'], ['INTERNAL', 'INTERNAL'], ['PENGENDALI', 'PENGENDALI'], ['DIREKSI', 'DIREKSI'], ['KOMISARIS', 'KOMISARIS']].map(([v, l]) => (
+          {/* Insider type filter — softened: badge Stockbit jarang terisi (~2%), cukup Semua / Insider */}
+          <div className="flex gap-1" title="Insider = pemegang ber-badge direksi/komisaris/pengendali (jarang)">
+            {[['', 'Semua'], ['INTERNAL', 'Insider']].map(([v, l]) => (
               <button
                 key={v}
                 onClick={() => setInsiderFilter(v)}
@@ -652,6 +661,24 @@ export default function InsiderPage() {
                     : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
                 ].join(' ')}
               >{v || 'ALL'}</button>
+            ))}
+          </div>
+
+          <div className="h-6 w-px bg-white/10 hidden xl:block" />
+
+          {/* Ownership % band — pakai pct_current; memanfaatkan granularitas <5% dari feed Stockbit */}
+          <div className="flex gap-1" title="Filter ukuran kepemilikan saat ini">
+            {([['', 'ALL %'], ['major', '>5%'], ['mid', '1-5%'], ['minor', '<1%']] as const).map(([v, l]) => (
+              <button
+                key={v}
+                onClick={() => setPctBand(v)}
+                className={[
+                  'text-[10.5px] font-bold px-2.5 py-1 rounded-lg border transition-all duration-150',
+                  pctBand === v
+                    ? 'bg-primary/[0.1] text-primary border-primary/20'
+                    : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
+                ].join(' ')}
+              >{l}</button>
             ))}
           </div>
 
