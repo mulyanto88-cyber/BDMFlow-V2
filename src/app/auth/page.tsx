@@ -10,7 +10,7 @@ type Mode = 'login' | 'register'
 
 export default function AuthPage() {
   const router = useRouter()
-  const { user, loading, signIn, signUp } = useAuth()
+  const { user, loading, signIn, signUp, signInWithGoogle } = useAuth()
 
   const [mode, setMode]       = useState<Mode>('login')
   const [email, setEmail]     = useState('')
@@ -23,7 +23,7 @@ export default function AuthPage() {
 
   // Kalau sudah login, redirect ke homepage
   useEffect(() => {
-    if (!loading && user) router.replace('/')
+    if (!loading && user) router.replace('/dashboard')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading])
 
@@ -35,7 +35,7 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await signIn(email, password)
         if (error) setError(error)
-        else router.replace('/')
+        else router.replace('/dashboard')
       } else {
         const { error } = await signUp(email, password, name)
         if (error) setError(error)
@@ -44,6 +44,13 @@ export default function AuthPage() {
     } finally {
       setSub(false)
     }
+  }
+
+  async function handleGoogle() {
+    setError(''); setSub(true)
+    const { error } = await signInWithGoogle()
+    // On success the browser redirects to Google, so we only reset on error.
+    if (error) { setError(error); setSub(false) }
   }
 
   if (loading) return (
@@ -61,8 +68,8 @@ export default function AuthPage() {
           <div className="inline-flex p-3 rounded-2xl bg-purple-500/15 border border-purple-500/30 mb-4">
             <Shield size={26} className="text-purple-400" />
           </div>
-          <h1 className="text-xl font-semibold">QuantBDM</h1>
-          <p className="text-xs text-muted-foreground mt-1">IDX Smart Money Intelligence</p>
+          <h1 className="text-xl font-semibold">BDMFlow</h1>
+          <p className="text-xs text-muted-foreground mt-1">IDX Flow Intelligence</p>
         </div>
 
         {/* Card */}
@@ -90,6 +97,27 @@ export default function AuthPage() {
           ) : (
             // ── Form ──────────────────────────────────────────────
             <>
+              {/* Google OAuth — low-friction signup */}
+              <button
+                type="button" onClick={handleGoogle} disabled={submitting}
+                className="w-full h-10 rounded-xl text-sm font-semibold border border-border bg-white text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-60 flex items-center justify-center gap-2.5"
+              >
+                <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.88 2.68-6.62z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/>
+                  <path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.05l3.01-2.33z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+                </svg>
+                Lanjut dengan Google
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 my-4">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">atau</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
               {/* Tab toggle */}
               <div className="flex gap-1 p-1 bg-muted/30 rounded-xl mb-5">
                 {(['login','register'] as Mode[]).map(m => (
@@ -177,7 +205,7 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-5">
-          © 2025 QuantBDM · IDX Smart Money Intelligence
+          © 2026 BDMFlow · IDX Flow Intelligence
         </p>
       </div>
     </div>
