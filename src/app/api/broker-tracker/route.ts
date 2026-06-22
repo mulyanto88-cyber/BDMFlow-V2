@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
           CAST(trading_date AS VARCHAR) AS date,
           close, change_percent, volume, net_foreign_value, whale_signal, big_player_anomaly
         FROM market.vw_stock_detail
-        WHERE CAST(trading_date AS DATE) BETWEEN $1::DATE AND $2::DATE
+        WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
           AND stock_code = $${ci}
         ORDER BY trading_date ASC`, p),
         run(`
@@ -136,8 +136,8 @@ export async function GET(req: NextRequest) {
         FROM market.tb_smart_money_score s
         LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
         LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
-        WHERE s.stock_code = $${ci}
-        LIMIT 1`, p),
+        WHERE s.stock_code = $1
+        LIMIT 1`, [cleanCode]),
       ])
       return NextResponse.json({ tracker, history, price_history, stock_context })
     }
@@ -215,15 +215,15 @@ export async function GET(req: NextRequest) {
           whale_signal,
           big_player_anomaly
         FROM market.vw_stock_detail
-        WHERE CAST(trading_date AS DATE) BETWEEN $1::DATE AND $2::DATE
+        WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
           AND stock_code = $${paramIdx}
         ORDER BY trading_date ASC`
 
     // ── 4. STOCK CONTEXT ───────────────────────────────────────────────────
     } else if (action === 'stock_context') {
       const cleanCode = validateStockCode(code)
-      paramIdx++
-      queryParams.push(cleanCode)
+      queryParams = [cleanCode]   // no date filter in this query — only the stock code
+      paramIdx = 1
       query = `
         SELECT
           s.stock_code, s.sector, s.close, s.change_percent,
