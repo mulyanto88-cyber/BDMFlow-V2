@@ -386,7 +386,7 @@ export default function InsiderPage() {
   const load = useCallback(async () => {
     setLoading(true); setError('')
     try {
-      const [sumRes, alertRes, feedRes, scrRes, convRes, clusterRes] = await Promise.all([
+      const results = await Promise.allSettled([
         apiFetch({ action: 'summary', days, source_type: sourceFilter, real_only: String(realOnly) }),
         apiFetch({ action: 'alerts',  days, limit: 200 }),
         apiFetch({ action: 'feed',    days, limit: 200, action_type: actionFilter, insider_type: insiderFilter,
@@ -395,13 +395,19 @@ export default function InsiderPage() {
         apiFetch({ action: 'conviction' }),
         apiFetch({ action: 'cluster', days, source_type: sourceFilter }),
       ])
-      setSummary(sumRes.data)
-      setAlerts(alertRes.data ?? [])
-      setFeed(feedRes.data ?? [])
-      setScreener(scrRes.data ?? [])
-      setConviction(convRes.data ?? [])
-      setCluster(clusterRes.data ?? [])
+      const [sumRes, alertRes, feedRes, scrRes, convRes, clusterRes] = results
+      // Each section renders independently — one failing query must not blank the whole page.
+      const val = <T,>(r: PromiseSettledResult<any>, fb: T): T =>
+        r.status === 'fulfilled' ? (r.value?.data ?? fb) : fb
+      setSummary(val(sumRes, null))
+      setAlerts(val(alertRes, []))
+      setFeed(val(feedRes, []))
+      setScreener(val(scrRes, []))
+      setConviction(val(convRes, []))
+      setCluster(val(clusterRes, []))
       setLastFetch(new Date())
+      const failed = results.filter(r => r.status === 'rejected') as PromiseRejectedResult[]
+      setError(failed.length ? `${failed.length} bagian gagal dimuat — ${failed[0].reason?.message ?? 'error'}` : '')
     } catch (e: any) {
       setError(e.message)
     } finally {
