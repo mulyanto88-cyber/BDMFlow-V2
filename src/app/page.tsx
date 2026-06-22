@@ -150,11 +150,7 @@ export default function LandingPage() {
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-muted-foreground/50">
           <span className="flex items-center gap-1.5">
             <CheckCircle size={12} className="text-emerald-400/70" />
-            Gratis selamanya (paket Free)
-          </span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle size={12} className="text-emerald-400/70" />
-            Tidak perlu kartu kredit
+            Gratis untuk memulai
           </span>
           <span className="flex items-center gap-1.5">
             <CheckCircle size={12} className="text-emerald-400/70" />
@@ -225,7 +221,7 @@ export default function LandingPage() {
               icon: Activity,
               color: 'text-emerald-400',
               bg: 'from-emerald-500/10 to-transparent border-emerald-500/20',
-              title: 'Data Segar Setiap Hari',
+              title: 'Data Terkini Setiap Hari',
               desc: 'Data T+1 dari IDX, KSEI, dan sumber resmi lainnya. Diproses otomatis setiap malam supaya Anda selalu analisis dengan data terbaru.',
             },
             {
@@ -276,7 +272,7 @@ export default function LandingPage() {
         <div className="max-w-[780px] mx-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] text-center">
           <span className="text-base">🎉</span>
           <p className="text-[12px] font-bold text-emerald-300">
-            Masa pengenalan — <span className="text-emerald-200">SEMUA fitur Pro GRATIS</span>, cukup daftar. Tanpa kartu kredit.
+            Promo perkenalan — <span className="text-emerald-200">semua fitur Pro masih GRATIS</span>, cukup daftar.
           </p>
         </div>
 
@@ -338,7 +334,7 @@ export default function LandingPage() {
             <div className="mb-6">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gold-400/70 mb-3">Pro</p>
               <div className="flex items-end gap-1">
-                <span className="text-4xl font-black gradient-gold">Rp 149K</span>
+                <span className="text-4xl font-black gradient-gold">Rp 75K</span>
                 <span className="text-sm text-muted-foreground/50 mb-1.5">/ bulan</span>
               </div>
               <p className="text-[11px] text-muted-foreground/55 mt-2">
@@ -359,7 +355,7 @@ export default function LandingPage() {
               className="w-full py-3 rounded-xl text-sm font-black text-center text-black/60 cursor-default select-none"
               style={{ background: 'linear-gradient(135deg, rgba(231,183,51,0.55), rgba(240,192,64,0.55))' }}
             >
-              Segera Hadir · Gratis saat pengenalan
+              Segera Hadir
             </div>
           </div>
         </div>
