@@ -267,6 +267,14 @@ export default function LandingPage() {
           </p>
         </div>
 
+        {/* Intro-period offer */}
+        <div className="max-w-[780px] mx-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] text-center">
+          <span className="text-base">🎉</span>
+          <p className="text-[12px] font-bold text-emerald-300">
+            Masa pengenalan — <span className="text-emerald-200">SEMUA fitur Pro GRATIS</span>, cukup daftar. Tanpa kartu kredit.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[780px] mx-auto">
 
           {/* FREE */}
@@ -340,16 +348,12 @@ export default function LandingPage() {
               ))}
             </ul>
 
-            <Link
-              href="/auth"
-              className="w-full py-3 rounded-xl text-sm font-black text-center text-black transition-all duration-200 active:scale-[0.98]"
-              style={{
-                background: 'linear-gradient(135deg, #e7b733, #f0c040)',
-                boxShadow: '0 4px 20px rgba(231,183,51,0.30)',
-              }}
+            <div
+              className="w-full py-3 rounded-xl text-sm font-black text-center text-black/60 cursor-default select-none"
+              style={{ background: 'linear-gradient(135deg, rgba(231,183,51,0.55), rgba(240,192,64,0.55))' }}
             >
-              Mulai Pro Sekarang →
-            </Link>
+              Segera Hadir · Gratis saat pengenalan
+            </div>
           </div>
         </div>
 
