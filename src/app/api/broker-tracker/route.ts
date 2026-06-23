@@ -142,6 +142,48 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ tracker, history, price_history, stock_context })
     }
 
+    // ── 0b. INVENTORY — OHLC price + per-broker daily net (top accum + distrib, long range) ──
+    if (action === 'inventory') {
+      const cleanCode = validateStockCode(code)
+      const invDays = Math.max(30, Math.min(365, parseInt(searchParams.get('inv_days') || '180')))
+      const topN    = Math.max(3,  Math.min(8,   parseInt(searchParams.get('top_n')   || '6')))
+      const [price, brokers] = await Promise.all([
+        run(`
+          SELECT trading_date::VARCHAR AS date, open_price::DOUBLE AS open, high::DOUBLE AS high,
+                 low::DOUBLE AS low, close::DOUBLE AS close
+          FROM market.daily_transactions
+          WHERE stock_code = $1
+            AND CAST(trading_date AS DATE) >= (SELECT MAX(CAST(trading_date AS DATE)) FROM market.daily_transactions) - INTERVAL '${invDays} days'
+          ORDER BY trading_date ASC`, [cleanCode]),
+        run(`
+          WITH daily AS (
+            SELECT CAST(date AS DATE) AS d, broker_code, MAX(broker_name) AS broker_name, SUM(lot)::DOUBLE AS net_lot
+            FROM broker_activity
+            WHERE CAST(date AS DATE) >= (SELECT MAX(CAST(date AS DATE)) FROM broker_activity) - INTERVAL '${invDays} days'
+              AND LEFT(stock_code,4) = $1
+            GROUP BY CAST(date AS DATE), broker_code
+          ),
+          totals AS (
+            SELECT broker_code, MAX(broker_name) AS broker_name, SUM(net_lot) AS total_lot
+            FROM daily GROUP BY broker_code
+          ),
+          picked AS (
+            SELECT broker_code, broker_name, total_lot,
+                   ROW_NUMBER() OVER (ORDER BY total_lot DESC) AS rk_acc,
+                   ROW_NUMBER() OVER (ORDER BY total_lot ASC)  AS rk_dist
+            FROM totals
+          )
+          SELECT d.d::VARCHAR AS date, d.broker_code, p.broker_name,
+                 d.net_lot, p.total_lot::DOUBLE AS total_lot,
+                 CASE WHEN p.rk_acc <= ${topN} THEN 'ACC' ELSE 'DIST' END AS role
+          FROM daily d
+          JOIN picked p ON p.broker_code = d.broker_code
+          WHERE p.rk_acc <= ${topN} OR p.rk_dist <= ${topN}
+          ORDER BY d.d ASC`, [cleanCode]),
+      ])
+      return NextResponse.json({ price, brokers })
+    }
+
     // ── 1. TRACKER ─────────────────────────────────────────────────────────
     if (action === 'tracker') {
       const cleanCode = validateStockCode(code)
