@@ -10,6 +10,8 @@ const SHOTS = [
   { src: '/screenshots/screener-msci.png',            title: 'MSCI Eligibility Screener', desc: 'Deteksi kandidat masuk/keluar indeks MSCI + saham yang hampir lolos.' },
   { src: '/screenshots/screener-ftse.png',            title: 'FTSE GEIS Screener',        desc: 'Kelayakan FTSE: uji likuiditas X/12 bulan, free float, & ukuran.' },
   { src: '/screenshots/broker-summary.png',           title: 'Broker Summary & Tracker',  desc: 'Bedah broker dominan & konsistensi akumulasi/distribusi per saham.' },
+  { src: '/screenshots/inventory-broker-analysis.png',     title: 'Inventory Analysis',          desc: 'Candle harga + garis inventory kumulatif tiap broker — lacak siapa akumulasi & distribusi dari waktu ke waktu.' },
+  { src: '/screenshots/broker-consentration-screener.png', title: 'Broker Concentration Screener', desc: 'Saring kandidat akumulasi broker berperingkat skor smart money — filter whale, konsentrasi tinggi, & net asing positif.' },
   { src: '/screenshots/group-inteligence.png',        title: 'Group Intelligence',        desc: 'Aliran dana per grup konglomerat — Barito, Sinarmas, Salim, dll.' },
   { src: '/screenshots/ksei-1persen-inteligence.png', title: 'KSEI >1% Intelligence',     desc: 'Kepemilikan KSEI >1%, stealth accumulation, & perubahan bulanan.' },
   { src: '/screenshots/screener-breakout.png',        title: 'Breakout Scanner',          desc: 'Volume & AOV anomaly + breakout teknikal untuk timing entry.' },
