@@ -276,7 +276,7 @@ interface BrokerAlphaRow {
 }
 
 type TimeSeriesView = 'net' | 'stacked' | 'cumulative';
-type TimeSeriesMode = 'market' | 'brokers';
+type TimeSeriesMode = 'market' | 'inventory';
 type ActiveTab = 'tracker' | 'screener' | 'intel';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -286,6 +286,9 @@ const CHART_COLORS = [
   '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6',
   '#6366f1', '#a855f7', '#d946ef', '#ef4444', '#84cc16', '#0ea5e9',
 ];
+// Inventory chart — greens for accumulators (net buyers), reds for distributors (net sellers)
+const ACCUM_COLORS = ['#10b981', '#22c55e', '#34d399', '#16a34a', '#4ade80', '#15803d'];
+const DIST_COLORS  = ['#ef4444', '#f43f5e', '#f87171', '#dc2626', '#fb7185', '#b91c1c'];
 
 const COLOR_MAP = {
   emerald: { border: 'border-emerald-500/20', bg: 'bg-emerald-500/10', text: 'text-emerald-400', fill: '#10b981' },
@@ -2508,32 +2511,48 @@ export default function BrokerTrackerPage() {
     });
   }, [historyData, priceData]);
 
+  // Per-broker CUMULATIVE net flow (= broker inventory). Running sum of daily net per broker.
   const brokerTimeseriesData = useMemo(() => {
     const priceMap = new Map(priceData.map(p => [p.date, p.close]));
-    const map = new Map<string, Record<string, number>>();
+    const byDate = new Map<string, Record<string, number>>();
+    const allBrokers = new Set<string>();
     multiBrokerData.forEach(({ date, broker_code, net_val }) => {
-      if (!map.has(date)) map.set(date, {});
-      map.get(date)![broker_code] = net_val;
+      if (!byDate.has(date)) byDate.set(date, {});
+      byDate.get(date)![broker_code] = net_val;
+      allBrokers.add(broker_code);
     });
-    return Array.from(map.entries())
-      .map(([date, vals]) => ({ date, ...vals, close: priceMap.get(date) ?? null }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    const dates = Array.from(byDate.keys()).sort((a, b) => a.localeCompare(b));
+    const running: Record<string, number> = {};
+    return dates.map(date => {
+      const vals = byDate.get(date)!;
+      const row: Record<string, number | string | null> = { date };
+      allBrokers.forEach(bc => {
+        running[bc] = (running[bc] ?? 0) + (vals[bc] ?? 0);
+        row[bc] = running[bc];
+      });
+      row.close = priceMap.get(date) ?? null;
+      return row;
+    });
   }, [multiBrokerData, priceData]);
 
   const topBrokerCodes = useMemo(() => [
-    ...buyers.slice(0, 10).map(r => r.broker_code),
-    ...sellers.slice(0, 10).map(r => r.broker_code),
+    ...buyers.slice(0, 6).map(r => r.broker_code),
+    ...sellers.slice(0, 6).map(r => r.broker_code),
   ], [buyers, sellers]);
 
+  // Color brokers by role: net buyers = green (accumulation), net sellers = red (distribution).
   const getBrokerColor = useCallback((bc: string) => {
-    const idx = topBrokerCodes.indexOf(bc);
-    return idx >= 0 ? CHART_COLORS[idx % CHART_COLORS.length] : CHART_COLORS[0];
-  }, [topBrokerCodes]);
+    const bi = buyers.findIndex(r => r.broker_code === bc);
+    if (bi >= 0) return ACCUM_COLORS[bi % ACCUM_COLORS.length];
+    const si = sellers.findIndex(r => r.broker_code === bc);
+    if (si >= 0) return DIST_COLORS[si % DIST_COLORS.length];
+    return CHART_COLORS[0];
+  }, [buyers, sellers]);
 
   const renderTimeSeriesChart = () => {
     const hasPrice = showPriceOverlay && priceData.length > 0;
 
-    if (timeSeriesMode === 'brokers') {
+    if (timeSeriesMode === 'inventory') {
       return (
         <ComposedChart data={brokerTimeseriesData} margin={{ left: 0, right: hasPrice ? 48 : 8, bottom: 24, top: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
@@ -2551,7 +2570,7 @@ export default function BrokerTrackerPage() {
           )}
           {topBrokerCodes.map(bc => (
             <Line yAxisId="flow" key={bc} type="monotone" dataKey={bc} name={bc}
-              stroke={getBrokerColor(bc)} strokeWidth={1.5}
+              stroke={getBrokerColor(bc)} strokeWidth={2}
               dot={false} activeDot={{ r: 3 }} connectNulls />
           ))}
         </ComposedChart>
@@ -3038,10 +3057,10 @@ export default function BrokerTrackerPage() {
                     timeSeriesMode === 'market' ? 'bg-blue-500 text-white' : 'text-gray-400 hover:text-white'
                   }`}><Users className="w-3 h-3" /> Market
                 </button>
-                <button onClick={() => setTimeSeriesMode('brokers')}
+                <button onClick={() => setTimeSeriesMode('inventory')}
                   className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 ${
-                    timeSeriesMode === 'brokers' ? 'bg-gold-400/20 text-gold-400 border border-gold-400/30' : 'text-gray-400 hover:text-white'
-                  }`}><TrendingUp className="w-3 h-3" /> Top Brokers
+                    timeSeriesMode === 'inventory' ? 'bg-gold-400/20 text-gold-400 border border-gold-400/30' : 'text-gray-400 hover:text-white'
+                  }`}><Layers className="w-3 h-3" /> Inventory
                 </button>
 
                 {timeSeriesMode === 'market' && (
@@ -3068,9 +3087,14 @@ export default function BrokerTrackerPage() {
               </ResponsiveContainer>
             </div>
 
-            {timeSeriesMode === 'brokers' && multiBrokerData.length === 0 && (
+            {timeSeriesMode === 'inventory' && multiBrokerData.length === 0 && (
               <p className="text-[10px] text-gray-600 text-center mt-2">
-                Data timeseries broker tidak tersedia untuk rentang ini
+                Data inventory broker tidak tersedia untuk rentang ini
+              </p>
+            )}
+            {timeSeriesMode === 'inventory' && multiBrokerData.length > 0 && (
+              <p className="text-[10px] text-gray-600 text-center mt-2">
+                Garis = posisi kumulatif tiap broker · <span className="text-emerald-400">hijau = akumulasi</span> · <span className="text-red-400">merah = distribusi</span>
               </p>
             )}
           </div>
