@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatRupiah, formatNumber } from '@/lib/utils';
+import { InventoryChart, type InvCandle, type InvBrokerRow } from '../../../components/inventory-chart';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -277,7 +278,7 @@ interface BrokerAlphaRow {
 
 type TimeSeriesView = 'net' | 'stacked' | 'cumulative';
 type TimeSeriesMode = 'market' | 'inventory';
-type ActiveTab = 'tracker' | 'screener' | 'intel';
+type ActiveTab = 'tracker' | 'screener' | 'intel' | 'inventory';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -2159,6 +2160,10 @@ export default function BrokerTrackerPage() {
   const [screenerData,    setScreenerData]    = useState<ScreenerRow[]>([]);
   const [historyData,     setHistoryData]     = useState<HistoryRow[]>([]);
   const [priceData,       setPriceData]       = useState<PriceRow[]>([]);
+  const [invPrice,        setInvPrice]        = useState<InvCandle[]>([]);
+  const [invBrokers,      setInvBrokers]      = useState<InvBrokerRow[]>([]);
+  const [invLoading,      setInvLoading]      = useState(false);
+  const [invDays,         setInvDays]         = useState(180);
   const [multiBrokerData, setMultiBrokerData] = useState<MultiBrokerRow[]>([]);
   const [stockCtx,        setStockCtx]        = useState<StockContext | null>(null);
   const [divergence,      setDivergence]      = useState<DivergenceData | null>(null);
@@ -2339,6 +2344,23 @@ export default function BrokerTrackerPage() {
   }, []);
 
   useEffect(() => { loadBrokerIntel(); }, []);
+
+  // ── Inventory tab — candle + per-broker cumulative net for the current code ──
+  const loadInventory = useCallback(() => {
+    const c = code.trim().toUpperCase();
+    if (!c) return;
+    setInvLoading(true);
+    fetch(`/api/broker-tracker?action=inventory&code=${c}&inv_days=${invDays}`)
+      .then(r => r.json())
+      .then(j => { setInvPrice(j.price || []); setInvBrokers(j.brokers || []); })
+      .catch(() => { setInvPrice([]); setInvBrokers([]); })
+      .finally(() => setInvLoading(false));
+  }, [code, invDays]);
+
+  useEffect(() => {
+    if (activeTab === 'inventory' && code.trim() && invPrice.length === 0) loadInventory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const loadData = useCallback(async (
     overrideCode?: string,
@@ -2800,6 +2822,7 @@ export default function BrokerTrackerPage() {
             { id: 'tracker', label: 'Tracker', icon: <Eye className="w-3 h-3" />, count: trackerData.length },
             { id: 'screener', label: 'Screener', icon: <Target className="w-3 h-3" />, count: screenerData.length },
             { id: 'intel', label: 'Intel', icon: <Radio className="w-3 h-3" />, count: brokerIntel.length },
+            { id: 'inventory', label: 'Inventory', icon: <Layers className="w-3 h-3" />, count: 0 },
           ] as const).map(tab => (
             <button key={tab.id}
               onClick={() => { setActiveTab(tab.id); setError(null); }}
@@ -2829,7 +2852,7 @@ export default function BrokerTrackerPage() {
       </div>
 
       {/* Control Panel */}
-      {activeTab !== 'intel' && (
+      {(activeTab === 'tracker' || activeTab === 'screener') && (
         <div className="glass p-3 md:p-4 rounded-2xl border border-border/50">
           <div className="flex flex-wrap gap-3 items-end">
             {activeTab === 'tracker' && (
@@ -3036,68 +3059,6 @@ export default function BrokerTrackerPage() {
             </div>
           </div>
 
-          {/* Daily Flow Timeline */}
-          <div className="glass p-5 rounded-2xl border border-border/50 shadow-xl">
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <LineChartIcon className="w-4 h-4 text-gold-400" />
-              <h3 className="text-sm font-black text-foreground">Daily Flow Timeline</h3>
-
-              <div className="flex gap-1 bg-white/5 rounded-lg p-1 ml-auto flex-wrap">
-                {priceData.length > 0 && (
-                  <button onClick={() => setShowPriceOverlay(v => !v)}
-                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 ${
-                      showPriceOverlay ? 'bg-gold-400/20 text-gold-400' : 'text-gray-500 hover:text-white'
-                    }`}>
-                    <BarChart3 className="w-3 h-3" /> Price
-                  </button>
-                )}
-                <span className="w-px bg-white/10 mx-0.5" />
-                <button onClick={() => setTimeSeriesMode('market')}
-                  className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 ${
-                    timeSeriesMode === 'market' ? 'bg-blue-500 text-white' : 'text-gray-400 hover:text-white'
-                  }`}><Users className="w-3 h-3" /> Market
-                </button>
-                <button onClick={() => setTimeSeriesMode('inventory')}
-                  className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1 ${
-                    timeSeriesMode === 'inventory' ? 'bg-gold-400/20 text-gold-400 border border-gold-400/30' : 'text-gray-400 hover:text-white'
-                  }`}><Layers className="w-3 h-3" /> Inventory
-                </button>
-
-                {timeSeriesMode === 'market' && (
-                  <>
-                    <span className="w-px bg-white/10 mx-0.5" />
-                    {(['net', 'stacked', 'cumulative'] as TimeSeriesView[]).map(v => (
-                      <button key={v} onClick={() => setTimeSeriesView(v)}
-                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all capitalize ${
-                          timeSeriesView === v ? 'bg-gold-400 text-black' : 'text-gray-400 hover:text-white'
-                        }`}>
-                        {v === 'net'        ? <span className="flex items-center gap-1"><BarChart2 className="w-3 h-3"/> Net</span>
-                         : v === 'stacked'  ? <span className="flex items-center gap-1"><Layers className="w-3 h-3"/> Buy/Sell</span>
-                         : <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3"/> Cumul.</span>}
-                      </button>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="h-[380px] w-full">
-              <ResponsiveContainer>
-                {renderTimeSeriesChart()}
-              </ResponsiveContainer>
-            </div>
-
-            {timeSeriesMode === 'inventory' && multiBrokerData.length === 0 && (
-              <p className="text-[10px] text-gray-600 text-center mt-2">
-                Data inventory broker tidak tersedia untuk rentang ini
-              </p>
-            )}
-            {timeSeriesMode === 'inventory' && multiBrokerData.length > 0 && (
-              <p className="text-[10px] text-gray-600 text-center mt-2">
-                Garis = posisi kumulatif tiap broker · <span className="text-emerald-400">hijau = akumulasi</span> · <span className="text-red-400">merah = distribusi</span>
-              </p>
-            )}
-          </div>
         </div>
       )}
 
@@ -3164,6 +3125,55 @@ export default function BrokerTrackerPage() {
           loading={intelLoading}
           error={intelError}
         />
+      )}
+
+      {/* ── INVENTORY ANALYSIS TAB ── */}
+      {activeTab === 'inventory' && (
+        <div className="space-y-4">
+          <div className="glass p-4 rounded-2xl border border-border/50 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-gold-400" />
+              <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
+                onKeyDown={e => { if (e.key === 'Enter') loadInventory(); }}
+                placeholder="Kode saham (mis. BBCA)"
+                className="bg-background border border-border rounded-lg px-3 py-2 text-sm w-44 outline-none focus:border-gold-400/50 uppercase" />
+            </div>
+            <div className="flex gap-1 bg-white/5 rounded-lg p-1">
+              {[90, 180, 365].map(d => (
+                <button key={d} onClick={() => setInvDays(d)}
+                  className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${invDays === d ? 'bg-gold-400/20 text-gold-400' : 'text-gray-400 hover:text-white'}`}>
+                  {d === 365 ? '1Y' : `${d}D`}
+                </button>
+              ))}
+            </div>
+            <button onClick={loadInventory} disabled={invLoading || !code.trim()}
+              className="ml-auto px-4 py-2 rounded-lg bg-gold-400/15 text-gold-400 border border-gold-400/30 text-xs font-bold hover:bg-gold-400/25 transition-all disabled:opacity-50 flex items-center gap-1.5">
+              {invLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              Load Inventory
+            </button>
+          </div>
+
+          <div className="glass p-5 rounded-2xl border border-border/50 shadow-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Layers className="w-4 h-4 text-gold-400" />
+              <h3 className="text-sm font-black text-foreground">Inventory Analysis</h3>
+              <span className="text-[10px] text-muted-foreground/50">{code ? `· ${code.toUpperCase()}` : ''} · candle + posisi kumulatif broker</span>
+            </div>
+            {invLoading ? (
+              <div className="h-[460px] flex items-center justify-center text-muted-foreground/40 gap-2">
+                <Loader2 className="w-6 h-6 animate-spin" /> Memuat…
+              </div>
+            ) : invPrice.length === 0 ? (
+              <div className="h-[460px] flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
+                <Layers className="w-10 h-10" />
+                <p className="text-sm font-bold">Ketik kode saham → Load Inventory</p>
+                <p className="text-xs opacity-60">Candle harga + garis akumulasi/distribusi tiap broker</p>
+              </div>
+            ) : (
+              <InventoryChart price={invPrice} brokers={invBrokers} />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
