@@ -272,7 +272,7 @@ export default function LandingPage() {
         <div className="max-w-[780px] mx-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] text-center">
           <span className="text-base">🎉</span>
           <p className="text-[12px] font-bold text-emerald-300">
-            Coba <span className="text-emerald-200">semua fitur Pro gratis 7 hari, tanpa daftar</span> — lalu cukup daftar untuk lanjut (masih promo perkenalan).
+            Coba <span className="text-emerald-200">semua fitur Pro gratis 7 hari, tanpa daftar</span> — lalu daftar gratis untuk akses permanen (watchlist & alert tersimpan, masih promo perkenalan).
           </p>
         </div>
 
