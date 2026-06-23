@@ -79,6 +79,9 @@ export function InventoryChart({ price, brokers, height = 460 }: {
         priceLineVisible: false, lastValueVisible: false,
       })
       line.setData(s.data)
+      // Broker code label at the line's end (last point) — like Stockbit, no value.
+      const last = s.data[s.data.length - 1]
+      if (last) line.setMarkers([{ time: last.time, position: 'inBar', color: s.color, shape: 'circle', text: s.code }])
     })
 
     chart.timeScale().fitContent()
