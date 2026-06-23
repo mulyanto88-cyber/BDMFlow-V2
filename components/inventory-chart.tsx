@@ -10,8 +10,8 @@ export interface InvBrokerRow {
 }
 
 // Greens for accumulators (net buyers), reds for distributors (net sellers).
-const ACC_COLORS = ['#10b981', '#22c55e', '#34d399', '#16a34a', '#4ade80', '#15803d', '#059669', '#0d9488']
-const DIST_COLORS = ['#ef4444', '#f43f5e', '#f87171', '#dc2626', '#fb7185', '#b91c1c', '#e11d48', '#9f1239']
+const ACC_COLORS = ['#22c55e', '#10b981', '#14b8a6', '#84cc16', '#06b6d4', '#34d399', '#0d9488', '#65a30d']
+const DIST_COLORS = ['#ef4444', '#f97316', '#ec4899', '#f43f5e', '#f59e0b', '#dc2626', '#be123c', '#a855f7']
 
 /**
  * Inventory Analysis — candlestick price (right scale) + per-broker CUMULATIVE net-lot
@@ -63,6 +63,7 @@ export function InventoryChart({ price, brokers, height = 460 }: {
       upColor: '#22c55e', downColor: '#ef4444',
       borderUpColor: '#22c55e', borderDownColor: '#ef4444',
       wickUpColor: '#22c55e', wickDownColor: '#ef4444',
+      priceFormat: { type: 'price', precision: 0, minMove: 1 },
       priceLineVisible: false, lastValueVisible: false,
     })
     candles.setData(
@@ -74,7 +75,8 @@ export function InventoryChart({ price, brokers, height = 460 }: {
     series.forEach(s => {
       const line = chart.addLineSeries({
         priceScaleId: 'left', color: s.color, lineWidth: 2,
-        priceLineVisible: false, lastValueVisible: true, title: s.code,
+        priceFormat: { type: 'price', precision: 0, minMove: 1 },
+        priceLineVisible: false, lastValueVisible: false,
       })
       line.setData(s.data)
     })
