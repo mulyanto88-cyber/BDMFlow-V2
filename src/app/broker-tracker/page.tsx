@@ -276,8 +276,6 @@ interface BrokerAlphaRow {
   total_net: number;
 }
 
-type TimeSeriesView = 'net' | 'stacked' | 'cumulative';
-type TimeSeriesMode = 'market' | 'inventory';
 type ActiveTab = 'tracker' | 'screener' | 'intel' | 'inventory';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -287,9 +285,6 @@ const CHART_COLORS = [
   '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6',
   '#6366f1', '#a855f7', '#d946ef', '#ef4444', '#84cc16', '#0ea5e9',
 ];
-// Inventory chart — greens for accumulators (net buyers), reds for distributors (net sellers)
-const ACCUM_COLORS = ['#10b981', '#22c55e', '#34d399', '#16a34a', '#4ade80', '#15803d'];
-const DIST_COLORS  = ['#ef4444', '#f43f5e', '#f87171', '#dc2626', '#fb7185', '#b91c1c'];
 
 const COLOR_MAP = {
   emerald: { border: 'border-emerald-500/20', bg: 'bg-emerald-500/10', text: 'text-emerald-400', fill: '#10b981' },
@@ -398,47 +393,6 @@ const BrokerBarTooltip = ({ active, payload, label }: any) => {
       <p className={`font-mono font-bold ${val >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
         {val >= 0 ? '+' : ''}{fmt(val)}
       </p>
-    </div>
-  );
-};
-
-const TimelineTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[#111827] border border-white/10 rounded-xl p-3 text-[11px] shadow-2xl min-w-[160px] max-h-[280px] overflow-y-auto">
-      <p className="text-white font-black mb-2 text-xs">{label}</p>
-      {payload
-        .filter((e: any) => e.value !== undefined && e.value !== 0)
-        .sort((a: any, b: any) => Math.abs(b.value) - Math.abs(a.value))
-        .map((e: any, i: number) => (
-          <div key={i} className="flex items-center justify-between gap-4 py-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.color }} />
-              <span className="text-[10px] text-gray-400">{e.name}</span>
-            </div>
-            <span className="font-mono font-bold text-[10px]" style={{ color: e.color }}>{fmt(e.value)}</span>
-          </div>
-        ))}
-    </div>
-  );
-};
-
-const ComboTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[#111827] border border-white/10 rounded-xl p-3 text-[11px] shadow-2xl min-w-[180px]">
-      <p className="text-white font-black mb-2 text-xs">{label}</p>
-      {payload.map((e: any, i: number) => (
-        <div key={i} className="flex items-center justify-between gap-4 py-0.5">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.color }} />
-            <span className="text-[10px] text-gray-400">{e.name}</span>
-          </div>
-          <span className="font-mono font-bold text-[10px]" style={{ color: e.color }}>
-            {e.name === 'Harga' ? fmtPrice(e.value) : fmt(e.value)}
-          </span>
-        </div>
-      ))}
     </div>
   );
 };
@@ -968,26 +922,6 @@ function ScreenerVolumeSpike({ row }: { row: ScreenerRow }) {
     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${cls}`}>
       {spike.replace('_', ' ')}
     </span>
-  );
-}
-
-function ScreenerCompositeScore({ row }: { row: ScreenerRow }) {
-  const score = row.composite_score;
-  if (score == null) return <span className="text-gray-600 text-[10px]">—</span>;
-  const color = score >= 30 ? 'text-emerald-400' : score >= 15 ? 'text-yellow-400' : 'text-gray-400';
-  const sp = row.sell_pressure_pct;
-  const spColor = sp != null
-    ? sp < 30 ? 'text-emerald-400' : sp < 60 ? 'text-yellow-400' : 'text-red-400'
-    : 'text-gray-600';
-  return (
-    <div className="text-right">
-      <span className={`text-sm font-black font-mono ${color}`}>{score.toFixed(1)}</span>
-      {sp != null && (
-        <p className={`text-[9px] font-mono ${spColor}`}>
-          SP: {sp.toFixed(0)}%
-        </p>
-      )}
-    </div>
   );
 }
 
@@ -1807,15 +1741,10 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
               {rows.map((r, i) => {
-                const sp = r.sell_pressure_pct ?? 0;
-                const spColor = sp < 30 ? 'text-emerald-400' : sp < 60 ? 'text-yellow-400' : 'text-red-400';
                 const smColor = (r.smart_money_score ?? 0) >= 4 ? 'text-emerald-400'
                   : (r.smart_money_score ?? 0) >= 2 ? 'text-yellow-400' : 'text-gray-500';
                 const localNet   = r.local_net_miliar   ?? 0;
                 const foreignNet = r.foreign_net_miliar ?? 0;
-                const quality = sp < 30 ? { label: 'CLEAN',     cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' }
-                              : sp < 60 ? { label: 'MIXED',     cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' }
-                              :            { label: 'CONTESTED', cls: 'bg-red-500/15 text-red-400 border-red-500/30' };
                 const score = r.composite_score ?? 0;
                 const scoreColor = score >= 25 ? 'text-emerald-400' : score >= 15 ? 'text-yellow-400' : score >= 8 ? 'text-blue-400' : 'text-gray-500';
                 return (
@@ -1829,7 +1758,7 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
                       {r.company_name && <p className="text-[9px] text-muted-foreground/50 truncate max-w-[80px]">{r.company_name}</p>}
                     </td>
                     <td className="px-4 py-3"><span className="text-[9px] text-muted-foreground/55">{r.sector ?? '—'}</span></td>
-                    {/* Net + Quality badge */}
+                    {/* Net */}
                     <td className="px-4 py-3 text-right">
                       <span className="font-black text-emerald-400 font-mono">
                         +{(r.net_miliar ?? r.net_accumulation / 1e9).toFixed(1)} M
@@ -2166,11 +2095,6 @@ export default function BrokerTrackerPage() {
   const [filterMinVal,     setFilterMinVal]     = useState('1000000000');
   const [filterMinBroker,  setFilterMinBroker]  = useState('3');
 
-  // ── Chart view ────────────────────────────────────────────────────────────
-  const [timeSeriesView, setTimeSeriesView] = useState<TimeSeriesView>('net');
-  const [timeSeriesMode, setTimeSeriesMode] = useState<TimeSeriesMode>('market');
-  const [showPriceOverlay, setShowPriceOverlay] = useState(true);
-
   // ── Sort ──────────────────────────────────────────────────────────────────
   const [buySortCol,  setBuySortCol]  = useState<keyof TrackerRow>('net_val');
   const [buySortDir,  setBuySortDir]  = useState<'asc' | 'desc'>('desc');
@@ -2506,137 +2430,6 @@ export default function BrokerTrackerPage() {
     a.download = `screener-${startDate}-${endDate}.csv`;
     a.click();
   }, [sortedScreenerData, startDate, endDate]);
-
-  const mergedChartData = useMemo(() => {
-    const priceMap = new Map(priceData.map(p => [p.date, p.close]));
-    return historyData.map(h => ({ ...h, close: priceMap.get(h.date) ?? null }));
-  }, [historyData, priceData]);
-
-  const mergedCumData = useMemo(() => {
-    const priceMap = new Map(priceData.map(p => [p.date, p.close]));
-    let cum = 0;
-    return historyData.map(h => {
-      cum += h.daily_net_val;
-      return { ...h, cumulative_net: cum, close: priceMap.get(h.date) ?? null };
-    });
-  }, [historyData, priceData]);
-
-  // Per-broker CUMULATIVE net flow (= broker inventory). Running sum of daily net per broker.
-  const brokerTimeseriesData = useMemo(() => {
-    const priceMap = new Map(priceData.map(p => [p.date, p.close]));
-    const byDate = new Map<string, Record<string, number>>();
-    const allBrokers = new Set<string>();
-    multiBrokerData.forEach(({ date, broker_code, net_val }) => {
-      if (!byDate.has(date)) byDate.set(date, {});
-      byDate.get(date)![broker_code] = net_val;
-      allBrokers.add(broker_code);
-    });
-    const dates = Array.from(byDate.keys()).sort((a, b) => a.localeCompare(b));
-    const running: Record<string, number> = {};
-    return dates.map(date => {
-      const vals = byDate.get(date)!;
-      const row: Record<string, number | string | null> = { date };
-      allBrokers.forEach(bc => {
-        running[bc] = (running[bc] ?? 0) + (vals[bc] ?? 0);
-        row[bc] = running[bc];
-      });
-      row.close = priceMap.get(date) ?? null;
-      return row;
-    });
-  }, [multiBrokerData, priceData]);
-
-  const topBrokerCodes = useMemo(() => [
-    ...buyers.slice(0, 6).map(r => r.broker_code),
-    ...sellers.slice(0, 6).map(r => r.broker_code),
-  ], [buyers, sellers]);
-
-  // Color brokers by role: net buyers = green (accumulation), net sellers = red (distribution).
-  const getBrokerColor = useCallback((bc: string) => {
-    const bi = buyers.findIndex(r => r.broker_code === bc);
-    if (bi >= 0) return ACCUM_COLORS[bi % ACCUM_COLORS.length];
-    const si = sellers.findIndex(r => r.broker_code === bc);
-    if (si >= 0) return DIST_COLORS[si % DIST_COLORS.length];
-    return CHART_COLORS[0];
-  }, [buyers, sellers]);
-
-  const renderTimeSeriesChart = () => {
-    const hasPrice = showPriceOverlay && priceData.length > 0;
-
-    if (timeSeriesMode === 'inventory') {
-      return (
-        <ComposedChart data={brokerTimeseriesData} margin={{ left: 0, right: hasPrice ? 48 : 8, bottom: 24, top: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-          <XAxis dataKey="date" stroke="#374151" fontSize={10} tick={{ fill: '#6b7280' }} />
-          <YAxis yAxisId="flow" stroke="#374151" fontSize={10} tickFormatter={v => fmt(v)} width={64} tick={{ fill: '#6b7280' }} />
-          {hasPrice && <YAxis yAxisId="price" orientation="right" stroke="#374151" fontSize={10} tickFormatter={v => fmtPrice(v)} width={50} tick={{ fill: '#6b7280' }} />}
-          <Tooltip content={<ComboTooltip />} cursor={{ fill: '#ffffff06' }} />
-          <ReferenceLine yAxisId="flow" y={0} stroke="#ffffff25" strokeDasharray="4 4" />
-          <Legend wrapperStyle={{ fontSize: '9px', color: '#6b7280' }} iconType="circle" iconSize={6} />
-          {hasPrice && (
-            <Area yAxisId="price" type="monotone" dataKey="close" name="Harga"
-              fill="#eab308" fillOpacity={0.08}
-              stroke="#eab308" strokeWidth={2} strokeDasharray="4 4"
-              dot={false} activeDot={{ r: 3 }} connectNulls />
-          )}
-          {topBrokerCodes.map(bc => (
-            <Line yAxisId="flow" key={bc} type="monotone" dataKey={bc} name={bc}
-              stroke={getBrokerColor(bc)} strokeWidth={2}
-              dot={false} activeDot={{ r: 3 }} connectNulls />
-          ))}
-        </ComposedChart>
-      );
-    }
-
-    if (timeSeriesView === 'stacked') {
-      return (
-        <ComposedChart data={mergedChartData} margin={{ left: 0, right: hasPrice ? 48 : 8, bottom: 24, top: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-          <XAxis dataKey="date" stroke="#374151" fontSize={10} tick={{ fill: '#6b7280' }} />
-          <YAxis yAxisId="flow" stroke="#374151" fontSize={10} tickFormatter={v => fmt(v)} width={64} tick={{ fill: '#6b7280' }} />
-          {hasPrice && <YAxis yAxisId="price" orientation="right" stroke="#374151" fontSize={10} tickFormatter={v => fmtPrice(v)} width={50} tick={{ fill: '#6b7280' }} />}
-          <Tooltip content={<ComboTooltip />} cursor={{ fill: '#ffffff06' }} />
-          <Legend wrapperStyle={{ fontSize: '10px' }} />
-          <Bar yAxisId="flow" dataKey="daily_buy_val"  name="Buy"  stackId="s" fill={COLOR_MAP.emerald.fill} opacity={0.85} radius={[2,2,0,0]} />
-          <Bar yAxisId="flow" dataKey="daily_sell_val" name="Sell" stackId="s" fill={COLOR_MAP.red.fill}     opacity={0.85} />
-          {hasPrice && <Line yAxisId="price" type="monotone" dataKey="close" name="Harga" stroke="#eab308" strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} connectNulls />}
-        </ComposedChart>
-      );
-    }
-
-    if (timeSeriesView === 'cumulative') {
-      return (
-        <ComposedChart data={mergedCumData} margin={{ left: 0, right: hasPrice ? 48 : 8, bottom: 24, top: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-          <XAxis dataKey="date" stroke="#374151" fontSize={10} tick={{ fill: '#6b7280' }} />
-          <YAxis yAxisId="flow" stroke="#374151" fontSize={10} tickFormatter={v => fmt(v)} width={64} tick={{ fill: '#6b7280' }} />
-          {hasPrice && <YAxis yAxisId="price" orientation="right" stroke="#374151" fontSize={10} tickFormatter={v => fmtPrice(v)} width={50} tick={{ fill: '#6b7280' }} />}
-          <Tooltip content={<ComboTooltip />} cursor={{ fill: '#ffffff06' }} />
-          <ReferenceLine yAxisId="flow" y={0} stroke="#ffffff25" />
-          <Area yAxisId="flow" type="monotone" dataKey="cumulative_net" name="Cumulative Net"
-            fill={COLOR_MAP.yellow.fill} fillOpacity={0.15}
-            stroke={COLOR_MAP.yellow.fill} strokeWidth={2} />
-          {hasPrice && <Line yAxisId="price" type="monotone" dataKey="close" name="Harga" stroke="#a78bfa" strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} connectNulls />}
-        </ComposedChart>
-      );
-    }
-
-    return (
-      <ComposedChart data={mergedChartData} margin={{ left: 0, right: hasPrice ? 48 : 8, bottom: 24, top: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-        <XAxis dataKey="date" stroke="#374151" fontSize={10} tick={{ fill: '#6b7280' }} />
-        <YAxis yAxisId="flow" stroke="#374151" fontSize={10} tickFormatter={v => fmt(v)} width={64} tick={{ fill: '#6b7280' }} />
-        {hasPrice && <YAxis yAxisId="price" orientation="right" stroke="#374151" fontSize={10} tickFormatter={v => fmtPrice(v)} width={50} tick={{ fill: '#6b7280' }} />}
-        <Tooltip content={<ComboTooltip />} cursor={{ fill: '#ffffff06' }} />
-        <ReferenceLine yAxisId="flow" y={0} stroke="#ffffff25" />
-        <Bar yAxisId="flow" dataKey="daily_net_val" name="Net Flow" maxBarSize={25} radius={[2,2,0,0]}>
-          {mergedChartData.map((d, i) => (
-            <Cell key={i} fill={d.daily_net_val >= 0 ? COLOR_MAP.emerald.fill : COLOR_MAP.red.fill} opacity={0.85} />
-          ))}
-        </Bar>
-        {hasPrice && <Line yAxisId="price" type="monotone" dataKey="close" name="Harga" stroke="#eab308" strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} connectNulls />}
-      </ComposedChart>
-    );
-  };
 
   const TrackerTable = ({ rows, side }: { rows: TrackerRow[]; side: 'buy' | 'sell' }) => {
     const isBuy      = side === 'buy';
