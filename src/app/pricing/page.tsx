@@ -14,7 +14,7 @@ const PLANS = [
   },
   {
     name: 'Pro',
-    price: 'Rp 299K',
+    price: 'Rp 55K',
     sub: '/bulan',
     color: 'border-gold-400/40',
     badge: '🔥 Populer',
