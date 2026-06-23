@@ -1693,6 +1693,12 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
   setActiveTab: (t: ActiveTab) => void
   loadData: (overrideCode?: string, overrideTab?: ActiveTab) => Promise<void>
 }) {
+  // Client-side view filters (no refetch) — sharpen the candidate list.
+  const [vf, setVf] = useState({ whale: false, conc: false, foreign: false });
+  const rows = data.filter(r =>
+    (!vf.whale   || r.whale_signal) &&
+    (!vf.conc    || ((r as any).smart_concentration_pct ?? 0) >= 50) &&
+    (!vf.foreign || (r.foreign_net_miliar ?? 0) > 0));
   // NOTE: sell_pressure_pct ≈ 100% for every stock (broker tape is zero-sum: total_sell≈total_buy),
   // so the old "Clean Accum (<40%)" metric was always 0. Replaced with smart-broker concentration.
   const concCount  = data.filter(r => ((r as any).smart_concentration_pct ?? 0) >= 50).length;
@@ -1736,6 +1742,17 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
             {p.label}
           </button>
         ))}
+        <span className="w-px h-4 bg-white/10 mx-0.5" />
+        {([
+          { key: 'whale',   label: '🐋 Whale' },
+          { key: 'conc',    label: '💎 Konsentrasi ≥50%' },
+          { key: 'foreign', label: '🌐 Net Asing > 0' },
+        ] as const).map(t => (
+          <button key={t.key} onClick={() => setVf(v => ({ ...v, [t.key]: !v[t.key] }))}
+            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${vf[t.key] ? 'bg-gold-400/15 text-gold-400 border-gold-400/40' : 'border-border/50 bg-white/[0.03] text-muted-foreground hover:text-foreground hover:border-gold-400/30'}`}>
+            {t.label}
+          </button>
+        ))}
         <span className="ml-auto text-[10px] text-muted-foreground/40">
           Avg Konsentrasi: <span className={avgConc >= 40 ? 'text-emerald-400 font-bold' : 'text-muted-foreground font-bold'}>{avgConc.toFixed(0)}%</span>
         </span>
@@ -1746,16 +1763,9 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
         <div className="px-5 py-4 bg-gold-400/[0.04] border-b border-gold-400/10 flex items-center gap-3">
           <Activity size={16} className="text-gold-400" />
           <span className="text-gold-400 font-black text-xs uppercase tracking-wider">
-            Top {data.length} Accumulation Candidates
+            Top {rows.length} Accumulation Candidates
           </span>
-          <div className="ml-auto flex items-center gap-3 text-[9px] text-muted-foreground/50">
-            {[['bg-emerald-500','Clean (<40%)'],['bg-amber-500','Mixed'],['bg-red-500','Contested']].map(([bg,label]) => (
-              <span key={label} className="flex items-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${bg} inline-block`}/>
-                {label}
-              </span>
-            ))}
-          </div>
+          <span className="ml-auto" />
           <button onClick={exportCSV} className="text-[10px] px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-gray-400 hover:text-gold-400 hover:border-gold-400/30 transition-all flex items-center gap-1">
             <Download size={14} /> CSV
           </button>
@@ -1780,11 +1790,6 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
                 <th className="px-4 py-3 text-center cursor-pointer hover:text-foreground" onClick={() => toggleScreenerSort('buy_broker_count')}>
                   Brk <SortIcon active={screenerSortCol === 'buy_broker_count'} dir={screenerSortDir} />
                 </th>
-                <th className="px-4 py-3 text-right cursor-pointer hover:text-foreground text-red-400/80"
-                    onClick={() => toggleScreenerSort('sell_pressure_pct')}
-                    title="Sell Pressure: % sell vs buy. Rendah = clean accumulation">
-                  Sell% <SortIcon active={screenerSortCol === 'sell_pressure_pct'} dir={screenerSortDir} />
-                </th>
                 <th className="px-4 py-3 text-center" title="Local vs Foreign broker net">L/F Net</th>
                 <th className="px-4 py-3 text-center">Top Buyer</th>
                 <th className="px-4 py-3 text-center cursor-pointer hover:text-foreground" onClick={() => toggleScreenerSort('whale_signal')}>
@@ -1801,7 +1806,7 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {data.map((r, i) => {
+              {rows.map((r, i) => {
                 const sp = r.sell_pressure_pct ?? 0;
                 const spColor = sp < 30 ? 'text-emerald-400' : sp < 60 ? 'text-yellow-400' : 'text-red-400';
                 const smColor = (r.smart_money_score ?? 0) >= 4 ? 'text-emerald-400'
@@ -1829,25 +1834,10 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
                       <span className="font-black text-emerald-400 font-mono">
                         +{(r.net_miliar ?? r.net_accumulation / 1e9).toFixed(1)} M
                       </span>
-                      <div className="mt-0.5">
-                        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border ${quality.cls}`}>{quality.label}</span>
-                      </div>
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground/60 font-mono text-[10px]">{fmt(r.total_value)}</td>
                     <td className="px-4 py-3 text-center">
                       <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[10px]">{r.buy_broker_count}</span>
-                    </td>
-                    {/* Sell Pressure */}
-                    <td className="px-4 py-3 text-right">
-                      <span className={`font-black font-mono text-[11px] ${spColor}`}>
-                        {r.sell_pressure_pct != null ? `${r.sell_pressure_pct.toFixed(0)}%` : '—'}
-                      </span>
-                      {r.sell_pressure_pct != null && (
-                        <div className="mt-0.5 h-1 w-full bg-white/[0.05] rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${sp < 30 ? 'bg-emerald-500' : sp < 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(sp, 100)}%` }} />
-                        </div>
-                      )}
                     </td>
                     {/* L/F Net */}
                     <td className="px-4 py-3 text-center">
@@ -1886,9 +1876,6 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
                     {/* Composite Score */}
                     <td className="px-4 py-3 text-right">
                       <span className={`text-sm font-black font-mono ${scoreColor}`}>{score.toFixed(1)}</span>
-                      {r.sell_pressure_pct != null && (
-                        <p className="text-[8px] text-muted-foreground/35">SP: {r.sell_pressure_pct.toFixed(0)}%</p>
-                      )}
                     </td>
                     {/* Price */}
                     <td className="px-4 py-3 text-right">
@@ -1905,9 +1892,8 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-2.5 border-t border-border/30 text-[10px] text-muted-foreground/35 flex justify-between">
-          <span>{data.length} saham · klik baris untuk buka Broker Tracker</span>
-          <span>CLEAN = sell&lt;30% · MIXED = 30-60% · CONTESTED = &gt;60%</span>
+        <div className="px-5 py-2.5 border-t border-border/30 text-[10px] text-muted-foreground/35">
+          <span>{rows.length} saham · klik baris untuk buka Broker Tracker</span>
         </div>
       </div>
     </div>
@@ -1929,7 +1915,7 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
 
   const topBuyers  = [...brokerIntel].filter(r => r.net_value > 0).sort((a, b) => b.net_value - a.net_value).slice(0, 10);
   const topSellers = [...brokerIntel].filter(r => r.net_value < 0).sort((a, b) => a.net_value - b.net_value).slice(0, 10);
-  const consistency = [...brokerIntel].filter(r => r.buy_consistency_pct > 0).sort((a, b) => b.buy_consistency_pct - a.buy_consistency_pct).slice(0, 10);
+  const consistency = [...brokerIntel].filter(r => r.buy_consistency_pct > 0 && (r.total_days ?? 0) >= 10).sort((a, b) => b.buy_consistency_pct - a.buy_consistency_pct).slice(0, 10);
 
   const breadthReversed = [...marketBreadth].reverse();
   const latestBreadth   = marketBreadth[0];
