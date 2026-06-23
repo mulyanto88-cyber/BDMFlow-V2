@@ -2163,7 +2163,9 @@ export default function BrokerTrackerPage() {
   const [invPrice,        setInvPrice]        = useState<InvCandle[]>([]);
   const [invBrokers,      setInvBrokers]      = useState<InvBrokerRow[]>([]);
   const [invLoading,      setInvLoading]      = useState(false);
-  const [invDays,         setInvDays]         = useState(180);
+  const [invTopN,         setInvTopN]         = useState(5);
+  const [invStart,        setInvStart]        = useState(() => { const d = new Date(); d.setDate(d.getDate() - 180); return d.toISOString().slice(0, 10); });
+  const [invEnd,          setInvEnd]          = useState(() => new Date().toISOString().slice(0, 10));
   const [multiBrokerData, setMultiBrokerData] = useState<MultiBrokerRow[]>([]);
   const [stockCtx,        setStockCtx]        = useState<StockContext | null>(null);
   const [divergence,      setDivergence]      = useState<DivergenceData | null>(null);
@@ -2350,12 +2352,12 @@ export default function BrokerTrackerPage() {
     const c = code.trim().toUpperCase();
     if (!c) return;
     setInvLoading(true);
-    fetch(`/api/broker-tracker?action=inventory&code=${c}&inv_days=${invDays}`)
+    fetch(`/api/broker-tracker?action=inventory&code=${c}&start=${invStart}&end=${invEnd}&top_n=${invTopN}`)
       .then(r => r.json())
       .then(j => { setInvPrice(j.price || []); setInvBrokers(j.brokers || []); })
       .catch(() => { setInvPrice([]); setInvBrokers([]); })
       .finally(() => setInvLoading(false));
-  }, [code, invDays]);
+  }, [code, invStart, invEnd, invTopN]);
 
   useEffect(() => {
     if (activeTab === 'inventory' && code.trim() && invPrice.length === 0) loadInventory();
@@ -3138,11 +3140,20 @@ export default function BrokerTrackerPage() {
                 placeholder="Kode saham (mis. BBCA)"
                 className="bg-background border border-border rounded-lg px-3 py-2 text-sm w-44 outline-none focus:border-gold-400/50 uppercase" />
             </div>
-            <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-              {[90, 180, 365].map(d => (
-                <button key={d} onClick={() => setInvDays(d)}
-                  className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${invDays === d ? 'bg-gold-400/20 text-gold-400' : 'text-gray-400 hover:text-white'}`}>
-                  {d === 365 ? '1Y' : `${d}D`}
+            <div className="flex items-center gap-1.5 text-muted-foreground/60">
+              <Calendar className="w-3.5 h-3.5 text-gold-400" />
+              <input type="date" value={invStart} max={invEnd} onChange={e => setInvStart(e.target.value)}
+                className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gold-400/50" />
+              <span className="text-[10px]">→</span>
+              <input type="date" value={invEnd} min={invStart} onChange={e => setInvEnd(e.target.value)}
+                className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gold-400/50" />
+            </div>
+            <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+              <span className="text-[9px] text-muted-foreground/50 px-1 uppercase tracking-wider">Top</span>
+              {[3, 5, 8].map(n => (
+                <button key={n} onClick={() => setInvTopN(n)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all ${invTopN === n ? 'bg-gold-400/20 text-gold-400' : 'text-gray-400 hover:text-white'}`}>
+                  {n}
                 </button>
               ))}
             </div>
