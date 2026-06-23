@@ -74,6 +74,15 @@ export default function AuthPage() {
           <p className="text-xs text-muted-foreground mt-1">IDX Flow Intelligence</p>
         </div>
 
+        {/* Why register — value reminder at the conversion point */}
+        <div className="mb-5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[10.5px] text-muted-foreground/75">
+          <span>✓ Akses permanen semua fitur</span>
+          <span className="text-muted-foreground/30">·</span>
+          <span>✓ Watchlist &amp; alert tersimpan</span>
+          <span className="text-muted-foreground/30">·</span>
+          <span>✓ Gratis selama promo</span>
+        </div>
+
         {/* Card */}
         <div className="bg-card border border-border rounded-2xl p-6">
 
@@ -142,7 +151,7 @@ export default function AuthPage() {
                       <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="text" value={name} onChange={e => setName(e.target.value)}
-                        placeholder="Nama lengkap" required
+                        placeholder="Nama lengkap" required autoComplete="name"
                         className="w-full h-10 pl-9 pr-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-purple-500/60 transition-colors"
                       />
                     </div>
@@ -155,7 +164,7 @@ export default function AuthPage() {
                     <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       type="email" value={email} onChange={e => setEmail(e.target.value)}
-                      placeholder="email@example.com" required
+                      placeholder="email@example.com" required autoComplete="email"
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-purple-500/60 transition-colors"
                     />
                   </div>
@@ -169,6 +178,7 @@ export default function AuthPage() {
                       type={showPass ? 'text' : 'password'} value={password}
                       onChange={e => setPass(e.target.value)}
                       placeholder="Min. 6 karakter" required minLength={6}
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                       className="w-full h-10 pl-9 pr-9 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-purple-500/60 transition-colors"
                     />
                     <button type="button" onClick={() => setShowPass(v => !v)}
