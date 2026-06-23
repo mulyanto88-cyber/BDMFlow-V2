@@ -82,10 +82,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // Guest banner copy adapts to trial state.
   const guestMsg =
     trialLeft === null
-      ? '👀 Free tier aktif — coba semua fitur Pro (Screener, Broker Tracker, Insider) gratis 7 hari, tanpa daftar.'
+      ? '👀 Semua fitur Pro gratis 7 hari, tanpa daftar. Daftar gratis = akses permanen + watchlist & alert tersimpan.'
       : trialLeft > 0
-        ? `🎁 Trial Pro aktif — ${trialLeft} hari tersisa. Daftar gratis biar akses tidak terputus.`
-        : '⏳ Trial 7 hari habis — daftar gratis untuk buka semua fitur Pro lagi.'
+        ? `🎁 Trial Pro aktif — ${trialLeft} hari tersisa. Daftar gratis = akses permanen (watchlist & alert tersimpan), tak terputus saat trial habis.`
+        : '⏳ Trial 7 hari habis. Daftar gratis = akses penuh permanen + watchlist & alert tersimpan.'
 
   // Authenticated, or a guest on an allowed page → full app shell.
   return (
