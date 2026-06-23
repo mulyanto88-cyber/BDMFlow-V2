@@ -145,22 +145,27 @@ export async function GET(req: NextRequest) {
     // ── 0b. INVENTORY — OHLC price + per-broker daily net (top accum + distrib, long range) ──
     if (action === 'inventory') {
       const cleanCode = validateStockCode(code)
-      const invDays = Math.max(30, Math.min(365, parseInt(searchParams.get('inv_days') || '180')))
-      const topN    = Math.max(3,  Math.min(8,   parseInt(searchParams.get('top_n')   || '6')))
+      const topN = Math.max(2, Math.min(10, parseInt(searchParams.get('top_n') || '5')))
+      const dr = /^\d{4}-\d{2}-\d{2}$/
+      const s = searchParams.get('start') || '', e = searchParams.get('end') || ''
+      const hasRange = dr.test(s) && dr.test(e)
+      const dp = hasRange ? [cleanCode, s, e] : [cleanCode]
+      const priceWhere  = hasRange ? `CAST(trading_date AS DATE) BETWEEN $2::DATE AND $3::DATE`
+        : `CAST(trading_date AS DATE) >= (SELECT MAX(CAST(trading_date AS DATE)) FROM market.daily_transactions) - INTERVAL '180 days'`
+      const brokerWhere = hasRange ? `CAST(date AS DATE) BETWEEN $2::DATE AND $3::DATE`
+        : `CAST(date AS DATE) >= (SELECT MAX(CAST(date AS DATE)) FROM broker_activity) - INTERVAL '180 days'`
       const [price, brokers] = await Promise.all([
         run(`
           SELECT trading_date::VARCHAR AS date, open_price::DOUBLE AS open, high::DOUBLE AS high,
                  low::DOUBLE AS low, close::DOUBLE AS close
           FROM market.daily_transactions
-          WHERE stock_code = $1
-            AND CAST(trading_date AS DATE) >= (SELECT MAX(CAST(trading_date AS DATE)) FROM market.daily_transactions) - INTERVAL '${invDays} days'
-          ORDER BY trading_date ASC`, [cleanCode]),
+          WHERE stock_code = $1 AND ${priceWhere}
+          ORDER BY trading_date ASC`, dp),
         run(`
           WITH daily AS (
             SELECT CAST(date AS DATE) AS d, broker_code, MAX(broker_name) AS broker_name, SUM(lot)::DOUBLE AS net_lot
             FROM broker_activity
-            WHERE CAST(date AS DATE) >= (SELECT MAX(CAST(date AS DATE)) FROM broker_activity) - INTERVAL '${invDays} days'
-              AND LEFT(stock_code,4) = $1
+            WHERE LEFT(stock_code,4) = $1 AND ${brokerWhere}
             GROUP BY CAST(date AS DATE), broker_code
           ),
           totals AS (
@@ -179,7 +184,7 @@ export async function GET(req: NextRequest) {
           FROM daily d
           JOIN picked p ON p.broker_code = d.broker_code
           WHERE p.rk_acc <= ${topN} OR p.rk_dist <= ${topN}
-          ORDER BY d.d ASC`, [cleanCode]),
+          ORDER BY d.d ASC`, dp),
       ])
       return NextResponse.json({ price, brokers })
     }
