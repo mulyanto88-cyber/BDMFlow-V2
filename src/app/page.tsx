@@ -125,16 +125,16 @@ export default function LandingPage() {
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <TrackLink
-            href="/auth"
+            href="/dashboard"
             event="cta_click"
-            data={{ cta: 'hero_daftar' }}
+            data={{ cta: 'hero_coba_preview' }}
             className="flex items-center gap-2 px-7 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95"
             style={{
               background: 'linear-gradient(135deg, #e7b733, #f0c040)',
               boxShadow: '0 4px 24px rgba(231,183,51,0.35)',
             }}
           >
-            Mulai Gratis <ArrowRight size={15} />
+            Coba Gratis — Tanpa Daftar <ArrowRight size={15} />
           </TrackLink>
           <TrackLink
             href="/auth"
@@ -272,7 +272,7 @@ export default function LandingPage() {
         <div className="max-w-[780px] mx-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] text-center">
           <span className="text-base">🎉</span>
           <p className="text-[12px] font-bold text-emerald-300">
-            Promo perkenalan — <span className="text-emerald-200">semua fitur Pro masih GRATIS</span>, cukup daftar.
+            Coba <span className="text-emerald-200">semua fitur Pro gratis 7 hari, tanpa daftar</span> — lalu cukup daftar untuk lanjut (masih promo perkenalan).
           </p>
         </div>
 
@@ -334,7 +334,7 @@ export default function LandingPage() {
             <div className="mb-6">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gold-400/70 mb-3">Pro</p>
               <div className="flex items-end gap-1">
-                <span className="text-4xl font-black gradient-gold">Rp 75K</span>
+                <span className="text-4xl font-black gradient-gold">Rp 55K</span>
                 <span className="text-sm text-muted-foreground/50 mb-1.5">/ bulan</span>
               </div>
               <p className="text-[11px] text-muted-foreground/55 mt-2">
