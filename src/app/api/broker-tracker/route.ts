@@ -156,10 +156,13 @@ export async function GET(req: NextRequest) {
         : `CAST(date AS DATE) >= (SELECT MAX(CAST(date AS DATE)) FROM broker_activity) - INTERVAL '180 days'`
       const [price, brokers] = await Promise.all([
         run(`
-          SELECT trading_date::VARCHAR AS date, open_price::DOUBLE AS open, high::DOUBLE AS high,
-                 low::DOUBLE AS low, close::DOUBLE AS close
+          SELECT trading_date::VARCHAR AS date,
+                 (CASE WHEN open_price > 0 THEN open_price WHEN previous > 0 THEN previous ELSE close END)::DOUBLE AS open,
+                 (CASE WHEN high > 0 THEN high WHEN previous > 0 THEN GREATEST(close, previous) ELSE close END)::DOUBLE AS high,
+                 (CASE WHEN low  > 0 THEN low  WHEN previous > 0 THEN LEAST(close, previous)  ELSE close END)::DOUBLE AS low,
+                 close::DOUBLE AS close
           FROM market.daily_transactions
-          WHERE stock_code = $1 AND ${priceWhere}
+          WHERE stock_code = $1 AND ${priceWhere} AND close > 0
           ORDER BY trading_date ASC`, dp),
         run(`
           WITH daily AS (
