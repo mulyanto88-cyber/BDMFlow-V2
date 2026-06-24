@@ -142,7 +142,7 @@ const navGroups = [
     groupIcon: <Command size={14} />,
     accentColor: '#a78bfa',
     items: [
-      { href: '/ksei-monthly',  label: 'KSEI Smart Money',    icon: icons.crown,    badge: 'NEW' },
+      { href: '/ksei-monthly',  label: 'KSEI Monthly Snapshot', icon: icons.crown,  badge: 'NEW' },
       { href: '/ksei1persen',   label: 'KSEI >1% Bulanan',    icon: icons.eye,      badge: 'PRO' },
       { href: '/insider',       label: 'Insider Radar',        icon: icons.insider },
     ]
