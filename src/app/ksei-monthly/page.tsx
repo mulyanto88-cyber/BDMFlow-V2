@@ -64,6 +64,18 @@ const TIPE_GLOSS: Record<string, string> = {
   ID: 'Individual', IS: 'Insurance', SC: 'Securities', FD: 'Foundation', OT: 'Others',
 }
 
+// 18 investor-type buckets (Local/Foreign × 9 KSEI types) for the global-flow tab.
+// kat mirrors the route: Smart = CP/PF/IB/MF, Retail = ID, Inst = IS, Other = SC/FD/OT.
+const BUCKET_KAT: Record<string, string> = {
+  CP: 'Smart', PF: 'Smart', IB: 'Smart', MF: 'Smart',
+  ID: 'Retail', IS: 'Inst', SC: 'Other', FD: 'Other', OT: 'Other',
+}
+const KSEI_BUCKETS = (['Local', 'Foreign'] as const).flatMap(side =>
+  ['CP', 'PF', 'IB', 'MF', 'ID', 'IS', 'SC', 'FD', 'OT'].map(code => ({
+    key: `${side}_${code}`, label: `${side} ${code}`, code, side, kat: BUCKET_KAT[code],
+  }))
+)
+
 // ── Sortable table header ──
 function SortableTh({ k, label, align, cls = '', sortKey, sortDir, onSort }: {
   k: SortKey; label: string; align: 'left' | 'right' | 'center'; cls?: string
@@ -85,7 +97,7 @@ function SortableTh({ k, label, align, cls = '', sortKey, sortDir, onSort }: {
 }
 
 export default function KseiMonthlyPage() {
-  const [tab, setTab]         = useState<'screener' | 'deepdive'>('screener')
+  const [tab, setTab]         = useState<'screener' | 'deepdive' | 'flows'>('screener')
   const [rows, setRows]       = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
@@ -177,9 +189,9 @@ export default function KseiMonthlyPage() {
           <Crown size={18} className="text-gold-400" />
         </div>
         <div className="flex-1">
-          <h1 className="text-xl font-black gradient-gold leading-none">KSEI Smart Money Tracker</h1>
+          <h1 className="text-xl font-black gradient-gold leading-none">KSEI Monthly Snapshot</h1>
           <p className="text-[11px] text-muted-foreground/60 mt-0.5">
-            Pergerakan institusi bulanan · CP + PF + IB + MF · Sumber: KSEI full snapshot
+            Kepemilikan bulanan per tipe investor (18 tipe, lokal &amp; asing) · Sumber: KSEI full snapshot
           </p>
         </div>
       </div>
@@ -187,8 +199,9 @@ export default function KseiMonthlyPage() {
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
       <div className="flex gap-1 border-b border-border/40">
         {[
-          { id: 'screener', label: 'Smart Money Screener', icon: Activity },
-          { id: 'deepdive', label: 'Deep Dive per Saham',  icon: Layers },
+          { id: 'screener', label: 'Screener',            icon: Activity },
+          { id: 'flows',    label: 'Aliran Investor',     icon: Users },
+          { id: 'deepdive', label: 'Deep Dive per Saham', icon: Layers },
         ].map(t => {
           const Icon = t.icon
           return (
@@ -326,6 +339,9 @@ export default function KseiMonthlyPage() {
           </div>
         </div>
       )}
+
+      {/* ════════════════════ TAB: ALIRAN INVESTOR ════════════════════ */}
+      {tab === 'flows' && <FlowsTab />}
 
       {/* ════════════════════ TAB: DEEP DIVE ════════════════════ */}
       {tab === 'deepdive' && (
@@ -678,6 +694,200 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
           </table>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FLOWS TAB — global net flow per investor type (market-wide, MoM) + drill-down
+// ════════════════════════════════════════════════════════════════════════════
+function FlowsTab() {
+  const [rows, setRows]         = useState<any[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [err, setErr]           = useState<string | null>(null)
+  const [monthIdx, setMonthIdx] = useState(0)            // 0 = latest; counts back from newest
+  const [sel, setSel]           = useState<string | null>(null)
+  const [detail, setDetail]     = useState<any>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  useEffect(() => {
+    setLoading(true); setErr(null)
+    apiFetch({ action: 'flows', months: 6 })
+      .then(j => setRows(j.data || []))
+      .catch(e => setErr(e.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const curRow   = rows.length ? rows[rows.length - 1 - monthIdx] : null
+  const curMonth = curRow?.month as string | undefined
+
+  const buckets = useMemo(() => {
+    if (!curRow) return []
+    return KSEI_BUCKETS
+      .map(b => ({
+        ...b,
+        value: Number(curRow[b.key] || 0),
+        cum3:  rows.slice(Math.max(0, rows.length - 3)).reduce((s, r) => s + Number(r[b.key] || 0), 0),
+      }))
+      .filter(b => Math.abs(b.value) >= 1)
+      .sort((a, b) => b.value - a.value)
+  }, [curRow, rows])
+
+  const loadDetail = useCallback((key: string, month?: string) => {
+    setSel(key); setDetail(null); setDetailLoading(true)
+    apiFetch({ action: 'flow_detail', type: key, month: month || '' })
+      .then(j => setDetail(j))
+      .catch(e => setErr(e.message))
+      .finally(() => setDetailLoading(false))
+  }, [])
+
+  if (loading) return (
+    <div className="glass rounded-2xl p-16 flex items-center justify-center">
+      <RefreshCw size={24} className="animate-spin text-gold-400" />
+    </div>
+  )
+  if (err) return <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{err}</div>
+  if (!curRow) return <div className="glass rounded-2xl p-16 text-center text-muted-foreground/50 text-sm">Tidak ada data flow.</div>
+
+  return (
+    <div className="space-y-4">
+
+      {/* Header + month selector */}
+      <div className="glass rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Activity size={15} className="text-gold-400" />
+          <span className="text-[11px] font-black uppercase tracking-widest">Aliran Bersih per Tipe Investor — Se-Pasar (MoM)</span>
+        </div>
+        <select value={monthIdx}
+          onChange={e => { setMonthIdx(Number(e.target.value)); setSel(null); setDetail(null) }}
+          className="px-3 py-1.5 rounded-xl border border-border/50 bg-background text-xs font-bold focus:outline-none focus:border-gold-400/50">
+          {rows.map((r, i) => ({ month: r.month, idx: rows.length - 1 - i })).reverse().map(o => (
+            <option key={o.month} value={o.idx}>{o.month}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Bar chart — horizontal, sorted by net flow */}
+      <div className="glass rounded-2xl p-5">
+        <p className="text-[10px] text-muted-foreground/55 mb-3">
+          Bulan <span className="font-bold text-foreground/80">{curMonth}</span> · hijau = net masuk, merah = net keluar · klik bar / baris untuk lihat saham
+        </p>
+        <ResponsiveContainer width="100%" height={Math.max(280, buckets.length * 22)}>
+          <BarChart data={buckets} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={false} />
+            <XAxis type="number" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9 }} tickFormatter={(v) => fmtM(v)} />
+            <YAxis type="category" dataKey="label" width={78} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+            <Tooltip
+              contentStyle={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: 10, fontSize: 11, color: 'hsl(var(--foreground))' }}
+              itemStyle={{ color: 'hsl(var(--foreground))' }}
+              formatter={(v: any, _n: any, p: any) => [fmtM(Number(v)), `${p.payload.label} (${TIPE_GLOSS[p.payload.code] || ''})`]} />
+            <ReferenceLine x={0} stroke="hsl(var(--border))" />
+            <Bar dataKey="value" radius={[0, 3, 3, 0]} cursor="pointer"
+              onClick={(d: any) => d?.key && loadDetail(d.key, curMonth)}>
+              {buckets.map((b, i) => <Cell key={i} fill={b.value >= 0 ? '#22c55e' : '#ef4444'} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Table */}
+      <div className="glass rounded-2xl overflow-hidden border border-border/50">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-card/70 border-b border-border/40 text-[10px] text-muted-foreground uppercase tracking-wide">
+                <th className="px-4 py-3 text-left font-bold">Tipe Investor</th>
+                <th className="px-4 py-3 text-center font-bold">Kategori</th>
+                <th className="px-4 py-3 text-right font-bold">Net Flow</th>
+                <th className="px-4 py-3 text-right font-bold hidden md:table-cell">Kumulatif 3 Bln</th>
+                <th className="px-2 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {buckets.map((b) => (
+                <tr key={b.key} onClick={() => loadDetail(b.key, curMonth)}
+                  className={`tr-hover border-b border-border/20 cursor-pointer group ${sel === b.key ? 'bg-gold-400/10' : ''}`}>
+                  <td className="px-4 py-2.5">
+                    <span className="font-bold text-foreground/85 group-hover:text-gold-400 transition-colors">{b.label}</span>
+                    <span className="text-[9px] text-muted-foreground/45 ml-1.5">{TIPE_GLOSS[b.code]}</span>
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                      style={{ color: KAT_COLOR[b.kat], background: `${KAT_COLOR[b.kat]}1a`, border: `1px solid ${KAT_COLOR[b.kat]}33` }}>
+                      {b.kat}
+                    </span>
+                  </td>
+                  <td className={`px-4 py-2.5 text-right font-black font-mono ${numCls(b.value)}`}>{fmtM(b.value)}</td>
+                  <td className={`px-4 py-2.5 text-right font-mono hidden md:table-cell ${numCls(b.cum3)}`}>{fmtM(b.cum3)}</td>
+                  <td className="px-2 py-2.5"><Layers size={12} className="text-muted-foreground/30 group-hover:text-gold-400 transition-colors" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-4 py-2.5 border-t border-border/30 text-[10px] text-muted-foreground/40">
+          Flow = Σ semua saham (Δ lembar × harga), guard corp-action. Registry KSEI bersifat zero-sum: net beli & jual saling menutup.
+        </div>
+      </div>
+
+      {/* Drill-down */}
+      {sel && <FlowDetail typeKey={sel} month={curMonth} detail={detail} loading={detailLoading} onClose={() => { setSel(null); setDetail(null) }} />}
+    </div>
+  )
+}
+
+// Drill-down: which stocks a bucket net-bought / net-sold that month
+function FlowDetail({ typeKey, month, detail, loading, onClose }: {
+  typeKey: string; month?: string; detail: any; loading: boolean; onClose: () => void
+}) {
+  const side = typeKey.split('_')[0] || ''
+  const code = typeKey.split('_')[1] || ''
+  const SideTable = ({ data, title, color }: { data: any[]; title: string; color: string }) => (
+    <div className="rounded-2xl overflow-hidden border border-border/50">
+      <div className="px-4 py-2.5 border-b border-border/40 flex items-center gap-2">
+        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color }}>{title}</span>
+        <span className="ml-auto text-[10px] text-muted-foreground/40">{data?.length || 0} saham</span>
+      </div>
+      <div className="overflow-y-auto max-h-[340px]">
+        <table className="w-full text-xs">
+          <tbody>
+            {(data || []).map((r: any, i: number) => (
+              <tr key={i} className="tr-hover border-b border-border/15">
+                <td className="px-3 py-2 text-muted-foreground/40 font-mono text-[10px] w-6">{i + 1}</td>
+                <td className="px-2 py-2">
+                  <Link href={`/stock/${r.stock_code}`} prefetch={false}
+                    className="font-mono font-black text-foreground hover:text-gold-400 transition-colors">{r.stock_code}</Link>
+                  <div className="text-[9px] text-muted-foreground/45 truncate max-w-[130px]">{r.sector || '—'}</div>
+                </td>
+                <td className={`px-4 py-2 text-right font-black font-mono ${numCls(Number(r.flow_m))}`}>{fmtM(Number(r.flow_m))}</td>
+              </tr>
+            ))}
+            {(!data || data.length === 0) && (
+              <tr><td className="px-4 py-8 text-center text-muted-foreground/40 text-[11px]">—</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+  return (
+    <div className="glass rounded-2xl p-4 border border-gold-400/25 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-sm" style={{ background: TIPE_COLOR[`${side} ${code}`] || '#94a3b8' }} />
+        <h3 className="text-sm font-black">
+          {side} {code} <span className="text-muted-foreground/50 font-normal text-[11px]">({TIPE_GLOSS[code] || ''})</span>
+          <span className="text-muted-foreground/50 font-normal text-[11px]"> — saham yang digerakkan · {month}</span>
+        </h3>
+        <button onClick={onClose} className="ml-auto text-[11px] text-muted-foreground/50 hover:text-foreground transition-colors">Tutup ✕</button>
+      </div>
+      {loading ? (
+        <div className="p-12 flex items-center justify-center"><RefreshCw size={20} className="animate-spin text-gold-400" /></div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <SideTable data={detail?.buys}  title="Top Net Beli" color="#22c55e" />
+          <SideTable data={detail?.sells} title="Top Net Jual" color="#ef4444" />
+        </div>
+      )}
     </div>
   )
 }
