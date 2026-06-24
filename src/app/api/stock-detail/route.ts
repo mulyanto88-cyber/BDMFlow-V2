@@ -270,7 +270,7 @@ export async function GET(req: NextRequest) {
     let latestRows: any[] = [], smRows: any[] = [], histRows: any[] = [], brokerRows: any[] = [],
         ownerRows: any[] = [], whaleRows: any[] = [], foreignRows: any[] = [], scoreRows: any[] = [];
     try {
-      [latestRows, smRows, histRows, brokerRows, ownerRows, whaleRows, foreignRows, scoreRows] = await Promise.all([
+      const _r1 = await Promise.allSettled([
       
       // 1. Latest stock data
       run(`SELECT * FROM market.vw_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
@@ -381,6 +381,10 @@ export async function GET(req: NextRequest) {
         LIMIT 1
       `, [code]).catch(() => []),
       ])
+      // allSettled: one failing query no longer nukes the whole batch.
+      const g1 = (i: number) => _r1[i].status === 'fulfilled' ? (_r1[i] as PromiseFulfilledResult<any[]>).value : []
+      latestRows = g1(0); smRows = g1(1); histRows = g1(2); brokerRows = g1(3)
+      ownerRows = g1(4); whaleRows = g1(5); foreignRows = g1(6); scoreRows = g1(7)
     } catch (e: any) {
       console.error('[stock-detail] Batch 1 failed:', e.message)
     }
@@ -395,7 +399,7 @@ export async function GET(req: NextRequest) {
         stealthRows: any[] = [], brokerConsRows: any[] = [],
         volSpikeRows: any[] = [], whaleActRows: any[] = [];
     try {
-      [flowTrendRows, concRows, instChangeRows, stealthRows, brokerConsRows, volSpikeRows, whaleActRows] = await Promise.all([
+      const _r2 = await Promise.allSettled([
       run(`
         SELECT
           CAST(trading_date AS VARCHAR) AS trading_date,
@@ -607,6 +611,10 @@ export async function GET(req: NextRequest) {
         LIMIT 1
       `, [code]),
       ])
+      // allSettled: foreign-flow / technicals survive even if one sibling query errors.
+      const g2 = (i: number) => _r2[i].status === 'fulfilled' ? (_r2[i] as PromiseFulfilledResult<any[]>).value : []
+      flowTrendRows = g2(0); concRows = g2(1); instChangeRows = g2(2); stealthRows = g2(3)
+      brokerConsRows = g2(4); volSpikeRows = g2(5); whaleActRows = g2(6)
     } catch (e: any) {
       console.error('[stock-detail] Batch 2 failed:', e.message)
     }
