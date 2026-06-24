@@ -733,13 +733,31 @@ function FlowsTab() {
       .sort((a, b) => b.value - a.value)
   }, [curRow, rows])
 
+  // Macro lenses (Asing / Lokal / Smart / Ritel) — net flow this month.
+  const macro = useMemo(() => {
+    if (!curRow) return null
+    let foreign = 0, local = 0, smart = 0, retail = 0
+    for (const b of KSEI_BUCKETS) {
+      const v = Number(curRow[b.key] || 0)
+      if (b.side === 'Foreign') foreign += v; else local += v
+      if (b.kat === 'Smart') smart += v
+      if (b.kat === 'Retail') retail += v
+    }
+    return { foreign, local, smart, retail }
+  }, [curRow])
+
   const loadDetail = useCallback((key: string, month?: string) => {
-    setSel(key); setDetail(null); setDetailLoading(true)
+    setSel(key); setDetailLoading(true)
     apiFetch({ action: 'flow_detail', type: key, month: month || '' })
       .then(j => setDetail(j))
       .catch(e => setErr(e.message))
       .finally(() => setDetailLoading(false))
   }, [])
+
+  // Auto-select the biggest mover so the detail panel is never empty.
+  useEffect(() => {
+    if (buckets.length && !sel) loadDetail(buckets[0].key, curMonth)
+  }, [buckets, sel, curMonth, loadDetail])
 
   if (loading) return (
     <div className="glass rounded-2xl p-16 flex items-center justify-center">
@@ -747,145 +765,187 @@ function FlowsTab() {
     </div>
   )
   if (err) return <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{err}</div>
-  if (!curRow) return <div className="glass rounded-2xl p-16 text-center text-muted-foreground/50 text-sm">Tidak ada data flow.</div>
+  if (!curRow) return <div className="glass rounded-2xl p-16 text-center text-muted-foreground/50 text-sm">Belum ada data aliran.</div>
+
+  const selMeta  = sel ? KSEI_BUCKETS.find(b => b.key === sel) : null
+  const selValue = sel ? Number(curRow[sel] || 0) : 0
 
   return (
     <div className="space-y-4">
 
-      {/* Header + month selector */}
-      <div className="glass rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Activity size={15} className="text-gold-400" />
-          <span className="text-[11px] font-black uppercase tracking-widest">Aliran Bersih per Tipe Investor — Se-Pasar (MoM)</span>
+      {/* Header + period */}
+      <div className="glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-black text-foreground">Aliran Dana Bersih per Tipe Investor</h2>
+          <p className="text-[11px] text-muted-foreground/55 mt-0.5">
+            Seluruh pasar · perubahan kepemilikan bulan-ke-bulan (Σ Δ lembar × harga)
+          </p>
         </div>
-        <select value={monthIdx}
-          onChange={e => { setMonthIdx(Number(e.target.value)); setSel(null); setDetail(null) }}
-          className="px-3 py-1.5 rounded-xl border border-border/50 bg-background text-xs font-bold focus:outline-none focus:border-gold-400/50">
-          {rows.map((r, i) => ({ month: r.month, idx: rows.length - 1 - i })).reverse().map(o => (
-            <option key={o.month} value={o.idx}>{o.month}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Periode</span>
+          <select value={monthIdx}
+            onChange={e => {
+              const idx = Number(e.target.value); setMonthIdx(idx)
+              const m = rows[rows.length - 1 - idx]?.month
+              if (sel) loadDetail(sel, m)
+            }}
+            className="px-3 py-1.5 rounded-xl border border-border/50 bg-background text-xs font-bold focus:outline-none focus:border-gold-400/50">
+            {rows.map((r, i) => ({ month: r.month, idx: rows.length - 1 - i })).reverse().map(o => (
+              <option key={o.month} value={o.idx}>{o.month}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Bar chart — horizontal, sorted by net flow */}
+      {/* Macro rotation strip */}
+      {macro && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { label: 'Investor Asing', sub: 'Foreign',        val: macro.foreign },
+            { label: 'Investor Lokal', sub: 'Local',          val: macro.local },
+            { label: 'Smart Money',    sub: 'CP·PF·IB·MF',     val: macro.smart },
+            { label: 'Ritel',          sub: 'Individual (ID)', val: macro.retail },
+          ].map(s => (
+            <div key={s.label} className="glass rounded-2xl p-3.5">
+              <p className="text-[10px] text-muted-foreground/55">{s.label} <span className="text-muted-foreground/35">· {s.sub}</span></p>
+              <p className={`text-xl font-black font-mono mt-1 ${numCls(s.val)}`}>{fmtM(s.val)}</p>
+              <p className="text-[9px] text-muted-foreground/40 mt-0.5">{s.val >= 0 ? 'net akumulasi' : 'net distribusi'}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Master–detail: bucket list (left) + drill-down (right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+        {/* Left — bucket list */}
+        <div className="lg:col-span-5 glass rounded-2xl overflow-hidden border border-border/50">
+          <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-widest">Tipe Investor · {curMonth}</span>
+            <span className="text-[9px] text-muted-foreground/40">klik untuk rincian →</span>
+          </div>
+          <div className="max-h-[540px] overflow-y-auto">
+            <table className="w-full text-xs">
+              <tbody>
+                {buckets.map(b => (
+                  <tr key={b.key} onClick={() => loadDetail(b.key, curMonth)}
+                    className={`border-b border-border/15 cursor-pointer transition-colors ${sel === b.key ? 'bg-gold-400/[0.12]' : 'hover:bg-white/[0.03]'}`}>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-1 h-7 rounded-full shrink-0" style={{ background: b.side === 'Foreign' ? '#3b82f6' : '#22c55e' }} />
+                        <div className="min-w-0">
+                          <div className="font-bold text-foreground/90">{b.label}</div>
+                          <div className="text-[9px] text-muted-foreground/45 truncate">{TIPE_GLOSS[b.code]} · {b.kat}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className={`px-3 py-2.5 text-right font-black font-mono whitespace-nowrap ${numCls(b.value)}`}>
+                      {fmtM(b.value)}
+                      <div className="text-[9px] text-muted-foreground/40 font-normal">3 bln: {fmtM(b.cum3)}</div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right — drill-down */}
+        <div className="lg:col-span-7">
+          <FlowDetail meta={selMeta} value={selValue} month={curMonth} detail={detail} loading={detailLoading} />
+        </div>
+      </div>
+
+      {/* Visual comparison — bar chart (moved to bottom) */}
       <div className="glass rounded-2xl p-5">
-        <p className="text-[10px] text-muted-foreground/55 mb-3">
-          Bulan <span className="font-bold text-foreground/80">{curMonth}</span> · hijau = net masuk, merah = net keluar · klik bar / baris untuk lihat saham
-        </p>
-        <ResponsiveContainer width="100%" height={Math.max(280, buckets.length * 22)}>
-          <BarChart data={buckets} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
+        <p className="text-[11px] font-black uppercase tracking-widest">Perbandingan Visual · {curMonth}</p>
+        <p className="text-[10px] text-muted-foreground/50 mt-0.5 mb-3">Hijau = net akumulasi, merah = net distribusi (Rp)</p>
+        <ResponsiveContainer width="100%" height={Math.max(300, buckets.length * 22)}>
+          <BarChart data={buckets} layout="vertical" margin={{ left: 8, right: 28, top: 4, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={false} />
             <XAxis type="number" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9 }} tickFormatter={(v) => fmtM(v)} />
-            <YAxis type="category" dataKey="label" width={78} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+            <YAxis type="category" dataKey="label" width={80} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
             <Tooltip
               contentStyle={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: 10, fontSize: 11, color: 'hsl(var(--foreground))' }}
               itemStyle={{ color: 'hsl(var(--foreground))' }}
               formatter={(v: any, _n: any, p: any) => [fmtM(Number(v)), `${p.payload.label} (${TIPE_GLOSS[p.payload.code] || ''})`]} />
             <ReferenceLine x={0} stroke="hsl(var(--border))" />
-            <Bar dataKey="value" radius={[0, 3, 3, 0]} cursor="pointer"
-              onClick={(d: any) => d?.key && loadDetail(d.key, curMonth)}>
+            <Bar dataKey="value" radius={[0, 3, 3, 0]} cursor="pointer" onClick={(d: any) => d?.key && loadDetail(d.key, curMonth)}>
               {buckets.map((b, i) => <Cell key={i} fill={b.value >= 0 ? '#22c55e' : '#ef4444'} />)}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        <p className="text-[10px] text-muted-foreground/40 mt-2 leading-relaxed">
+          Registry KSEI bersifat zero-sum — total akumulasi &amp; distribusi seluruh tipe saling menutup. Lonjakan satu tipe kerap berasal dari segelintir saham; cek rincian untuk memastikan.
+        </p>
       </div>
-
-      {/* Table */}
-      <div className="glass rounded-2xl overflow-hidden border border-border/50">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-card/70 border-b border-border/40 text-[10px] text-muted-foreground uppercase tracking-wide">
-                <th className="px-4 py-3 text-left font-bold">Tipe Investor</th>
-                <th className="px-4 py-3 text-center font-bold">Kategori</th>
-                <th className="px-4 py-3 text-right font-bold">Net Flow</th>
-                <th className="px-4 py-3 text-right font-bold hidden md:table-cell">Kumulatif 3 Bln</th>
-                <th className="px-2 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {buckets.map((b) => (
-                <tr key={b.key} onClick={() => loadDetail(b.key, curMonth)}
-                  className={`tr-hover border-b border-border/20 cursor-pointer group ${sel === b.key ? 'bg-gold-400/10' : ''}`}>
-                  <td className="px-4 py-2.5">
-                    <span className="font-bold text-foreground/85 group-hover:text-gold-400 transition-colors">{b.label}</span>
-                    <span className="text-[9px] text-muted-foreground/45 ml-1.5">{TIPE_GLOSS[b.code]}</span>
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                      style={{ color: KAT_COLOR[b.kat], background: `${KAT_COLOR[b.kat]}1a`, border: `1px solid ${KAT_COLOR[b.kat]}33` }}>
-                      {b.kat}
-                    </span>
-                  </td>
-                  <td className={`px-4 py-2.5 text-right font-black font-mono ${numCls(b.value)}`}>{fmtM(b.value)}</td>
-                  <td className={`px-4 py-2.5 text-right font-mono hidden md:table-cell ${numCls(b.cum3)}`}>{fmtM(b.cum3)}</td>
-                  <td className="px-2 py-2.5"><Layers size={12} className="text-muted-foreground/30 group-hover:text-gold-400 transition-colors" /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="px-4 py-2.5 border-t border-border/30 text-[10px] text-muted-foreground/40">
-          Flow = Σ semua saham (Δ lembar × harga), guard corp-action. Registry KSEI bersifat zero-sum: net beli & jual saling menutup.
-        </div>
-      </div>
-
-      {/* Drill-down */}
-      {sel && <FlowDetail typeKey={sel} month={curMonth} detail={detail} loading={detailLoading} onClose={() => { setSel(null); setDetail(null) }} />}
     </div>
   )
 }
 
-// Drill-down: which stocks a bucket net-bought / net-sold that month
-function FlowDetail({ typeKey, month, detail, loading, onClose }: {
-  typeKey: string; month?: string; detail: any; loading: boolean; onClose: () => void
+// Drill-down panel — stocks a bucket accumulated / distributed in the month
+function FlowDetail({ meta, value, month, detail, loading }: {
+  meta: any; value: number; month?: string; detail: any; loading: boolean
 }) {
-  const side = typeKey.split('_')[0] || ''
-  const code = typeKey.split('_')[1] || ''
-  const SideTable = ({ data, title, color }: { data: any[]; title: string; color: string }) => (
-    <div className="rounded-2xl overflow-hidden border border-border/50">
-      <div className="px-4 py-2.5 border-b border-border/40 flex items-center gap-2">
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color }}>{title}</span>
-        <span className="ml-auto text-[10px] text-muted-foreground/40">{data?.length || 0} saham</span>
+  const buys     = (detail?.buys  || []) as any[]
+  const sells    = (detail?.sells || []) as any[]
+  const totalBuy = buys.reduce((s, r) => s + Number(r.flow_m || 0), 0)
+  const top3Buy  = buys.slice(0, 3).reduce((s, r) => s + Number(r.flow_m || 0), 0)
+  const conc     = totalBuy > 0 ? Math.round(top3Buy / totalBuy * 100) : 0
+
+  if (!meta) return (
+    <div className="glass rounded-2xl p-16 text-center text-muted-foreground/45 text-sm h-full flex items-center justify-center">
+      Pilih tipe investor di kiri untuk melihat rincian saham.
+    </div>
+  )
+
+  const FlowList = ({ data, title, hint, color }: { data: any[]; title: string; hint: string; color: string }) => (
+    <div className="rounded-xl overflow-hidden border border-border/50">
+      <div className="px-3 py-2.5 border-b border-border/40" style={{ background: `${color}0d` }}>
+        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color }}>{title}</p>
+        <p className="text-[9px] text-muted-foreground/45">{hint}</p>
       </div>
-      <div className="overflow-y-auto max-h-[340px]">
+      <div className="max-h-[420px] overflow-y-auto">
         <table className="w-full text-xs">
           <tbody>
-            {(data || []).map((r: any, i: number) => (
-              <tr key={i} className="tr-hover border-b border-border/15">
-                <td className="px-3 py-2 text-muted-foreground/40 font-mono text-[10px] w-6">{i + 1}</td>
-                <td className="px-2 py-2">
+            {data.map((r, i) => (
+              <tr key={i} className="border-b border-border/15 hover:bg-white/[0.03] transition-colors">
+                <td className="px-3 py-2 text-muted-foreground/35 font-mono text-[10px] w-5">{i + 1}</td>
+                <td className="px-1 py-2">
                   <Link href={`/stock/${r.stock_code}`} prefetch={false}
                     className="font-mono font-black text-foreground hover:text-gold-400 transition-colors">{r.stock_code}</Link>
-                  <div className="text-[9px] text-muted-foreground/45 truncate max-w-[130px]">{r.sector || '—'}</div>
+                  <div className="text-[9px] text-muted-foreground/45 truncate max-w-[140px]">{r.sector || '—'}</div>
                 </td>
-                <td className={`px-4 py-2 text-right font-black font-mono ${numCls(Number(r.flow_m))}`}>{fmtM(Number(r.flow_m))}</td>
+                <td className={`px-3 py-2 text-right font-black font-mono whitespace-nowrap ${numCls(Number(r.flow_m))}`}>{fmtM(Number(r.flow_m))}</td>
               </tr>
             ))}
-            {(!data || data.length === 0) && (
-              <tr><td className="px-4 py-8 text-center text-muted-foreground/40 text-[11px]">—</td></tr>
-            )}
+            {data.length === 0 && <tr><td className="px-4 py-10 text-center text-muted-foreground/35 text-[11px]">Tidak ada</td></tr>}
           </tbody>
         </table>
       </div>
     </div>
   )
+
   return (
-    <div className="glass rounded-2xl p-4 border border-gold-400/25 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-sm" style={{ background: TIPE_COLOR[`${side} ${code}`] || '#94a3b8' }} />
-        <h3 className="text-sm font-black">
-          {side} {code} <span className="text-muted-foreground/50 font-normal text-[11px]">({TIPE_GLOSS[code] || ''})</span>
-          <span className="text-muted-foreground/50 font-normal text-[11px]"> — saham yang digerakkan · {month}</span>
-        </h3>
-        <button onClick={onClose} className="ml-auto text-[11px] text-muted-foreground/50 hover:text-foreground transition-colors">Tutup ✕</button>
+    <div className="glass rounded-2xl p-4 border border-gold-400/25 space-y-3 h-full">
+      <div className="flex items-start gap-2.5">
+        <span className="w-3 h-3 rounded-sm mt-1 shrink-0" style={{ background: meta.side === 'Foreign' ? '#3b82f6' : '#22c55e' }} />
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-black text-foreground">
+            {meta.label} <span className="text-muted-foreground/50 font-normal text-[11px]">· {TIPE_GLOSS[meta.code]}</span>
+          </h3>
+          <p className="text-[11px] text-muted-foreground/65 mt-0.5">
+            Net <span className={`font-bold ${numCls(value)}`}>{fmtM(value)}</span> pada {month}
+            {!loading && conc > 0 && <> · 3 saham teratas = <span className="font-bold text-foreground/80">{conc}%</span> dari akumulasi</>}
+          </p>
+        </div>
       </div>
       {loading ? (
         <div className="p-12 flex items-center justify-center"><RefreshCw size={20} className="animate-spin text-gold-400" /></div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <SideTable data={detail?.buys}  title="Top Net Beli" color="#22c55e" />
-          <SideTable data={detail?.sells} title="Top Net Jual" color="#ef4444" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FlowList data={buys}  title="Diakumulasi"  hint="kepemilikan naik terbesar"  color="#22c55e" />
+          <FlowList data={sells} title="Didistribusi" hint="kepemilikan turun terbesar"  color="#ef4444" />
         </div>
       )}
     </div>
