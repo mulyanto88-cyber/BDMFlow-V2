@@ -29,6 +29,13 @@ const LOCAL_ALL   = `(Local_IS+Local_CP+Local_PF+Local_IB+Local_ID+Local_MF+Loca
 const ratioOk = (cur: string, prev: string) =>
   `(${cur} / NULLIF(${prev},0) BETWEEN 0.6 AND 1.67)`
 
+// 18 investor-type columns (Local/Foreign × 9 KSEI types) — whitelist for the flow actions.
+// Any `type` param MUST be validated against this list before interpolation (anti-injection).
+const TYPE_COLS = [
+  'Local_IS','Local_CP','Local_PF','Local_IB','Local_ID','Local_MF','Local_SC','Local_FD','Local_OT',
+  'Foreign_IS','Foreign_CP','Foreign_PF','Foreign_IB','Foreign_ID','Foreign_MF','Foreign_SC','Foreign_FD','Foreign_OT',
+]
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const action = searchParams.get('action') || 'screener'
@@ -163,6 +170,69 @@ export async function GET(req: NextRequest) {
         ORDER BY sector
       `)
       return NextResponse.json({ data })
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // FLOWS — global net flow per investor type (market-wide, MoM), last N months
+    // ════════════════════════════════════════════════════════════════════════
+    if (action === 'flows') {
+      const months  = Math.min(12, Math.max(2, parseInt(searchParams.get('months') || '6')))
+      const lagCols = TYPE_COLS.map(c => `(${c} - LAG(${c}) OVER w) AS d_${c}`).join(',\n            ')
+      const sumCols = TYPE_COLS.map(c =>
+        `ROUND(SUM(CASE WHEN ${ratioOk('tot','ptot')} THEN d_${c} * p / 1e9 ELSE 0 END), 1) AS "${c}"`
+      ).join(',\n            ')
+      const data = await run(`
+        WITH lagged AS (
+          SELECT Date, Price::DOUBLE AS p,
+            ${TOTAL_ALL} AS tot,
+            LAG(${TOTAL_ALL}) OVER w AS ptot,
+            ${lagCols}
+          FROM ksei.monthly_snapshot
+          WINDOW w AS (PARTITION BY Code ORDER BY Date)
+        )
+        SELECT Date::VARCHAR AS month,
+            ${sumCols}
+        FROM lagged
+        WHERE ptot IS NOT NULL
+          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot) - INTERVAL '${months} months'
+        GROUP BY Date ORDER BY Date ASC
+      `)
+      return NextResponse.json({ data })
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // FLOW DETAIL — top stocks a given investor type bought / sold in one month
+    // ════════════════════════════════════════════════════════════════════════
+    if (action === 'flow_detail') {
+      const type = searchParams.get('type') || ''
+      if (!TYPE_COLS.includes(type)) {
+        return NextResponse.json({ error: 'invalid type' }, { status: 400 })
+      }
+      const month     = searchParams.get('month') || ''
+      const monthOk   = /^\d{4}-\d{2}-\d{2}$/.test(month)
+      const monthExpr = monthOk ? '$1::DATE' : '(SELECT MAX(Date) FROM ksei.monthly_snapshot)'
+      const params    = monthOk ? [month] : []
+      const detailSql = (dir: 'buy' | 'sell') => `
+        WITH lagged AS (
+          SELECT Code, Date, Price::DOUBLE AS p,
+            ${type} AS cur, LAG(${type}) OVER w AS prev,
+            ${TOTAL_ALL} AS tot, LAG(${TOTAL_ALL}) OVER w AS ptot
+          FROM ksei.monthly_snapshot
+          WINDOW w AS (PARTITION BY Code ORDER BY Date)
+        )
+        SELECT l.Code AS stock_code, s.sector,
+          ROUND((cur - prev) * p / 1e9, 2) AS flow_m,
+          (cur - prev)::BIGINT AS delta_shares, p AS price
+        FROM lagged l
+        LEFT JOIN ksei.tb_ksei_monthly_scored s ON s.stock_code = l.Code
+        WHERE l.Date = ${monthExpr} AND ptot IS NOT NULL
+          AND ${ratioOk('tot','ptot')}
+          AND (cur - prev) ${dir === 'buy' ? '> 0' : '< 0'}
+        ORDER BY flow_m ${dir === 'buy' ? 'DESC' : 'ASC'}
+        LIMIT 25
+      `
+      const [buys, sells] = await Promise.all([run(detailSql('buy'), params), run(detailSql('sell'), params)])
+      return NextResponse.json({ buys, sells, type, month: monthOk ? month : null })
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
