@@ -87,6 +87,8 @@ function ScoreKPI({ label, val, pos }: { label: string; val: string; pos?: boole
 const TABS = [
   { id: 'overview',   label: 'Overview',   icon: Target },
   { id: 'broker',     label: 'Broker DNA', icon: Building2 },
+  { id: 'broksum',    label: 'Broksum',    icon: Activity },
+  { id: 'flow',       label: 'Foreign',    icon: Globe },
   { id: 'ksei',       label: 'KSEI Intel', icon: TrendingUp },
   { id: 'insider',    label: 'Insider',    icon: Key },
   { id: 'ownership',  label: 'Ownership',  icon: Users },
@@ -265,12 +267,14 @@ export default function StockDetailPage() {
       setKseiTrend(json.data || [])
     }
     if (tab === 'insider') {
-      const [feedRes, insight] = await Promise.all([
+      // Use the SAME Stockbit insider feed as Insider Radar (vw_insider_activity_feed),
+      // filtered to this stock. The old ksei.vw_ksei_individual_changes source was sparse/empty.
+      const [feedRes, scoreRes] = await Promise.all([
+        fetch(`/api/insider?action=feed&code=${stockCode}&days=730&limit=25`).then(r => r.json()).catch(() => ({})),
         fetch(`/api/stock-detail?action=insider_signal&code=${stockCode}`).then(r => r.json()).catch(() => ({})),
-        fetch(`/api/stock-detail?action=conviction&code=${stockCode}`).then(r => r.json()).catch(() => ({})),
       ])
-      setInsiderFeed(feedRes.alerts || [])
-      setInsiderScore(feedRes.score || insight.data || null)
+      setInsiderFeed(feedRes.data || [])
+      setInsiderScore(scoreRes.score || null)
     }
   }, [stockCode])
 
@@ -1027,14 +1031,14 @@ export default function StockDetailPage() {
                     <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">Belum ada data insider untuk saham ini</td></tr>
                   ) : insiderFeed.map((ins, i:number) => (
                     <tr key={i} className="border-b border-white/[0.03] tr-hover transition-colors">
-                      <td className="px-3 py-2 text-muted-foreground">{ins.report_date?.slice(0,10)}</td>
-                      <td className="px-3 py-2 truncate max-w-[140px] font-medium">{ins.investor_name}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{ins.investor_type}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{String(ins.transaction_date||'').slice(0,10)}</td>
+                      <td className="px-3 py-2 truncate max-w-[140px] font-medium">{ins.insider_name}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{ins.insider_type}</td>
                       <td className="px-3 py-2 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${ins.action==='BUYING'?'bg-emerald-500/20 text-emerald-300 border border-emerald-500/20':'bg-red-500/20 text-red-300 border border-red-500/20'}`}>{ins.action}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${ins.action_type==='BUY'?'bg-emerald-500/20 text-emerald-300 border border-emerald-500/20':'bg-red-500/20 text-red-300 border border-red-500/20'}`}>{ins.action_type}</span>
                       </td>
-                      <td className={`px-3 py-2 text-right font-bold ${Number(ins.pct_point_change||ins.pct_chg)>=0?'text-emerald-400':'text-red-400'}`}>
-                        {Number(ins.pct_point_change||ins.pct_chg)>=0?'+':''}{Number(ins.pct_point_change||ins.pct_chg).toFixed(3)}%
+                      <td className={`px-3 py-2 text-right font-bold ${Number(ins.pct_change)>=0?'text-emerald-400':'text-red-400'}`}>
+                        {Number(ins.pct_change)>=0?'+':''}{Number(ins.pct_change).toFixed(3)}%
                       </td>
                       <td className="px-3 py-2 text-right hidden md:table-cell text-muted-foreground">
                         {ins.est_value_miliar ? `${Number(ins.est_value_miliar).toFixed(2)} M` : '—'}
@@ -1253,11 +1257,11 @@ export default function StockDetailPage() {
                       {volumeSpikes.map((s: any, i: number) => {
                         const isBull = Number(s.change_percent) >= 0
                         return (
-                          <div key={i} className={`flex items-center justify-between p-2.5 rounded-lg border ${s.spike_type==='WHALE_VOLUME_SPIKE'?'bg-blue-500/[0.05] border-blue-500/[0.12]':s.spike_type==='BREAKOUT_VOLUME'?'bg-emerald-500/[0.05] border-emerald-500/[0.12]':'bg-white/[0.02] border-white/[0.06]'}`}>
+                          <div key={i} className={`flex items-center justify-between p-2.5 rounded-lg border ${s.spike_type==='BREAKOUT'?'bg-emerald-500/[0.05] border-emerald-500/[0.12]':s.spike_type==='BREAKDOWN'?'bg-red-500/[0.05] border-red-500/[0.12]':s.spike_type==='HIGH_VOLUME'?'bg-orange-500/[0.05] border-orange-500/[0.12]':'bg-white/[0.02] border-white/[0.06]'}`}>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-muted-foreground font-mono">{String(s.trading_date).slice(0,10)}</span>
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${s.spike_type==='WHALE_VOLUME_SPIKE'?'bg-blue-500/15 text-blue-400':s.spike_type==='BREAKOUT_VOLUME'?'bg-emerald-500/15 text-emerald-400':'bg-slate-500/15 text-slate-400'}`}>{s.spike_type?.replace(/_/g,' ')}</span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${s.spike_type==='BREAKOUT'?'bg-emerald-500/15 text-emerald-400':s.spike_type==='BREAKDOWN'?'bg-red-500/15 text-red-400':s.spike_type==='HIGH_VOLUME'?'bg-orange-500/15 text-orange-400':'bg-slate-500/15 text-slate-400'}`}>{s.spike_type?.replace(/_/g,' ')}</span>
                               </div>
                               <p className="text-[11px] font-medium mt-0.5">Vol {formatShares(s.volume)} · Ratio {Number(s.volume_ratio).toFixed(1)}x</p>
                             </div>
@@ -1275,122 +1279,172 @@ export default function StockDetailPage() {
             </div>
           )}
 
-          {foreignFlowTrend.length > 0 && (
-            <div className="glass rounded-2xl p-5 border border-white/[0.06]">
-              <div className="flex items-center gap-2 mb-4">
-                <BarChartIcon className="w-4 h-4 text-teal-400" />
-                <h2 className="text-sm font-black uppercase tracking-widest">Foreign Flow Trend</h2>
-              </div>
-              {(() => {
-                const chartData = [...foreignFlowTrend].reverse().map((d: any) => ({
-                  date: String(d.trading_date).slice(5),
-                  net: Number(d.net_foreign_value),
-                  cumulative: Number(d.cumulative_flow),
-                  ma5: Number(d.flow_ma5),
-                  ma20: Number(d.flow_ma20),
-                  trend: d.trend,
-                }))
-                const latest  = foreignFlowTrend[foreignFlowTrend.length - 1]
-                const totalNet = foreignFlowTrend.reduce((s: number, d: any) => s + Number(d.net_foreign_value), 0)
-                return (
-                  <div className="space-y-5">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        { l: 'Trend',      v: String(latest?.trend||'NEUTRAL').replace(/_/g,' '), c: latest?.trend?.includes('STRONG')?(latest?.trend?.includes('ACCUMULATION')?'#22c55e':'#ef4444'):latest?.trend?.includes('MILD')?(latest?.trend?.includes('ACCUMULATION')?'#86efac':'#fca5a5'):'#94a3b8' },
-                        { l: 'Net 60D',    v: formatRupiah(totalNet),                              c: totalNet>=0?'#22c55e':'#ef4444' },
-                        { l: 'Cumulative', v: formatRupiah(Number(latest?.cumulative_flow||0)),    c: '#e7b733' },
-                        { l: 'MA5 vs MA20',v: Number(latest?.flow_ma5||0)>Number(latest?.flow_ma20||0)?'BULLISH':'BEARISH', c: Number(latest?.flow_ma5||0)>Number(latest?.flow_ma20||0)?'#22c55e':'#ef4444' },
-                      ].map((m, i) => (
-                        <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
-                          <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
-                          <p className="text-sm font-black mt-1" style={{color:m.c}}>{m.v}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.06}/>
-                          <XAxis dataKey="date" tick={{fill:'#64748b',fontSize:9}} interval={Math.floor(chartData.length/8)}/>
-                          <YAxis tick={{fill:'#64748b',fontSize:9}} tickFormatter={v=>formatRupiah(v)} width={75}/>
-                          <Tooltip formatter={(v:any)=>formatRupiah(Number(v))} contentStyle={{background:'hsl(var(--card))',borderColor:'rgba(255,255,255,0.06)',borderRadius:10,fontSize:11}}/>
-                          <Bar dataKey="net" radius={[2,2,0,0]}>
-                            {chartData.map((d,i)=><Cell key={i} fill={d.net>=0?'#22c55e':'#ef4444'} opacity={0.75}/>)}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.06}/>
-                          <XAxis dataKey="date" tick={{fill:'#64748b',fontSize:9}} interval={Math.floor(chartData.length/8)}/>
-                          <YAxis tick={{fill:'#64748b',fontSize:9}} tickFormatter={v=>formatRupiah(v)} width={75}/>
-                          <Tooltip formatter={(v:any)=>formatRupiah(Number(v))} contentStyle={{background:'hsl(var(--card))',borderColor:'rgba(255,255,255,0.06)',borderRadius:10,fontSize:11}}/>
-                          <Line dataKey="cumulative" stroke="#e7b733" strokeWidth={2} dot={false} name="Cumulative"/>
-                          <Line dataKey="ma5"  stroke="#22c55e" strokeWidth={1.5} dot={false} strokeDasharray="4 2" name="MA5"/>
-                          <Line dataKey="ma20" stroke="#3b82f6" strokeWidth={1.5} dot={false} strokeDasharray="4 2" name="MA20"/>
-                          <RechartLegend/>
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                )
-              })()}
-            </div>
-          )}
-
-          {brokerConsistency.length > 0 && (
-            <div className="glass rounded-2xl p-5 border border-white/[0.06]">
-              <div className="flex items-center gap-2 mb-4">
-                <Eye className="w-4 h-4 text-purple-400" />
-                <h2 className="text-sm font-black uppercase tracking-widest">Broker Consistency (30D)</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[9px] text-emerald-400 font-bold uppercase mb-2 tracking-widest">Consistent Buyers</p>
-                  <div className="space-y-1.5">
-                    {brokerConsistency.filter((b: any) => b.verdict==='STRONG_BUY'||b.verdict==='CONSISTENT_BUY').map((b: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/[0.12]">
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-bold">{b.kode_broker}</p>
-                          <p className="text-[8px] text-muted-foreground truncate max-w-[140px]">{b.nama_broker}</p>
-                        </div>
-                        <div className="text-right ml-2 shrink-0">
-                          <p className="text-[9px] font-bold text-emerald-400">{Number(b.consistency_pct)?.toFixed(0)}% buy</p>
-                          <p className="text-[8px] text-muted-foreground">{b.days_net_buy}/{b.total_days} days</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[9px] text-red-400 font-bold uppercase mb-2 tracking-widest">Consistent Sellers</p>
-                  <div className="space-y-1.5">
-                    {brokerConsistency.filter((b: any) => b.verdict==='STRONG_SELL'||b.verdict==='CONSISTENT_SELL').map((b: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-red-500/[0.05] border border-red-500/[0.12]">
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-bold">{b.kode_broker}</p>
-                          <p className="text-[8px] text-muted-foreground truncate max-w-[140px]">{b.nama_broker}</p>
-                        </div>
-                        <div className="text-right ml-2 shrink-0">
-                          <p className="text-[9px] font-bold text-red-400">{Number(b.consistency_pct)?.toFixed(0)}% sell</p>
-                          <p className="text-[8px] text-muted-foreground">{b.days_net_sell}/{b.total_days} days</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!volumeSpikes.length && !whaleActivity && !foreignFlowTrend.length && !brokerConsistency.length && (
+          {!volumeSpikes.length && !whaleActivity && (
             <div className="glass rounded-2xl p-10 text-center border border-white/[0.06]">
               <BarChartIcon className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-40" />
               <p className="text-sm text-muted-foreground">Data teknikal tidak tersedia untuk saham ini.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ══ TAB: Foreign Flow ════════════════════════════════════════════════ */}
+      {activeTab === 'flow' && (
+        <div className="space-y-4">
+          <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+            <div className="flex items-center gap-2 mb-4">
+              <Globe className="w-4 h-4 text-teal-400" />
+              <h2 className="text-sm font-black uppercase tracking-widest">Net Foreign — Multi Periode</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { l: '1D', v: Number(stockData?.net_foreign_value) || 0 },
+                { l: '7D', v: flow7d }, { l: '30D', v: flow30d }, { l: '60D', v: flow60d },
+              ].map(p => (
+                <div key={p.l} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+                  <p className="text-[9px] text-muted-foreground uppercase">{p.l}</p>
+                  <p className={`text-sm font-black mt-1 ${p.v>=0?'text-emerald-400':'text-red-400'}`}>{formatRupiah(p.v)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {foreignDivergence && (
+            <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h2 className="text-sm font-black uppercase tracking-widest">Divergensi Harga vs Foreign · 30D</h2>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                  {String(foreignDivergence.divergence_type||'NEUTRAL').replace(/_/g,' ')} · {foreignDivergence.signal_strength}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                {[
+                  { l:'Foreign 30D', v: formatRupiah(Number(foreignDivergence.foreign_30d_net)||0), c:(Number(foreignDivergence.foreign_30d_net)||0)>=0?'text-emerald-400':'text-red-400' },
+                  { l:'Harga 30D', v:`${Number(foreignDivergence.price_chg_30d)>=0?'+':''}${Number(foreignDivergence.price_chg_30d||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_30d)>=0?'text-emerald-400':'text-red-400' },
+                  { l:'Harga 1D', v:`${Number(foreignDivergence.price_chg_pct)>=0?'+':''}${Number(foreignDivergence.price_chg_pct||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_pct)>=0?'text-emerald-400':'text-red-400' },
+                ].map(m => (
+                  <div key={m.l} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+                    <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
+                    <p className={`text-sm font-black mt-1 ${m.c}`}>{m.v}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="p-3 rounded-xl bg-teal-500/[0.05] border border-teal-500/15 text-[11px] text-teal-200/80 flex items-start gap-2">
+                <span>💡</span><span>{foreignDivergence.interpretation}</span>
+              </div>
+            </div>
+          )}
+
+          {foreignFlowTrend.length > 0 ? (
+            <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+              <div className="flex items-center gap-2 mb-4">
+                <BarChartIcon className="w-4 h-4 text-teal-400" />
+                <h2 className="text-sm font-black uppercase tracking-widest">Net Foreign Harian · 60 Hari</h2>
+              </div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={foreignFlowTrend.map((d:any)=>({date:String(d.trading_date).slice(5), net:Number(d.net_foreign_value)}))}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.06}/>
+                    <XAxis dataKey="date" tick={{fill:'#64748b',fontSize:9}} interval={Math.floor(foreignFlowTrend.length/8)}/>
+                    <YAxis tick={{fill:'#64748b',fontSize:9}} tickFormatter={v=>formatRupiah(v)} width={72}/>
+                    <Tooltip formatter={(v:any)=>formatRupiah(Number(v))} contentStyle={{background:'hsl(var(--card))',borderColor:'rgba(255,255,255,0.06)',borderRadius:10,fontSize:11}}/>
+                    <Bar dataKey="net" radius={[2,2,0,0]}>
+                      {foreignFlowTrend.map((d:any,i:number)=><Cell key={i} fill={Number(d.net_foreign_value)>=0?'#22c55e':'#ef4444'} opacity={0.75}/>)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-white/[0.06]">Belum ada data aliran foreign untuk saham ini.</div>
+          )}
+
+          <div className="text-center">
+            <Link href={`/foreign-flow?code=${stockCode}`} prefetch={false} className="inline-flex items-center gap-1.5 text-[11px] text-gold-400 hover:text-gold-300 transition-colors">
+              Buka Foreign Flow Intelligence lengkap <ExternalLink size={12} />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ══ TAB: Broksum (Broker Summary) ════════════════════════════════════ */}
+      {activeTab === 'broksum' && (
+        <div className="space-y-4">
+          {brokerData.length > 0 && (
+            <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="w-4 h-4 text-blue-400" />
+                <h2 className="text-sm font-black uppercase tracking-widest">Broker Dominan · Net 90 Hari</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[9px] text-emerald-400 font-bold uppercase mb-2 tracking-widest">Akumulator (Net Beli)</p>
+                  <div className="space-y-1.5">
+                    {brokerData.filter((b:any)=>Number(b.net_value)>0).sort((a:any,b:any)=>Number(b.net_value)-Number(a.net_value)).map((b:any,i:number)=>(
+                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/[0.12]">
+                        <div className="min-w-0"><p className="text-[11px] font-bold">{b.kode_broker}</p><p className="text-[8px] text-muted-foreground truncate max-w-[150px]">{b.nama_broker}</p></div>
+                        <p className="text-[11px] font-black text-emerald-400 shrink-0 ml-2">{formatRupiah(Number(b.net_value))}</p>
+                      </div>
+                    ))}
+                    {!brokerData.some((b:any)=>Number(b.net_value)>0) && <p className="text-[10px] text-muted-foreground/40 py-2">—</p>}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[9px] text-red-400 font-bold uppercase mb-2 tracking-widest">Distributor (Net Jual)</p>
+                  <div className="space-y-1.5">
+                    {brokerData.filter((b:any)=>Number(b.net_value)<0).sort((a:any,b:any)=>Number(a.net_value)-Number(b.net_value)).map((b:any,i:number)=>(
+                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-red-500/[0.05] border border-red-500/[0.12]">
+                        <div className="min-w-0"><p className="text-[11px] font-bold">{b.kode_broker}</p><p className="text-[8px] text-muted-foreground truncate max-w-[150px]">{b.nama_broker}</p></div>
+                        <p className="text-[11px] font-black text-red-400 shrink-0 ml-2">{formatRupiah(Number(b.net_value))}</p>
+                      </div>
+                    ))}
+                    {!brokerData.some((b:any)=>Number(b.net_value)<0) && <p className="text-[10px] text-muted-foreground/40 py-2">—</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {brokerConsistency.length > 0 ? (
+            <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+              <div className="flex items-center gap-2 mb-4">
+                <Eye className="w-4 h-4 text-purple-400" />
+                <h2 className="text-sm font-black uppercase tracking-widest">Konsistensi Broker · 30 Hari</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[9px] text-emerald-400 font-bold uppercase mb-2 tracking-widest">Pembeli Konsisten</p>
+                  <div className="space-y-1.5">
+                    {brokerConsistency.filter((b:any)=>b.verdict==='STRONG_BUY'||b.verdict==='CONSISTENT_BUY').map((b:any,i:number)=>(
+                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/[0.12]">
+                        <div className="min-w-0"><p className="text-[10px] font-bold">{b.kode_broker}</p><p className="text-[8px] text-muted-foreground truncate max-w-[140px]">{b.nama_broker}</p></div>
+                        <div className="text-right ml-2 shrink-0"><p className="text-[9px] font-bold text-emerald-400">{Number(b.consistency_pct)?.toFixed(0)}% beli</p><p className="text-[8px] text-muted-foreground">{b.days_net_buy}/{b.total_days} hari</p></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[9px] text-red-400 font-bold uppercase mb-2 tracking-widest">Penjual Konsisten</p>
+                  <div className="space-y-1.5">
+                    {brokerConsistency.filter((b:any)=>b.verdict==='STRONG_SELL'||b.verdict==='CONSISTENT_SELL').map((b:any,i:number)=>(
+                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-red-500/[0.05] border border-red-500/[0.12]">
+                        <div className="min-w-0"><p className="text-[10px] font-bold">{b.kode_broker}</p><p className="text-[8px] text-muted-foreground truncate max-w-[140px]">{b.nama_broker}</p></div>
+                        <div className="text-right ml-2 shrink-0"><p className="text-[9px] font-bold text-red-400">{Number(b.consistency_pct)?.toFixed(0)}% jual</p><p className="text-[8px] text-muted-foreground">{b.days_net_sell}/{b.total_days} hari</p></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (!brokerData.length && (
+            <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-white/[0.06]">Belum ada data broker untuk saham ini.</div>
+          ))}
+
+          <div className="text-center">
+            <Link href={`/broker-tracker?code=${stockCode}`} prefetch={false} className="inline-flex items-center gap-1.5 text-[11px] text-gold-400 hover:text-gold-300 transition-colors">
+              Buka Broker Tracker lengkap <ExternalLink size={12} />
+            </Link>
+          </div>
         </div>
       )}
 
