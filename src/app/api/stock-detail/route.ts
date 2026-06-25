@@ -87,43 +87,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // ── Tab: KSEI Monthly Intelligence (Command Center) ────────────────────────
-  if (action === 'ksei_monthly') {
-    try {
-      const [trend, composition] = await Promise.all([
-        run(`
-          SELECT
-            Date::VARCHAR AS date,
-            Price::INTEGER AS price,
-            ROUND((Local_CP_Chg_Val+Local_PF_Chg_Val+Local_IB_Chg_Val
-                  +Foreign_CP_Chg_Val+Foreign_PF_Chg_Val+Foreign_IB_Chg_Val) / 1e9, 3) AS net_smart_miliar,
-            ROUND(Local_ID_Chg_Val / 1e9, 3)   AS retail_miliar,
-            ROUND((Local_CP_Chg_Val+Local_PF_Chg_Val+Local_IB_Chg_Val) / 1e9, 3)      AS local_smart_miliar,
-            ROUND((Foreign_CP_Chg_Val+Foreign_PF_Chg_Val+Foreign_IB_Chg_Val) / 1e9, 3) AS foreign_smart_miliar,
-            ROUND(Local_CP_Chg_Val / 1e9, 3) AS cp_flow,
-            ROUND(Local_PF_Chg_Val / 1e9, 3) AS pf_flow,
-            ROUND(Local_IB_Chg_Val / 1e9, 3) AS ib_flow
-          FROM ksei.monthly_snapshot
-          WHERE Code = $1 ORDER BY Date DESC LIMIT 12
-        `, [code]).catch(() => []),
-        run(`
-          SELECT
-            ROUND((Total_Local::DOUBLE / NULLIF(Total_Shares,0)) * 100, 2) AS Local_Pct,
-            ROUND((Total_Foreign::DOUBLE / NULLIF(Total_Shares,0)) * 100, 2) AS Foreign_Pct,
-            ROUND((Local_CP::DOUBLE / NULLIF(Total_Shares,0)) * 100, 2) AS Local_CP_Pct,
-            ROUND((Foreign_CP::DOUBLE / NULLIF(Total_Shares,0)) * 100, 2) AS Foreign_CP_Pct,
-            ROUND((Local_ID::DOUBLE / NULLIF(Total_Shares,0)) * 100, 2) AS Local_ID_Pct
-          FROM ksei.monthly_snapshot
-          WHERE Code = $1 AND Date = (SELECT MAX(Date) FROM ksei.monthly_snapshot)
-          LIMIT 1
-        `, [code]).catch(() => []),
-      ])
-      return NextResponse.json({ trend, composition: composition[0] ?? null })
-    } catch (e: any) {
-      return NextResponse.json({ error: e.message }, { status: 500 })
-    }
-  }
-
   // ── Tab: Conviction Verdict (Command Center) ────────────────────────────────
   if (action === 'conviction') {
     try {
