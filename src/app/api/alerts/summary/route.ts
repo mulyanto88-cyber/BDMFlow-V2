@@ -2,7 +2,9 @@
 import { NextResponse } from 'next/server'
 import { run } from '@/lib/db'
 
-export const dynamic = 'force-dynamic'
+// NOT force-dynamic: that sent no-store and defeated the /api/alerts/* edge cache in next.config.js,
+// so the heavy view recomputed on EVERY request. Data is T+1 → revalidate every 30 min.
+export const revalidate = 1800
 
 export async function GET() {
   try {
