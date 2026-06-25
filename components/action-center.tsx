@@ -7,7 +7,7 @@ import Link from 'next/link'
 interface ActionSignal {
   id: string
   stock_code: string
-  type: 'WHALE' | 'INSIDER' | 'STEALTH' | 'DIVERGENCE' | 'FLOW_SURGE'
+  type: string
   severity: 'HIGH' | 'MEDIUM' | 'LOW'
   title: string
   detail: string
@@ -29,55 +29,25 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 }
 
 async function fetchActionSignals(): Promise<ActionSignal[]> {
+  // Reuse the SAME cached, prioritized source as the /alerts page — no separate raw-SQL query,
+  // so the two alert surfaces stay consistent and we drop the uncached /api/motherduck POST.
   try {
-    const res = await fetch('/api/motherduck', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `
-          WITH signals AS (
-            (SELECT stock_code, 'WHALE' AS type, 'HIGH' AS severity,
-                   'Whale Activity Detected' AS title,
-                   'Unusual volume spike with institutional footprint' AS detail,
-                   NOW()::VARCHAR AS ts
-            FROM market.vw_stock_latest
-            WHERE whale_signal = true
-            LIMIT 3)
-
-            UNION ALL
-
-            (SELECT share_code, 'INSIDER', alert_level,
-                   investor_name || ' - ' || action,
-                   CAST(pct_point_change AS VARCHAR) || '% change',
-                   NOW()::VARCHAR
-            FROM ksei.vw_insider_alerts
-            WHERE alert_level = 'HIGH'
-            LIMIT 3)
-
-            UNION ALL
-
-            (SELECT Code, 'STEALTH', 'MEDIUM',
-                   'Stealth Accumulation',
-                   CAST(CP_Flow_Miliar AS VARCHAR) || 'M CP Flow',
-                   NOW()::VARCHAR
-            FROM ksei.vw_stealth_accumulation
-            WHERE Signal != 'NORMAL'
-            LIMIT 2)
-          )
-          SELECT * FROM signals ORDER BY CASE severity WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END DESC LIMIT 5
-        `,
-      }),
+    const res = await fetch('/api/alerts/summary')
+    const data = await res.json()
+    if (!Array.isArray(data)) return []
+    const SEV: Record<string, 'HIGH' | 'MEDIUM' | 'LOW'> = { CRITICAL: 'HIGH', HIGH: 'HIGH', MEDIUM: 'MEDIUM', LOW: 'LOW' }
+    return data.slice(0, 10).map((a: any) => {
+      const types = String(a.active_alerts ?? '').split(',').map((s: string) => s.trim()).filter(Boolean)
+      return {
+        id: a.stock_code,
+        stock_code: a.stock_code,
+        type: types[0] || 'WHALE',
+        severity: SEV[a.highest_severity] ?? 'LOW',
+        title: a.top_notification || `${a.alert_count ?? types.length} sinyal aktif`,
+        detail: [types.join(' · '), a.sector].filter(Boolean).join(' · '),
+        timestamp: '',
+      }
     })
-    const json = await res.json()
-    return (json.data || []).map((s: any) => ({
-      id: `${s.stock_code}_${s.type}`,
-      stock_code: s.stock_code,
-      type: s.type,
-      severity: s.severity,
-      title: s.title,
-      detail: s.detail,
-      timestamp: s.ts,
-    }))
   } catch {
     return []
   }
