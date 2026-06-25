@@ -152,7 +152,6 @@ const navGroups = [
     groupIcon: <Palette size={14} />,
     accentColor: '#f472b6',
     items: [
-      { href: '/alerts',          label: 'Alert Center',      icon: icons.eye,  badge: 'V2' },
       { href: '/watchlist',        label: 'Watchlist & Alerts', icon: icons.eye,  badge: 'PRO' },
       { href: '/backtest',         label: 'Backtest Lab',       icon: icons.lab,  badge: 'BETA' },
       { href: '/right-issue-calc', label: 'Right Issue Calc',   icon: icons.calc },
