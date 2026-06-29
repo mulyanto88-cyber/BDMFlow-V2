@@ -238,7 +238,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                     <BarChart data={miniFlowData} barCategoryGap="10%" margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
                       <ReferenceLine y={0} stroke="rgba(255,255,255,0.08)" />
                       <Bar dataKey="net" radius={[1, 1, 0, 0]}>
-                        {miniFlowData.map((d, i) => (
+                        {miniFlowData.map((d: any, i: number) => (
                           <Cell key={i} fill={d.net >= 0 ? '#10b981' : '#ef4444'} opacity={0.8} />
                         ))}
                       </Bar>
