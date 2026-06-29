@@ -1,0 +1,88 @@
+import type { Metadata, Viewport } from 'next'
+import { Inter, JetBrains_Mono } from 'next/font/google'
+import './globals.css'
+import KeyboardProvider from '@/components/keyboard-provider'
+import PwaRegister from '@/components/pwa-register'
+import AppShell from '@/components/app-shell'
+import VercelAnalytics from '@/components/analytics'
+import { AuthProvider } from '@/context/auth-context'
+import { ReactQueryProvider } from '@/providers/query-provider'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800', '900'],
+})
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+  weight: ['400', '500', '700'],
+})
+
+export const viewport: Viewport = {
+  themeColor: '#030712',
+  width: 'device-width',
+  initialScale: 1,
+  // Pinch-zoom intentionally allowed. Locking it (maximumScale:1 / userScalable:false) fails
+  // WCAG 1.4.4 and stops users enlarging the dense, small-text data tables on a phone.
+}
+
+export const metadata: Metadata = {
+  title: 'BDMFlow — IDX Flow Intelligence',
+  description: 'Track Smart Money, Whale Positions & Institutional Flow on IDX. Daily precision. Institutional grade.',
+  keywords: ['saham', 'IDX', 'KSEI', 'bandarmologi', 'smart money', 'whale', 'screener', 'BDMFlow', 'flow intelligence'],
+  metadataBase: new URL('https://bdm-flow-v2.vercel.app'),
+  openGraph: {
+    title: 'BDMFlow — IDX Flow Intelligence',
+    description: 'Lacak Smart Money, Foreign Flow & KSEI di pasar saham Indonesia — Screener Pro, Broker Tracker, Backtest, MSCI/FTSE.',
+    url: 'https://bdm-flow-v2.vercel.app',
+    siteName: 'BDMFlow',
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BDMFlow — IDX Flow Intelligence',
+    description: 'Lacak Smart Money, Foreign Flow & KSEI di pasar saham Indonesia.',
+  },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'BDMFlow',
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+  },
+  applicationName: 'BDMFlow',
+  formatDetection: { telephone: false },
+  other: { 'mobile-web-app-capable': 'yes' },
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="id" className="dark bg-background" suppressHydrationWarning>
+      <body className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}>
+        <PwaRegister />
+        <VercelAnalytics />
+        <div className="noise-overlay" aria-hidden="true" />
+
+        <ReactQueryProvider>
+          <AuthProvider>
+            <KeyboardProvider>
+              <AppShell>{children}</AppShell>
+            </KeyboardProvider>
+          </AuthProvider>
+        </ReactQueryProvider>
+      </body>
+    </html>
+  )
+}
