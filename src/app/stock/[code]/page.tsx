@@ -8,20 +8,20 @@ import {
   TrendingUp, Users, Key, BarChart as BarChartIcon,
   Loader2, AlertTriangle
 } from 'lucide-react'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
 const WidgetSkeleton = () => <div className="h-48 shimmer rounded-xl w-full" />
 
-const ScorecardWidget = dynamic(() => import('@/components/widgets/ScorecardWidget').then(m => m.ScorecardWidget), { loading: () => <WidgetSkeleton /> })
-const ChartWidget = dynamic(() => import('@/components/widgets/ChartWidget').then(m => m.ChartWidget), { loading: () => <WidgetSkeleton /> })
-const OverviewSignalsWidget = dynamic(() => import('@/components/widgets/OverviewSignalsWidget').then(m => m.OverviewSignalsWidget), { loading: () => <WidgetSkeleton /> })
-const BrokerDNAWidget = dynamic(() => import('@/components/widgets/BrokerDNAWidget').then(m => m.BrokerDNAWidget), { loading: () => <WidgetSkeleton /> })
-const BroksumWidget = dynamic(() => import('@/components/widgets/BroksumWidget').then(m => m.BroksumWidget), { loading: () => <WidgetSkeleton /> })
-const ForeignFlowWidget = dynamic(() => import('@/components/widgets/ForeignFlowWidget').then(m => m.ForeignFlowWidget), { loading: () => <WidgetSkeleton /> })
-const KSEIIntelWidget = dynamic(() => import('@/components/widgets/KSEIIntelWidget').then(m => m.KSEIIntelWidget), { loading: () => <WidgetSkeleton /> })
-const InsiderWidget = dynamic(() => import('@/components/widgets/InsiderWidget').then(m => m.InsiderWidget), { loading: () => <WidgetSkeleton /> })
-const OwnershipWidget = dynamic(() => import('@/components/widgets/OwnershipWidget').then(m => m.OwnershipWidget), { loading: () => <WidgetSkeleton /> })
-const TechnicalsWidget = dynamic(() => import('@/components/widgets/TechnicalsWidget').then(m => m.TechnicalsWidget), { loading: () => <WidgetSkeleton /> })
+const ScorecardWidget = nextDynamic(() => import('@/components/widgets/ScorecardWidget').then(m => m.ScorecardWidget), { loading: () => <WidgetSkeleton /> })
+const ChartWidget = nextDynamic(() => import('@/components/widgets/ChartWidget').then(m => m.ChartWidget), { loading: () => <WidgetSkeleton /> })
+const OverviewSignalsWidget = nextDynamic(() => import('@/components/widgets/OverviewSignalsWidget').then(m => m.OverviewSignalsWidget), { loading: () => <WidgetSkeleton /> })
+const BrokerDNAWidget = nextDynamic(() => import('@/components/widgets/BrokerDNAWidget').then(m => m.BrokerDNAWidget), { loading: () => <WidgetSkeleton /> })
+const BroksumWidget = nextDynamic(() => import('@/components/widgets/BroksumWidget').then(m => m.BroksumWidget), { loading: () => <WidgetSkeleton /> })
+const ForeignFlowWidget = nextDynamic(() => import('@/components/widgets/ForeignFlowWidget').then(m => m.ForeignFlowWidget), { loading: () => <WidgetSkeleton /> })
+const KSEIIntelWidget = nextDynamic(() => import('@/components/widgets/KSEIIntelWidget').then(m => m.KSEIIntelWidget), { loading: () => <WidgetSkeleton /> })
+const InsiderWidget = nextDynamic(() => import('@/components/widgets/InsiderWidget').then(m => m.InsiderWidget), { loading: () => <WidgetSkeleton /> })
+const OwnershipWidget = nextDynamic(() => import('@/components/widgets/OwnershipWidget').then(m => m.OwnershipWidget), { loading: () => <WidgetSkeleton /> })
+const TechnicalsWidget = nextDynamic(() => import('@/components/widgets/TechnicalsWidget').then(m => m.TechnicalsWidget), { loading: () => <WidgetSkeleton /> })
 import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
 
