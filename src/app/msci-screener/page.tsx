@@ -364,7 +364,7 @@ export default function MSCIScreenerPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="sidebar-offset min-h-screen animate-fade-in">
+    <div className="min-h-screen animate-fade-in">
 
       {/* Header */}
       <div className="relative border-b border-white/5">

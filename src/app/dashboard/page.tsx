@@ -174,7 +174,7 @@ export default async function MorningBrief() {
   ))
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-6 space-y-6 animate-fade-in">
+    <div className="w-full space-y-6 animate-fade-in">
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">

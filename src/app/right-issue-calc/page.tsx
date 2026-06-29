@@ -163,7 +163,7 @@ export default function RightIssueCalcPage() {
 
   /* ── Render ── */
   return (
-    <div className="sidebar-offset max-w-[1200px] mx-auto px-4 md:px-6 py-6 space-y-5 pb-12 animate-fade-in">
+    <div className="w-full py-6 space-y-5 pb-12 animate-fade-in">
 
       {/* ══════════════════ HEADER ══════════════════ */}
       <div className="flex items-center gap-4">

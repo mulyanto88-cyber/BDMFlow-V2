@@ -630,10 +630,10 @@ export default function ForeignFlowPage() {
   ];
 
   return (
-    <div className="sidebar-offset min-h-screen animate-fade-in">
+    <div className="min-h-screen animate-fade-in">
       <div className="relative border-b border-white/5 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-900/10 via-yellow-900/5 to-transparent pointer-events-none" />
-        <div className="relative px-6 pt-6 pb-5 max-w-[1600px] mx-auto">
+        <div className="relative px-6 pt-6 pb-5 w-full">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, rgba(231,183,51,0.15) 0%, rgba(231,183,51,0.05) 100%)', border: '1px solid rgba(231,183,51,0.2)' }}>
@@ -674,7 +674,7 @@ export default function ForeignFlowPage() {
         </div>
       </div>
 
-      <div className="px-6 py-5 max-w-[1600px] mx-auto space-y-5">
+      <div className="px-6 py-5 w-full space-y-5">
         {activeTab === 'overview' && (
           <>
             {overviewError && (

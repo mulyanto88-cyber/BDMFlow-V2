@@ -6,8 +6,8 @@ import {
   Shield, CheckCircle, ArrowRight, Star, Search,
   Activity, Brain, Building2, Lock,
 } from 'lucide-react'
-import FeatureShowcase from '../../components/feature-showcase'
-import TrackLink from '../../components/track-link'
+import FeatureShowcase from '@/components/feature-showcase'
+import TrackLink from '@/components/track-link'
 
 // ── Features data ─────────────────────────────────────────────────────────────
 const FEATURES = [
@@ -128,11 +128,7 @@ export default function LandingPage() {
             href="/dashboard"
             event="cta_click"
             data={{ cta: 'hero_coba_preview' }}
-            className="flex items-center gap-2 px-7 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, #e7b733, #f0c040)',
-              boxShadow: '0 4px 24px rgba(231,183,51,0.35)',
-            }}
+            className="flex items-center gap-2 px-7 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95 btn-gradient-gold"
           >
             Coba Gratis — Tanpa Daftar <ArrowRight size={15} />
           </TrackLink>
@@ -316,17 +312,12 @@ export default function LandingPage() {
 
           {/* PRO */}
           <div
-            className="rounded-2xl p-7 flex flex-col relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(231,183,51,0.09), rgba(231,183,51,0.03))',
-              border: '1px solid rgba(231,183,51,0.25)',
-              boxShadow: '0 8px 40px rgba(231,183,51,0.10)',
-            }}
+            className="rounded-2xl p-7 flex flex-col relative overflow-hidden card-gradient-gold"
           >
             {/* Popular badge */}
             <div
-              className="absolute top-5 right-5 text-[9px] font-black uppercase tracking-[0.14em] px-2.5 py-1 rounded-full text-black"
-              style={{ background: 'linear-gradient(135deg, #e7b733, #f0c040)' }}
+              className="absolute top-5 right-5 text-[9px] font-black uppercase tracking-[0.14em] px-2.5 py-1 rounded-full text-black btn-gradient-gold"
+              style={{ boxShadow: 'none' }}
             >
               Terpopuler
             </div>
@@ -352,8 +343,7 @@ export default function LandingPage() {
             </ul>
 
             <div
-              className="w-full py-3 rounded-xl text-sm font-black text-center text-black/60 cursor-default select-none"
-              style={{ background: 'linear-gradient(135deg, rgba(231,183,51,0.55), rgba(240,192,64,0.55))' }}
+              className="w-full py-3 rounded-xl text-sm font-black text-center text-black/60 cursor-default select-none bg-gradient-soon"
             >
               Segera Hadir
             </div>
@@ -372,18 +362,11 @@ export default function LandingPage() {
       {/* ════════════════════ FINAL CTA ════════════════════ */}
       <section>
         <div
-          className="rounded-3xl p-10 md:p-14 text-center space-y-6 relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(135deg, rgba(231,183,51,0.08), rgba(231,183,51,0.03), rgba(0,0,0,0))',
-            border: '1px solid rgba(231,183,51,0.15)',
-          }}
+          className="rounded-3xl p-10 md:p-14 text-center space-y-6 relative overflow-hidden card-gradient-gold-alt"
         >
           {/* Background glow */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-30"
-            style={{
-              background: 'radial-gradient(ellipse at 50% 0%, rgba(231,183,51,0.15), transparent 65%)',
-            }}
+            className="absolute inset-0 pointer-events-none opacity-30 radial-gold-glow"
           />
 
           <div className="relative space-y-4">
@@ -407,11 +390,7 @@ export default function LandingPage() {
                 href="/auth"
                 event="cta_click"
                 data={{ cta: 'final_daftar' }}
-                className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95"
-                style={{
-                  background: 'linear-gradient(135deg, #e7b733, #f0c040)',
-                  boxShadow: '0 4px 24px rgba(231,183,51,0.35)',
-                }}
+                className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95 btn-gradient-gold"
               >
                 Daftar Gratis <ArrowRight size={15} />
               </TrackLink>
@@ -433,11 +412,7 @@ export default function LandingPage() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-muted-foreground/35">
           <div className="flex items-center gap-2">
             <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] font-mono"
-              style={{
-                background: 'linear-gradient(135deg,#e7b733,#c49a1a)',
-                color: '#0a122c',
-              }}
+              className="w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] font-mono bg-gradient-footer"
             >B</div>
             <span className="font-bold text-muted-foreground/50">BDMFlow IDX</span>
             <span>·</span>

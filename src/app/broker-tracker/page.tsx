@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatRupiah, formatNumber } from '@/lib/utils';
-import { InventoryChart, type InvCandle, type InvBrokerRow } from '../../../components/inventory-chart';
+import { InventoryChart, type InvCandle, type InvBrokerRow } from '@/components/inventory-chart';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -2576,7 +2576,7 @@ export default function BrokerTrackerPage() {
   };
 
   return (
-    <div className="sidebar-offset max-w-[1440px] mx-auto p-3 md:p-5 space-y-4 min-h-screen animate-fade-in">
+    <div className=" space-y-4 min-h-screen animate-fade-in">
 
       <BrokerProfileDrawer
         brokerCode={openBroker}

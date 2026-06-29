@@ -275,7 +275,7 @@ export default function ScreenerPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="sidebar-offset space-y-5 animate-fade-in pb-10">
+    <div className="space-y-5 animate-fade-in pb-10">
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

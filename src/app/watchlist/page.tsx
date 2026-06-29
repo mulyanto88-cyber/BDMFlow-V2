@@ -108,7 +108,7 @@ export default function WatchlistPage() {
 
   if (!user) {
     return (
-      <div className="sidebar-offset flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="max-w-md w-full px-6 py-16 text-center animate-fade-in">
           <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-6"
             style={{ background: 'linear-gradient(135deg, rgba(231,183,51,0.15) 0%, rgba(231,183,51,0.05) 100%)', border: '1px solid rgba(231,183,51,0.2)' }}>
@@ -128,7 +128,7 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="sidebar-offset max-w-[1200px] mx-auto px-6 py-6 space-y-5 animate-fade-in pb-12">
+    <div className="w-full py-6 space-y-5 animate-fade-in pb-12">
       {/* ── Header ─────────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"

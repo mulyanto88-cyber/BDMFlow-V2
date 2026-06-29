@@ -44,7 +44,7 @@ export default function CompositePage() {
   }, [page])
 
   if (error) return (
-    <div className="sidebar-offset min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center glass rounded-2xl p-12 border border-white/5">
         <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-4" />
         <p className="text-muted-foreground font-bold text-lg">Composite data unavailable</p>
@@ -53,11 +53,11 @@ export default function CompositePage() {
       </div>
     </div>
   )
-  if (loading) return <div className="sidebar-offset min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
 
   return (
-    <div className="sidebar-offset min-h-screen">
-      <div className="max-w-[1600px] mx-auto px-4 py-6 space-y-6 animate-fade-in">
+    <div className="min-h-screen">
+      <div className="max-w-[1600px] space-y-6 animate-fade-in">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
           <div>
             <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Composite Command Center</h1>

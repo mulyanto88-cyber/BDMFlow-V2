@@ -282,7 +282,7 @@ export default function SmartMoneyMatrix() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="sidebar-offset space-y-6 animate-fade-in pb-10 max-w-6xl mx-auto px-4 md:px-6">
+    <div className="w-full space-y-6 animate-fade-in pb-10">
 
       {/* ── Header ── */}
       <div className="flex items-center gap-3">

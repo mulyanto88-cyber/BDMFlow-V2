@@ -488,7 +488,7 @@ export default function InsiderPage() {
   }
 
   return (
-    <div className="sidebar-offset min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {selectedStock && (
         <StockDetailDialog 
           stock={selectedStock} 
@@ -498,7 +498,7 @@ export default function InsiderPage() {
         />
       )}
 
-      <div className="max-w-[1400px] mx-auto px-4 py-6 space-y-5">
+      <div className=" space-y-5">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between gap-4 flex-wrap">

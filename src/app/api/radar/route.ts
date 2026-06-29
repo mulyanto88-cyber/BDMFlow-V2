@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 1800
 
 // src/app/api/radar/route.ts
 // Watchlist Radar — multi-layer confluence scoring

@@ -180,7 +180,7 @@ export default function KseiMonthlyPage() {
   }), [rows])
 
   return (
-    <div className="sidebar-offset max-w-[1400px] mx-auto px-4 py-6 space-y-5 pb-12 animate-fade-in">
+    <div className=" space-y-5 pb-12 animate-fade-in">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">

@@ -173,6 +173,42 @@ export async function GET(req: NextRequest) {
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // STOCK TREND — per-stock 12-month smart-money trend (for the stock-detail
+    // "KSEI Intel" tab). Deltas via LAG() (NOT the zeroed *_Chg_Val cols), with
+    // the corp-action guard. Returns fields the page expects: net_smart, cp_flow,
+    // pf_flow, ib_flow, retail, foreign_smart, month.
+    // ════════════════════════════════════════════════════════════════════════
+    if (action === 'stock_trend' && code) {
+      const data = await run(`
+        WITH lagged AS (
+          SELECT Date, Price::DOUBLE AS price,
+            ${TOTAL_ALL} AS tot,
+            LAG(${TOTAL_ALL}) OVER w AS ptot,
+            (Local_CP - LAG(Local_CP) OVER w) AS d_lcp,
+            (Local_PF - LAG(Local_PF) OVER w) AS d_lpf,
+            (Local_IB - LAG(Local_IB) OVER w) AS d_lib,
+            (Local_ID - LAG(Local_ID) OVER w) AS d_lid,
+            ((Foreign_CP + Foreign_PF + Foreign_IB) - LAG(Foreign_CP + Foreign_PF + Foreign_IB) OVER w) AS d_fsmart
+          FROM ksei.monthly_snapshot
+          WHERE Code = '${code}'
+          WINDOW w AS (ORDER BY Date)
+        )
+        SELECT Date::VARCHAR AS month, price,
+          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND((d_lcp + d_lpf + d_lib + d_fsmart) * price / 1e9, 2) ELSE 0 END AS net_smart,
+          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lcp    * price / 1e9, 2) ELSE 0 END AS cp_flow,
+          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lpf    * price / 1e9, 2) ELSE 0 END AS pf_flow,
+          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lib    * price / 1e9, 2) ELSE 0 END AS ib_flow,
+          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lid    * price / 1e9, 2) ELSE 0 END AS retail,
+          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_fsmart * price / 1e9, 2) ELSE 0 END AS foreign_smart
+        FROM lagged
+        WHERE ptot IS NOT NULL
+          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code = '${code}') - INTERVAL '12 months'
+        ORDER BY Date ASC
+      `)
+      return NextResponse.json({ data })
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // FLOWS — global net flow per investor type (market-wide, MoM), last N months
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'flows') {

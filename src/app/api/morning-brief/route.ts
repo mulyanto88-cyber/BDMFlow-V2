@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 1800
 
 // src/app/api/morning-brief/route.ts
 import { NextResponse } from 'next/server'

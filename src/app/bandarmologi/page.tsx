@@ -31,7 +31,7 @@ export default function BandarmologiPage() {
   }, [])
 
   if (error) return (
-    <div className="sidebar-offset min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center glass rounded-2xl p-12 border border-white/5">
         <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-4" />
         <p className="text-muted-foreground font-bold text-lg">Bandarmologi data unavailable</p>
@@ -40,7 +40,7 @@ export default function BandarmologiPage() {
       </div>
     </div>
   )
-  if (loading) return <div className="sidebar-offset min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
 
   // KPIs from data
   const allData = [...prime, ...convergence, ...leaderboard]
@@ -86,8 +86,8 @@ export default function BandarmologiPage() {
   ]
 
   return (
-    <div className="sidebar-offset min-h-screen">
-      <div className="max-w-[1600px] mx-auto px-4 py-6 space-y-6 animate-fade-in">
+    <div className="min-h-screen">
+      <div className="max-w-[1600px] space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-2"><Shield size={22} /> Bandarmologi Panel</h1>

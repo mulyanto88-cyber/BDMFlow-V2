@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import KeyboardProvider from '../../components/keyboard-provider'
-import PwaRegister from '../../components/pwa-register'
-import AppShell from '../../components/app-shell'
-import VercelAnalytics from '../../components/analytics'
+import KeyboardProvider from '@/components/keyboard-provider'
+import PwaRegister from '@/components/pwa-register'
+import AppShell from '@/components/app-shell'
+import VercelAnalytics from '@/components/analytics'
 import { AuthProvider } from '@/context/auth-context'
+import { ReactQueryProvider } from '@/providers/query-provider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -74,11 +75,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <VercelAnalytics />
         <div className="noise-overlay" aria-hidden="true" />
 
-        <AuthProvider>
-          <KeyboardProvider>
-            <AppShell>{children}</AppShell>
-          </KeyboardProvider>
-        </AuthProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
+            <KeyboardProvider>
+              <AppShell>{children}</AppShell>
+            </KeyboardProvider>
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   )

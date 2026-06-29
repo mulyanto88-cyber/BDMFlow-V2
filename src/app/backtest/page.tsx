@@ -452,7 +452,7 @@ export default function BacktestPage() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="sidebar-offset max-w-[1400px] mx-auto px-4 md:px-6 py-6 space-y-5 pb-12 animate-fade-in">
+    <div className="w-full py-6 space-y-5 pb-12 animate-fade-in">
 
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

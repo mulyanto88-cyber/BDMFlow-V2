@@ -620,7 +620,7 @@ export default function InsiderPage() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="sidebar-offset space-y-4 animate-fade-in pb-12">
+    <div className="space-y-4 animate-fade-in pb-12">
 
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3">

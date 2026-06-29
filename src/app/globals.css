@@ -446,8 +446,36 @@
 }
 .card-hover:hover {
   transform:    translateY(-2px);
+  .text-glow {
+    text-shadow: var(--shadow-glow);
+  }
   box-shadow:   var(--shadow-lg), var(--shadow-glow);
   border-color: rgba(var(--primary-glow-rgb), 0.25) !important;
+}
+
+/* Custom Gradients for Landing Page */
+.btn-gradient-gold {
+  background: linear-gradient(135deg, #e7b733, #f0c040);
+  box-shadow: 0 4px 24px rgba(231,183,51,0.35);
+}
+.card-gradient-gold {
+  background: linear-gradient(135deg, rgba(231,183,51,0.09), rgba(231,183,51,0.03));
+  border: 1px solid rgba(231,183,51,0.25);
+  box-shadow: 0 8px 40px rgba(231,183,51,0.10);
+}
+.card-gradient-gold-alt {
+  background: linear-gradient(135deg, rgba(231,183,51,0.08), rgba(231,183,51,0.03), rgba(0,0,0,0));
+  border: 1px solid rgba(231,183,51,0.15);
+}
+.radial-gold-glow {
+  background: radial-gradient(ellipse at 50% 0%, rgba(231,183,51,0.15), transparent 65%);
+}
+.bg-gradient-footer {
+  background: linear-gradient(135deg,#e7b733,#c49a1a);
+  color: #0a122c;
+}
+.bg-gradient-soon {
+  background: linear-gradient(135deg, rgba(231,183,51,0.55), rgba(240,192,64,0.55));
 }
 
 /* ── Gradient Text (theme-aware) ─────────────────────────── */
@@ -471,11 +499,7 @@
   transition: padding-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   padding-left: 0;
 }
-@media (min-width: 768px) {
-  .sidebar-offset                        { padding-left: 58px; }
-  html.sidebar-expanded .sidebar-offset  { padding-left: 210px; }
-}
-
+/* Removed .sidebar-offset logic to enable full-width web-native layout */
 /* ── Badges ───────────────────────────────────────────────── */
 .badge-pro {
   background: linear-gradient(135deg, rgba(var(--primary-glow-rgb),0.22), rgba(var(--primary-glow-rgb),0.12));
@@ -961,3 +985,8 @@
   textarea { min-height: 40px; }
 }
 .text-\[9\.5px\] { font-size: 11px !important; }
+@layer utilities {
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+}

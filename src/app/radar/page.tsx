@@ -187,8 +187,8 @@ export default function RadarPage() {
   const signalTotal = signals.reduce((s, x) => s + x.count, 0)
 
   return (
-    <div className="sidebar-offset min-h-screen">
-      <div className="max-w-[1600px] mx-auto px-4 py-6 animate-fade-in">
+    <div className="min-h-screen">
+      <div className="max-w-[1600px] animate-fade-in">
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-6">

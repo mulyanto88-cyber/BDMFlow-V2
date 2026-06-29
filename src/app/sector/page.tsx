@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronUp,
 } from 'lucide-react'
 import Link from 'next/link'
-import { SectorHeatmap } from '../../../components/sector-heatmap'
+import { SectorHeatmap } from '@/components/sector-heatmap'
 
 // ─── API Helper ───────────────────────────────────────────────────────────────
 async function mdQuery(query: string, params?: any[]): Promise<any[]> {
@@ -214,7 +214,7 @@ export default function SectorPage() {
   }
 
   return (
-    <div className="sidebar-offset space-y-5 animate-fade-in pb-10">
+    <div className="w-full space-y-5 animate-fade-in pb-10">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
