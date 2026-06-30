@@ -174,76 +174,88 @@ export default async function MorningBrief() {
   ))
 
   return (
-    <div className="w-full space-y-6 animate-fade-in">
+    <div className="w-full space-y-5 animate-fade-in">
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+      <div className="px-4 md:px-6 pt-6 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Morning Brief
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {pulse.date} · T+1 data · Refresh setiap 60 detik
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Morning Brief
+            </h1>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-400">
+              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />Live
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground/45 font-medium">
+            {pulse.date} · Data T+1 · Auto-refresh 60 detik
           </p>
         </div>
-        <div className="inline-flex items-center text-xs text-muted-foreground border border-border/50 bg-card/50 backdrop-blur rounded-lg px-3 py-1.5 shadow-sm max-w-max">
-          <Globe className="w-4 h-4 mr-2 text-purple-400" />
-          {pulse.stock_count?.toLocaleString('id-ID')} saham aktif dipantau
+        <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/50 border border-border/40 bg-card/40 backdrop-blur rounded-xl px-3 py-2 shadow-sm max-w-max">
+          <Globe className="w-3.5 h-3.5 text-purple-400" />
+          <span className="font-semibold text-foreground/60">{pulse.stock_count?.toLocaleString('id-ID')}</span>
+          <span>saham aktif dipantau</span>
         </div>
       </div>
 
       {/* ── Quick Shortcuts ─────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2">
-        {SHORTCUTS.map(s => (
-          <Link key={s.href} href={s.href}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${s.color}`}>
-            <ArrowRight size={10} />
-            {s.label}
-          </Link>
-        ))}
+      <div className="px-4 md:px-6 mb-4">
+        <div className="flex flex-wrap gap-2">
+          {SHORTCUTS.map(s => (
+            <Link key={s.href} href={s.href}
+              className={`shortcut-pill ${s.color}`}
+            >
+              <ArrowRight size={9} />
+              {s.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* ── Hero Market Pulse ────────────────────────────────────────── */}
+      <div className="px-4 md:px-6">
       <div className={`relative overflow-hidden glass rounded-2xl ${
-        foreignPositive ? 'border-emerald-500/30' : 'border-red-500/30'
+        foreignPositive ? 'border-emerald-500/25' : 'border-red-500/25'
       }`}>
-        {/* Subtle directional glow */}
-        <div className={`absolute inset-0 pointer-events-none opacity-[0.07] ${
+        {/* Ambient glow */}
+        <div className={`absolute inset-0 pointer-events-none ${
           foreignPositive
-            ? 'bg-gradient-to-br from-emerald-500 via-emerald-900/30 to-transparent'
-            : 'bg-gradient-to-br from-red-500 via-red-900/30 to-transparent'
+            ? 'bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent'
+            : 'bg-gradient-to-br from-red-500/5 via-transparent to-transparent'
         }`} />
 
-        <div className="relative p-6">
-          {/* Hero header row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-            <div className="flex items-start gap-4">
-              <MarketScoreGauge score={marketScore} />
+        <div className="relative p-5 md:p-6">
+          {/* Hero header: Score + Status */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-4">
+            <div className="flex items-center gap-5">
+              <div className="relative">
+                <MarketScoreGauge score={marketScore} />
+              </div>
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2 flex-wrap">
-                  <Activity className={`w-5 h-5 ${foreignPositive ? 'text-emerald-400' : 'text-red-400'}`} />
-                  Market:&nbsp;
-                  <span className={foreignPositive ? 'text-emerald-400' : 'text-red-400'}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Activity className={`w-4 h-4 ${foreignPositive ? 'text-emerald-400' : 'text-red-400'}`} />
+                  <span className={`text-lg font-black ${foreignPositive ? 'text-emerald-400' : 'text-red-400'}`}>
                     {foreignPositive ? 'BULLISH' : 'BEARISH'}
                   </span>
-                </h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Institutional flow &amp; breadth composite · Score {marketScore}/100
+                </div>
+                <p className="text-[11px] text-muted-foreground/50 font-medium">
+                  Score {marketScore}/100 · Composite breadth & institutional flow
                 </p>
               </div>
             </div>
 
-            <div className="px-4 py-2.5 rounded-xl bg-background/60 border border-white/[0.06] shadow-inner flex-shrink-0">
-              <span className="text-xs text-muted-foreground">Whale Signals </span>
+            {/* Whale count chip */}
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-background/50 border border-purple-500/20 flex-shrink-0">
+              <span className="text-[11px] text-muted-foreground/50 font-medium">Whale Signals</span>
               <span className={`text-2xl font-black counter ${whaleCount > 0 ? 'text-purple-400' : 'text-muted-foreground'}`}>
                 {whaleCount}
               </span>
-              <span className="text-xs text-muted-foreground"> Active</span>
+              <span className="text-[11px] text-muted-foreground/40">aktif</span>
             </div>
           </div>
 
-          {/* KPI Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 stagger">
+          {/* Command Bar — KPI metrics */}
+          <div className="command-bar">
             {([
               {
                 label: 'Total Transaksi',
@@ -266,7 +278,7 @@ export default async function MorningBrief() {
               {
                 label: 'Market Breadth',
                 value: `${breadthPct}%`,
-                sub: `${pulse.gainers} naik · ${pulse.losers} turun`,
+                sub: `${pulse.gainers}↑  ${pulse.losers}↓`,
                 color: breadthPct >= 50 ? 'text-emerald-400' : 'text-red-400',
                 icon: (breadthPct >= 50 ? TrendingUp : TrendingDown) as React.ElementType,
                 bar: breadthPct as number | null,
@@ -275,7 +287,7 @@ export default async function MorningBrief() {
               {
                 label: 'Avg Change',
                 value: `${avgChg > 0 ? '+' : ''}${avgChg.toFixed(2)}%`,
-                sub: 'Rata-rata pergerakan',
+                sub: 'Rata-rata harian',
                 color: avgChg >= 0 ? 'text-emerald-400' : 'text-red-400',
                 icon: Zap as React.ElementType,
                 bar: null as number | null,
@@ -284,15 +296,15 @@ export default async function MorningBrief() {
             ]).map((k) => {
               const Icon = k.icon
               return (
-                <div key={k.label} className="metric-card card-hover">
-                  <div className="metric-label flex items-center gap-1.5">
-                    <Icon className="w-3 h-3 opacity-60" />
-                    {k.label}
+                <div key={k.label} className="command-bar-item">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Icon className="w-3 h-3 text-muted-foreground/40" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.14em] text-muted-foreground/40">{k.label}</span>
                   </div>
-                  <div className={`metric-value text-3xl mt-1 ${k.color}`}>{k.value}</div>
-                  <div className="text-[10px] text-muted-foreground mt-1 font-medium">{k.sub}</div>
+                  <div className={`text-xl font-black counter leading-none ${k.color}`}>{k.value}</div>
+                  <div className="text-[9px] text-muted-foreground/35 mt-1 font-medium">{k.sub}</div>
                   {k.bar !== null && (
-                    <div className="mt-2 h-1.5 w-full bg-background/40 rounded-full overflow-hidden">
+                    <div className="mt-2 h-1 w-full bg-background/40 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${k.barColor}`}
                         style={{ width: `${k.bar}%` }}
@@ -305,16 +317,17 @@ export default async function MorningBrief() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* ── Main Content Grid ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="px-4 md:px-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         {/* Top Radar */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-3">
             <h2 className="section-heading">Top Radar Hari Ini</h2>
-            <Link href="/radar" className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition-colors">
-              Lihat semua <ArrowRight size={11} />
+            <Link href="/radar" className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 transition-colors font-semibold">
+              Lihat semua <ArrowRight size={10} />
             </Link>
           </div>
 
@@ -488,7 +501,7 @@ export default async function MorningBrief() {
       </div>
 
       {/* ── Group Rotation Table ──────────────────────────────────────── */}
-      <div>
+      <div className="px-4 md:px-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="section-heading">Rotasi Konglomerat</h2>
           <Link href="/groups" className="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors">
@@ -541,22 +554,24 @@ export default async function MorningBrief() {
       </div>
 
       {/* ── Footer CTA ───────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-3 pt-2">
-        <Link href="/smart-money"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl glass card-hover text-xs font-semibold text-purple-300 border-purple-500/20">
-          <BarChart2 size={13} />
-          Smart Money Matrix
-        </Link>
-        <Link href="/screener"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl glass card-hover text-xs font-semibold text-amber-300 border-amber-500/20">
-          <Zap size={13} />
-          Screener Pro
-        </Link>
-        <Link href="/ksei1persen"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl glass card-hover text-xs font-semibold text-sky-300 border-sky-500/20">
-          <Eye size={13} />
-          KSEI &gt;1%
-        </Link>
+      <div className="px-4 md:px-6 pb-4">
+        <div className="flex flex-wrap gap-3">
+          <Link href="/smart-money"
+            className="shortcut-pill text-purple-400 border-purple-500/20 hover:border-purple-500/40">
+            <BarChart2 size={12} />
+            Smart Money Matrix
+          </Link>
+          <Link href="/screener"
+            className="shortcut-pill text-amber-400 border-amber-500/20 hover:border-amber-500/40">
+            <Zap size={12} />
+            Screener Pro
+          </Link>
+          <Link href="/ksei1persen"
+            className="shortcut-pill text-sky-400 border-sky-500/20 hover:border-sky-500/40">
+            <Eye size={12} />
+            KSEI &gt;1%
+          </Link>
+        </div>
       </div>
 
     </div>
