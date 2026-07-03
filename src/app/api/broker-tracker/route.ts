@@ -440,6 +440,33 @@ export async function GET(req: NextRequest) {
         GROUP BY date, broker_code
         ORDER BY date ASC, broker_code ASC`
 
+    // ── 8b. BROKER STALKER ─────────────────────────────────────────────────
+    } else if (action === 'broker_stalker') {
+      const brokers = brokerCodes.split(',').map(b => b.trim().toUpperCase()).filter(b => b.length > 0)
+      if (brokers.length === 0) return NextResponse.json({ error: 'broker_codes diperlukan' }, { status: 400 })
+      if (brokers.length > 20) return NextResponse.json({ error: 'Maksimum 20 broker' }, { status: 400 })
+      
+      const placeholders = brokers.map((_, i) => `$${paramIdx + 1 + i}`).join(', ')
+      queryParams.push(...brokers)
+      
+      query = `
+        SELECT
+          LEFT(stock_code,4) AS stock_code,
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS buy_val,
+          SUM(CASE WHEN value>0 THEN lot ELSE 0 END)::DOUBLE     AS buy_lot,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS sell_val,
+          ABS(SUM(CASE WHEN value<0 THEN lot ELSE 0 END))::DOUBLE   AS sell_lot,
+          SUM(value)::DOUBLE AS net_val,
+          (SUM(CASE WHEN value>0 THEN freq ELSE 0 END) + SUM(CASE WHEN value<0 THEN freq ELSE 0 END))::BIGINT AS total_freq,
+          (SUM(CASE WHEN value>0 THEN value ELSE 0 END) / NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::DOUBLE AS buy_avg_price,
+          (ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END)) / NULLIF(ABS(SUM(CASE WHEN value<0 THEN lot ELSE 0 END))*100.0,0))::DOUBLE AS sell_avg_price
+        FROM broker_activity
+        WHERE ${dateFilter.clause}
+          AND broker_code IN (${placeholders})
+        GROUP BY LEFT(stock_code,4)
+        ORDER BY ABS(SUM(value)) DESC
+        LIMIT 300`
+
     // ── 9. SECTOR LIST ─────────────────────────────────────────────────────
     } else if (action === 'sector_list') {
       queryParams = []
