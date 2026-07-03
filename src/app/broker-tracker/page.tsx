@@ -276,7 +276,7 @@ interface BrokerAlphaRow {
   total_net: number;
 }
 
-type ActiveTab = 'tracker' | 'screener' | 'intel' | 'inventory';
+type ActiveTab = 'tracker' | 'screener' | 'intel' | 'inventory' | 'sabarkaya';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -2062,6 +2062,156 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
   );
 }
 
+// ─── SabarkayaReferenceTab Component (New Sub-Tab) ───────────────────────────
+function SabarkayaReferenceTab({ buyers, sellers, currentPrice, code }: {
+  buyers: TrackerRow[]; sellers: TrackerRow[]; currentPrice: number | null; code: string;
+}) {
+  const [filterType, setFilterType] = useState<'ALL' | 'DOMESTIK' | 'ASING'>('ALL');
+  
+  // Filter logic based on broker_lf
+  const filteredBuyers = useMemo(() => {
+    if (filterType === 'ALL') return buyers;
+    return buyers.filter(b => filterType === 'ASING' ? b.broker_lf === 'F' : b.broker_lf === 'L');
+  }, [buyers, filterType]);
+  
+  const filteredSellers = useMemo(() => {
+    if (filterType === 'ALL') return sellers;
+    return sellers.filter(s => filterType === 'ASING' ? s.broker_lf === 'F' : s.broker_lf === 'L');
+  }, [sellers, filterType]);
+
+  const top10Buyers = filteredBuyers.slice(0, 10);
+  const top10Sellers = filteredSellers.slice(0, 10);
+  const maxNet = Math.max(
+    ...top10Buyers.map(b => b.net_val),
+    ...top10Sellers.map(s => Math.abs(s.net_val)),
+    0
+  );
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Tab Filter (All | Domestik | Asing) */}
+      <div className="flex justify-center">
+        <div className="bg-card p-1 rounded-full border border-white/10 flex gap-1 shadow-lg">
+          {(['ALL', 'DOMESTIK', 'ASING'] as const).map(t => (
+            <button key={t} onClick={() => setFilterType(t)}
+              className={`px-6 py-1.5 rounded-full text-[10px] tracking-wider uppercase font-black transition-all ${
+                filterType === t 
+                  ? 'bg-gold-400 text-black shadow-md' 
+                  : 'text-gray-400 hover:text-white'
+              }`}>
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Horizontal Bar Chart (Top Beli vs Top Jual) */}
+      <div className="glass rounded-2xl border border-white/10 p-5 shadow-xl">
+        <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-foreground">
+          <BarChart2 className="w-4 h-4 text-gold-400" />
+          Kekuatan Top Beli & Top Jual ({filterType})
+        </h3>
+        <div className="space-y-3">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const b = top10Buyers[i];
+            const s = top10Sellers[i];
+            const bPct = b && maxNet > 0 ? (b.net_val / maxNet) * 100 : 0;
+            const sPct = s && maxNet > 0 ? (Math.abs(s.net_val) / maxNet) * 100 : 0;
+            if (!b && !s) return null;
+            
+            return (
+              <div key={i} className="flex items-center gap-2">
+                {/* Seller Bar (Red, Right-to-Left) */}
+                <div className="flex-1 flex justify-end items-center gap-2">
+                  {s && <span className="text-[10px] text-gray-400 font-mono">{fmt(Math.abs(s.net_val))}</span>}
+                  {s && <span className="text-xs font-black w-6 text-right text-foreground">{s.broker_code}</span>}
+                  <div className="h-5 bg-white/5 rounded-sm overflow-hidden w-full max-w-[200px] flex justify-end">
+                    <div className="h-full bg-red-500/80 rounded-l-sm transition-all" style={{ width: `${sPct}%` }} />
+                  </div>
+                </div>
+                
+                <div className="w-px h-6 bg-white/10" />
+
+                {/* Buyer Bar (Green, Left-to-Right) */}
+                <div className="flex-1 flex justify-start items-center gap-2">
+                  <div className="h-5 bg-white/5 rounded-sm overflow-hidden w-full max-w-[200px]">
+                    <div className="h-full bg-emerald-500/80 rounded-r-sm transition-all" style={{ width: `${bPct}%` }} />
+                  </div>
+                  {b && <span className="text-xs font-black w-6 text-left text-foreground">{b.broker_code}</span>}
+                  {b && <span className="text-[10px] text-gray-400 font-mono">{fmt(b.net_val)}</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Broker Stalker Split Table Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Net Buy Table */}
+        <div className="bg-card rounded-2xl border border-emerald-500/20 overflow-hidden shadow-xl">
+          <div className="bg-emerald-500/10 px-4 py-3 border-b border-emerald-500/20 flex justify-between items-center">
+            <span className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+              <TrendingUp className="w-3.5 h-3.5" /> NET BUY
+            </span>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">{filteredBuyers.length} Brokers</span>
+          </div>
+          <table className="w-full text-left text-[11px]">
+            <thead className="bg-[#1a2235] text-gray-500 text-[10px]">
+              <tr>
+                <th className="px-3 py-2.5">BROKER</th>
+                <th className="px-3 py-2.5 text-right">LOT</th>
+                <th className="px-3 py-2.5 text-right">VAL</th>
+                <th className="px-3 py-2.5 text-right">B.AVG</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filteredBuyers.map(b => (
+                <tr key={b.broker_code} className="hover:bg-white/[0.03]">
+                  <td className="px-3 py-2 font-black text-foreground">{b.broker_code}</td>
+                  <td className="px-3 py-2 text-right text-gray-400 font-mono">{fmtLot(b.buy_lot)}</td>
+                  <td className="px-3 py-2 text-right font-bold text-emerald-400 font-mono">{fmt(b.net_val)}</td>
+                  <td className="px-3 py-2 text-right text-yellow-400 font-mono">{fmtPrice(b.buy_avg_price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Net Sell Table */}
+        <div className="bg-card rounded-2xl border border-red-500/20 overflow-hidden shadow-xl">
+          <div className="bg-red-500/10 px-4 py-3 border-b border-red-500/20 flex justify-between items-center">
+            <span className="text-xs font-black text-red-400 uppercase tracking-widest flex items-center gap-2">
+              <TrendingDown className="w-3.5 h-3.5" /> NET SELL
+            </span>
+            <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded font-bold">{filteredSellers.length} Brokers</span>
+          </div>
+          <table className="w-full text-left text-[11px]">
+            <thead className="bg-[#1a2235] text-gray-500 text-[10px]">
+              <tr>
+                <th className="px-3 py-2.5">BROKER</th>
+                <th className="px-3 py-2.5 text-right">LOT</th>
+                <th className="px-3 py-2.5 text-right">VAL</th>
+                <th className="px-3 py-2.5 text-right">S.AVG</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filteredSellers.map(s => (
+                <tr key={s.broker_code} className="hover:bg-white/[0.03]">
+                  <td className="px-3 py-2 font-black text-foreground">{s.broker_code}</td>
+                  <td className="px-3 py-2 text-right text-gray-400 font-mono">{fmtLot(s.sell_lot)}</td>
+                  <td className="px-3 py-2 text-right font-bold text-red-400 font-mono">{fmt(Math.abs(s.net_val))}</td>
+                  <td className="px-3 py-2 text-right text-yellow-400 font-mono">{fmtPrice(s.sell_avg_price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page Component ──────────────────────────────────────────────────────
 
 export default function BrokerTrackerPage() {
@@ -2287,7 +2437,7 @@ export default function BrokerTrackerPage() {
     const params = `startDate=${startDate}&endDate=${endDate}`;
 
     try {
-      if (tab === 'tracker') {
+      if (tab === 'tracker' || tab === 'sabarkaya') {
         // 1.3: tracker+history+price_history+stock_context in ONE request (action=bundle);
         // divergence kept separate (heavier 5-CTE query). Wave-1 round-trips: 5 → 2.
         const [bundleRes, divRes] = await Promise.all([
@@ -2604,6 +2754,7 @@ export default function BrokerTrackerPage() {
             { id: 'screener', label: 'Screener', icon: <Target className="w-3 h-3" />, count: screenerData.length },
             { id: 'intel', label: 'Intel', icon: <Radio className="w-3 h-3" />, count: brokerIntel.length },
             { id: 'inventory', label: 'Inventory', icon: <Layers className="w-3 h-3" />, count: 0 },
+            { id: 'sabarkaya', label: 'Ref: Sabarkaya', icon: <Star className="w-3 h-3" />, count: 0 },
           ] as const).map(tab => (
             <button key={tab.id}
               onClick={() => { setActiveTab(tab.id); setError(null); }}
@@ -2906,6 +3057,39 @@ export default function BrokerTrackerPage() {
           loading={intelLoading}
           error={intelError}
         />
+      )}
+
+      {/* ── SABARKAYA REFERENCE TAB ── */}
+      {activeTab === 'sabarkaya' && (
+        <div className="glass p-5 rounded-2xl border border-border/50 shadow-xl">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
+            <div className="p-2 bg-gold-400/10 rounded-xl border border-gold-400/20 inline-flex">
+              <Star className="w-5 h-5 text-gold-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-foreground">Broker Stalker (Sabarkaya Ref)</h2>
+              <p className="text-[11px] text-muted-foreground">Analisis detail broker dengan visualisasi top buyer/seller dan layout dual-table berdampingan.</p>
+            </div>
+            <div className="ml-auto flex items-center bg-background rounded-lg border border-border px-3 py-1.5 gap-2 w-full md:w-auto">
+              <Search className="w-3.5 h-3.5 text-gold-400" />
+              <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
+                onKeyDown={e => e.key === 'Enter' && loadData()}
+                className="w-full md:w-20 bg-transparent text-sm font-black text-foreground outline-none uppercase"
+                placeholder="BBCA" />
+              <button onClick={() => loadData()} disabled={loading}
+                className="px-3 py-1 rounded bg-gold-400/10 text-gold-400 hover:bg-gold-400/20 text-[10px] font-bold border border-gold-400/20">
+                LOAD
+              </button>
+            </div>
+          </div>
+          {loading ? (
+             <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold-400" /></div>
+          ) : buyers.length === 0 && sellers.length === 0 ? (
+             <div className="py-10 text-center text-gray-500">Ketik kode saham dan load data.</div>
+          ) : (
+            <SabarkayaReferenceTab buyers={buyers} sellers={sellers} currentPrice={currentPrice} code={code} />
+          )}
+        </div>
       )}
 
       {/* ── INVENTORY ANALYSIS TAB ── */}
