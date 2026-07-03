@@ -276,7 +276,7 @@ interface BrokerAlphaRow {
   total_net: number;
 }
 
-type ActiveTab = 'tracker' | 'screener' | 'intel' | 'inventory' | 'stalking';
+type ActiveTab = 'tracker' | 'screener' | 'intel' | 'inventory' | 'sabarkaya';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -2062,150 +2062,150 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
   );
 }
 
-// ─── Broker Stalking Tab Component (New) ────────────────────────────────────
-interface BrokerStalkerRow {
-  stock_code: string;
-  buy_val: number;
-  buy_lot: number;
-  sell_val: number;
-  sell_lot: number;
-  net_val: number;
-  total_freq: number;
-  buy_avg_price: number;
-  sell_avg_price: number;
-}
-
-function BrokerStalkingTab({ data }: { data: BrokerStalkerRow[] }) {
-  const netBuy = useMemo(() => data.filter(d => d.net_val > 0).sort((a,b) => b.net_val - a.net_val), [data]);
-  const netSell = useMemo(() => data.filter(d => d.net_val < 0).sort((a,b) => a.net_val - b.net_val), [data]);
+// ─── SabarkayaReferenceTab Component (New Sub-Tab) ───────────────────────────
+function SabarkayaReferenceTab({ buyers, sellers, currentPrice, code }: {
+  buyers: TrackerRow[]; sellers: TrackerRow[]; currentPrice: number | null; code: string;
+}) {
+  const [filterType, setFilterType] = useState<'ALL' | 'DOMESTIK' | 'ASING'>('ALL');
   
-  const [searchBuy, setSearchBuy] = useState('');
-  const [searchSell, setSearchSell] = useState('');
+  // Filter logic based on broker_lf
+  const filteredBuyers = useMemo(() => {
+    if (filterType === 'ALL') return buyers;
+    return buyers.filter(b => filterType === 'ASING' ? b.broker_lf === 'F' : b.broker_lf === 'L');
+  }, [buyers, filterType]);
+  
+  const filteredSellers = useMemo(() => {
+    if (filterType === 'ALL') return sellers;
+    return sellers.filter(s => filterType === 'ASING' ? s.broker_lf === 'F' : s.broker_lf === 'L');
+  }, [sellers, filterType]);
 
-  const filteredNetBuy = netBuy.filter(d => d.stock_code.toLowerCase().includes(searchBuy.toLowerCase()));
-  const filteredNetSell = netSell.filter(d => d.stock_code.toLowerCase().includes(searchSell.toLowerCase()));
-
-  const totalStocks = data.length;
-  const totalNet = data.reduce((sum, d) => sum + d.net_val, 0);
-  const topEmiten = netBuy.length > 0 ? netBuy[0].stock_code : '-';
-  const top3Net = netBuy.slice(0,3).reduce((sum, d) => sum + d.net_val, 0);
-  const totalBuyNet = netBuy.reduce((sum, d) => sum + d.net_val, 0);
-  const concentration = totalBuyNet > 0 ? (top3Net / totalBuyNet) * 100 : 0;
+  const top10Buyers = filteredBuyers.slice(0, 10);
+  const top10Sellers = filteredSellers.slice(0, 10);
+  const maxNet = Math.max(
+    ...top10Buyers.map(b => b.net_val),
+    ...top10Sellers.map(s => Math.abs(s.net_val)),
+    0
+  );
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-card p-4 rounded-xl border border-white/5">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1"># Saham</p>
-          <p className="text-xl font-black text-white">{totalStocks}</p>
-        </div>
-        <div className="bg-card p-4 rounded-xl border border-white/5">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Total Net</p>
-          <p className={`text-xl font-black ${totalNet >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {totalNet >= 0 ? '+' : ''}{fmt(totalNet)}
-          </p>
-        </div>
-        <div className="bg-card p-4 rounded-xl border border-white/5">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Top Emiten</p>
-          <p className="text-xl font-black text-yellow-400">{topEmiten}</p>
-        </div>
-        <div className="bg-card p-4 rounded-xl border border-white/5">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Konsentrasi (Top 3)</p>
-          <p className="text-xl font-black text-white">{concentration.toFixed(1)}%</p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Tab Filter (All | Domestik | Asing) */}
+      <div className="flex justify-center">
+        <div className="bg-card p-1 rounded-full border border-white/10 flex gap-1 shadow-lg">
+          {(['ALL', 'DOMESTIK', 'ASING'] as const).map(t => (
+            <button key={t} onClick={() => setFilterType(t)}
+              className={`px-6 py-1.5 rounded-full text-[10px] tracking-wider uppercase font-black transition-all ${
+                filterType === t 
+                  ? 'bg-gold-400 text-black shadow-md' 
+                  : 'text-gray-400 hover:text-white'
+              }`}>
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Dual Table */}
+      {/* Horizontal Bar Chart (Top Beli vs Top Jual) */}
+      <div className="glass rounded-2xl border border-white/10 p-5 shadow-xl">
+        <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-foreground">
+          <BarChart2 className="w-4 h-4 text-gold-400" />
+          Kekuatan Top Beli & Top Jual ({filterType})
+        </h3>
+        <div className="space-y-3">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const b = top10Buyers[i];
+            const s = top10Sellers[i];
+            const bPct = b && maxNet > 0 ? (b.net_val / maxNet) * 100 : 0;
+            const sPct = s && maxNet > 0 ? (Math.abs(s.net_val) / maxNet) * 100 : 0;
+            if (!b && !s) return null;
+            
+            return (
+              <div key={i} className="flex items-center gap-2">
+                {/* Seller Bar (Red, Right-to-Left) */}
+                <div className="flex-1 flex justify-end items-center gap-2">
+                  {s && <span className="text-[10px] text-gray-400 font-mono">{fmt(Math.abs(s.net_val))}</span>}
+                  {s && <span className="text-xs font-black w-6 text-right text-foreground">{s.broker_code}</span>}
+                  <div className="h-5 bg-white/5 rounded-sm overflow-hidden w-full max-w-[200px] flex justify-end">
+                    <div className="h-full bg-red-500/80 rounded-l-sm transition-all" style={{ width: `${sPct}%` }} />
+                  </div>
+                </div>
+                
+                <div className="w-px h-6 bg-white/10" />
+
+                {/* Buyer Bar (Green, Left-to-Right) */}
+                <div className="flex-1 flex justify-start items-center gap-2">
+                  <div className="h-5 bg-white/5 rounded-sm overflow-hidden w-full max-w-[200px]">
+                    <div className="h-full bg-emerald-500/80 rounded-r-sm transition-all" style={{ width: `${bPct}%` }} />
+                  </div>
+                  {b && <span className="text-xs font-black w-6 text-left text-foreground">{b.broker_code}</span>}
+                  {b && <span className="text-[10px] text-gray-400 font-mono">{fmt(b.net_val)}</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Broker Stalker Split Table Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Net Buy */}
-        <div className="bg-card rounded-2xl border border-emerald-500/20 overflow-hidden shadow-xl flex flex-col h-[600px]">
-          <div className="bg-emerald-500/10 px-4 py-3 border-b border-emerald-500/20 flex justify-between items-center shrink-0">
+        {/* Net Buy Table */}
+        <div className="bg-card rounded-2xl border border-emerald-500/20 overflow-hidden shadow-xl">
+          <div className="bg-emerald-500/10 px-4 py-3 border-b border-emerald-500/20 flex justify-between items-center">
             <span className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
               <TrendingUp className="w-3.5 h-3.5" /> NET BUY
             </span>
-            <div className="relative">
-              <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input value={searchBuy} onChange={e => setSearchBuy(e.target.value)}
-                className="bg-black/20 border border-emerald-500/20 rounded px-2.5 py-1 pl-7 text-[10px] text-white outline-none w-32" 
-                placeholder="Cari emiten..." />
-            </div>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">{filteredBuyers.length} Brokers</span>
           </div>
-          <div className="overflow-y-auto flex-1 custom-scrollbar">
-            <table className="w-full text-left text-[11px]">
-              <thead className="bg-[#1a2235] text-gray-500 text-[10px] sticky top-0 z-10 shadow-md">
-                <tr>
-                  <th className="px-3 py-2.5">EMITEN</th>
-                  <th className="px-3 py-2.5 text-right">NET VAL</th>
-                  <th className="px-3 py-2.5 text-right text-gray-600 hidden xl:table-cell">B.VAL</th>
-                  <th className="px-3 py-2.5 text-right text-gray-600 hidden xl:table-cell">S.VAL</th>
-                  <th className="px-3 py-2.5 text-right">B.AVG</th>
+          <table className="w-full text-left text-[11px]">
+            <thead className="bg-[#1a2235] text-gray-500 text-[10px]">
+              <tr>
+                <th className="px-3 py-2.5">BROKER</th>
+                <th className="px-3 py-2.5 text-right">LOT</th>
+                <th className="px-3 py-2.5 text-right">VAL</th>
+                <th className="px-3 py-2.5 text-right">B.AVG</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filteredBuyers.map(b => (
+                <tr key={b.broker_code} className="hover:bg-white/[0.03]">
+                  <td className="px-3 py-2 font-black text-foreground">{b.broker_code}</td>
+                  <td className="px-3 py-2 text-right text-gray-400 font-mono">{fmtLot(b.buy_lot)}</td>
+                  <td className="px-3 py-2 text-right font-bold text-emerald-400 font-mono">{fmt(b.net_val)}</td>
+                  <td className="px-3 py-2 text-right text-yellow-400 font-mono">{fmtPrice(b.buy_avg_price)}</td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredNetBuy.map(r => (
-                  <tr key={r.stock_code} className="hover:bg-white/[0.03]">
-                    <td className="px-3 py-2 font-black text-white">{r.stock_code}</td>
-                    <td className="px-3 py-2 text-right font-bold text-emerald-400 font-mono">{fmt(r.net_val)}</td>
-                    <td className="px-3 py-2 text-right text-gray-400 font-mono hidden xl:table-cell">{fmt(r.buy_val)}</td>
-                    <td className="px-3 py-2 text-right text-gray-400 font-mono hidden xl:table-cell">{fmt(r.sell_val)}</td>
-                    <td className="px-3 py-2 text-right text-yellow-400 font-mono">{fmtPrice(r.buy_avg_price)}</td>
-                  </tr>
-                ))}
-                {filteredNetBuy.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-10 text-gray-500">Tidak ada data</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-2 border-t border-emerald-500/20 text-[10px] text-emerald-500 font-bold bg-emerald-500/5 text-center shrink-0">
-            {filteredNetBuy.length} Emiten
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Net Sell */}
-        <div className="bg-card rounded-2xl border border-red-500/20 overflow-hidden shadow-xl flex flex-col h-[600px]">
-          <div className="bg-red-500/10 px-4 py-3 border-b border-red-500/20 flex justify-between items-center shrink-0">
+        {/* Net Sell Table */}
+        <div className="bg-card rounded-2xl border border-red-500/20 overflow-hidden shadow-xl">
+          <div className="bg-red-500/10 px-4 py-3 border-b border-red-500/20 flex justify-between items-center">
             <span className="text-xs font-black text-red-400 uppercase tracking-widest flex items-center gap-2">
               <TrendingDown className="w-3.5 h-3.5" /> NET SELL
             </span>
-            <div className="relative">
-              <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input value={searchSell} onChange={e => setSearchSell(e.target.value)}
-                className="bg-black/20 border border-red-500/20 rounded px-2.5 py-1 pl-7 text-[10px] text-white outline-none w-32" 
-                placeholder="Cari emiten..." />
-            </div>
+            <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded font-bold">{filteredSellers.length} Brokers</span>
           </div>
-          <div className="overflow-y-auto flex-1 custom-scrollbar">
-            <table className="w-full text-left text-[11px]">
-              <thead className="bg-[#1a2235] text-gray-500 text-[10px] sticky top-0 z-10 shadow-md">
-                <tr>
-                  <th className="px-3 py-2.5">EMITEN</th>
-                  <th className="px-3 py-2.5 text-right">NET VAL</th>
-                  <th className="px-3 py-2.5 text-right text-gray-600 hidden xl:table-cell">B.VAL</th>
-                  <th className="px-3 py-2.5 text-right text-gray-600 hidden xl:table-cell">S.VAL</th>
-                  <th className="px-3 py-2.5 text-right">S.AVG</th>
+          <table className="w-full text-left text-[11px]">
+            <thead className="bg-[#1a2235] text-gray-500 text-[10px]">
+              <tr>
+                <th className="px-3 py-2.5">BROKER</th>
+                <th className="px-3 py-2.5 text-right">LOT</th>
+                <th className="px-3 py-2.5 text-right">VAL</th>
+                <th className="px-3 py-2.5 text-right">S.AVG</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filteredSellers.map(s => (
+                <tr key={s.broker_code} className="hover:bg-white/[0.03]">
+                  <td className="px-3 py-2 font-black text-foreground">{s.broker_code}</td>
+                  <td className="px-3 py-2 text-right text-gray-400 font-mono">{fmtLot(s.sell_lot)}</td>
+                  <td className="px-3 py-2 text-right font-bold text-red-400 font-mono">{fmt(Math.abs(s.net_val))}</td>
+                  <td className="px-3 py-2 text-right text-yellow-400 font-mono">{fmtPrice(s.sell_avg_price)}</td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredNetSell.map(r => (
-                  <tr key={r.stock_code} className="hover:bg-white/[0.03]">
-                    <td className="px-3 py-2 font-black text-white">{r.stock_code}</td>
-                    <td className="px-3 py-2 text-right font-bold text-red-400 font-mono">{fmt(Math.abs(r.net_val))}</td>
-                    <td className="px-3 py-2 text-right text-gray-400 font-mono hidden xl:table-cell">{fmt(r.buy_val)}</td>
-                    <td className="px-3 py-2 text-right text-gray-400 font-mono hidden xl:table-cell">{fmt(r.sell_val)}</td>
-                    <td className="px-3 py-2 text-right text-yellow-400 font-mono">{fmtPrice(r.sell_avg_price)}</td>
-                  </tr>
-                ))}
-                {filteredNetSell.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-10 text-gray-500">Tidak ada data</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-2 border-t border-red-500/20 text-[10px] text-red-500 font-bold bg-red-500/5 text-center shrink-0">
-            {filteredNetSell.length} Emiten
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -2238,34 +2238,12 @@ export default function BrokerTrackerPage() {
   const [loading,         setLoading]         = useState(false);
   const [error,           setError]           = useState<string | null>(null);
 
-  // ── NEW: Broker Stalking state ────────────────────────────────────────────
-  const [stalkerBrokers, setStalkerBrokers] = useState('AK, LG');
-  const [stalkerData, setStalkerData]       = useState<BrokerStalkerRow[]>([]);
-  const [stalkerLoading, setStalkerLoading] = useState(false);
-
   // ── Screener filters ──────────────────────────────────────────────────────
   const [filterSector,     setFilterSector]     = useState('');
   const [filterWhaleOnly,  setFilterWhaleOnly]  = useState(false);
   const [filterPowerScore, setFilterPowerScore] = useState(0);
   const [filterMinVal,     setFilterMinVal]     = useState('1000000000');
   const [filterMinBroker,  setFilterMinBroker]  = useState('3');
-
-  const loadStalkerData = useCallback(async () => {
-    if (!stalkerBrokers.trim()) return;
-    setStalkerLoading(true);
-    setError(null);
-    try {
-      // NOTE: startDate & endDate are shared with the 'tracker' tab
-      const res = await fetch(`/api/broker-tracker?action=broker_stalker&broker_codes=${encodeURIComponent(stalkerBrokers)}&startDate=${startDate}&endDate=${endDate}`);
-      const json = await res.json();
-      if (json.error) setError(json.error);
-      else setStalkerData(json.data || json);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setStalkerLoading(false);
-    }
-  }, [stalkerBrokers, startDate, endDate]);
 
   // ── Sort ──────────────────────────────────────────────────────────────────
   const [buySortCol,  setBuySortCol]  = useState<keyof TrackerRow>('net_val');
@@ -2459,7 +2437,7 @@ export default function BrokerTrackerPage() {
     const params = `startDate=${startDate}&endDate=${endDate}`;
 
     try {
-      if (tab === 'tracker') {
+      if (tab === 'tracker' || tab === 'sabarkaya') {
         // 1.3: tracker+history+price_history+stock_context in ONE request (action=bundle);
         // divergence kept separate (heavier 5-CTE query). Wave-1 round-trips: 5 → 2.
         const [bundleRes, divRes] = await Promise.all([
@@ -2776,7 +2754,7 @@ export default function BrokerTrackerPage() {
             { id: 'screener', label: 'Screener', icon: <Target className="w-3 h-3" />, count: screenerData.length },
             { id: 'intel', label: 'Intel', icon: <Radio className="w-3 h-3" />, count: brokerIntel.length },
             { id: 'inventory', label: 'Inventory', icon: <Layers className="w-3 h-3" />, count: 0 },
-            { id: 'stalking', label: 'Broker Stalking', icon: <Users className="w-3 h-3" />, count: stalkerData.length },
+            { id: 'sabarkaya', label: 'Ref: Sabarkaya', icon: <Star className="w-3 h-3" />, count: 0 },
           ] as const).map(tab => (
             <button key={tab.id}
               onClick={() => { setActiveTab(tab.id); setError(null); }}
@@ -2806,39 +2784,23 @@ export default function BrokerTrackerPage() {
       </div>
 
       {/* Control Panel */}
-      {(activeTab === 'tracker' || activeTab === 'screener' || activeTab === 'stalking') && (
+      {(activeTab === 'tracker' || activeTab === 'screener') && (
         <div className="glass p-3 md:p-4 rounded-2xl border border-border/50">
           <div className="flex flex-wrap gap-3 items-end">
-            {(activeTab === 'tracker' || activeTab === 'stalking') && (
+            {activeTab === 'tracker' && (
               <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">
-                  {activeTab === 'stalking' ? 'Kode Broker (Max 20)' : 'Stock Ticker'}
-                </label>
+                <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">Stock Ticker</label>
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    {activeTab === 'stalking' ? (
-                      <Users className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                    ) : (
-                      <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                    )}
-                    
-                    {activeTab === 'stalking' ? (
-                      <input value={stalkerBrokers} onChange={e => setStalkerBrokers(e.target.value.toUpperCase())}
-                        onKeyDown={e => e.key === 'Enter' && loadStalkerData()}
-                        className="w-40 bg-background border border-white/5 rounded-lg pl-8 pr-3 py-2
-                                   text-sm font-black text-yellow-400 focus:ring-1 focus:ring-yellow-400
-                                   outline-none placeholder:text-gray-600"
-                        placeholder="AK, LG, BK" />
-                    ) : (
-                      <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
-                        onKeyDown={e => e.key === 'Enter' && loadData()}
-                        className="w-28 bg-background border border-white/5 rounded-lg pl-8 pr-3 py-2
-                                   text-sm font-black text-yellow-400 focus:ring-1 focus:ring-yellow-400
-                                   outline-none placeholder:text-gray-600"
-                        placeholder="BBCA" maxLength={10} />
-                    )}
+                    <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
+                      onKeyDown={e => e.key === 'Enter' && loadData()}
+                      className="w-28 bg-background border border-white/5 rounded-lg pl-8 pr-3 py-2
+                                 text-sm font-black text-yellow-400 focus:ring-1 focus:ring-yellow-400
+                                 outline-none placeholder:text-gray-600"
+                      placeholder="BBCA" maxLength={10} />
                   </div>
-                  {activeTab === 'tracker' && code.trim().length >= 2 && (
+                  {code.trim().length >= 2 && (
                     <Link href={`/stock/${code.trim().toUpperCase()}`} prefetch={false}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10
                                  bg-white/[0.04] text-[10px] font-bold text-gray-400 hover:text-gold-400
@@ -2901,8 +2863,8 @@ export default function BrokerTrackerPage() {
               </div>
             )}
 
-            {/* Time Horizon — for Tracker and Stalking */}
-            {(activeTab === 'tracker' || activeTab === 'stalking') && (
+            {/* Time Horizon — only for Tracker (Screener uses Periode → fixed materialized window) */}
+            {activeTab === 'tracker' && (
             <div className="space-y-1.5 flex-1 min-w-0">
               <label className="text-[10px] uppercase font-bold text-gray-500 ml-1 flex items-center gap-1.5">
                 <Calendar className="w-3 h-3" /> Time Horizon
@@ -2934,18 +2896,12 @@ export default function BrokerTrackerPage() {
             </div>
             )}
 
-            <button 
-              onClick={() => {
-                if (activeTab === 'screener') loadData();
-                else if (activeTab === 'stalking') loadStalkerData();
-                else loadData();
-              }} 
-              disabled={loading || stalkerLoading}
+            <button onClick={() => loadData()} disabled={loading}
               className="bg-gold-400 text-black px-7 py-2 rounded-xl font-black text-xs
                          hover:bg-gold-300 active:scale-95 transition-all flex items-center gap-2
                          disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gold-400/20">
-              {(loading || stalkerLoading) ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <RefreshCw className="w-3.5 h-3.5" />}
-              {activeTab === 'tracker' ? 'RUN TRACKER' : activeTab === 'stalking' ? 'STALK BROKER' : 'SCAN ACCUM'}
+              {loading ? <Loader2 className="animate-spin w-3.5 h-3.5" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              {activeTab === 'tracker' ? 'RUN TRACKER' : 'SCAN ACCUM'}
             </button>
           </div>
         </div>
@@ -3103,24 +3059,35 @@ export default function BrokerTrackerPage() {
         />
       )}
 
-      {/* ── BROKER STALKING TAB ── */}
-      {activeTab === 'stalking' && (
+      {/* ── SABARKAYA REFERENCE TAB ── */}
+      {activeTab === 'sabarkaya' && (
         <div className="glass p-5 rounded-2xl border border-border/50 shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
             <div className="p-2 bg-gold-400/10 rounded-xl border border-gold-400/20 inline-flex">
-              <Users className="w-5 h-5 text-gold-400" />
+              <Star className="w-5 h-5 text-gold-400" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-foreground">Broker Stalking</h2>
-              <p className="text-[11px] text-muted-foreground">Analisis portofolio emiten yang sedang diakumulasi atau didistribusi oleh sekumpulan broker.</p>
+              <h2 className="text-lg font-black text-foreground">Broker Stalker (Sabarkaya Ref)</h2>
+              <p className="text-[11px] text-muted-foreground">Analisis detail broker dengan visualisasi top buyer/seller dan layout dual-table berdampingan.</p>
+            </div>
+            <div className="ml-auto flex items-center bg-background rounded-lg border border-border px-3 py-1.5 gap-2 w-full md:w-auto">
+              <Search className="w-3.5 h-3.5 text-gold-400" />
+              <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
+                onKeyDown={e => e.key === 'Enter' && loadData()}
+                className="w-full md:w-20 bg-transparent text-sm font-black text-foreground outline-none uppercase"
+                placeholder="BBCA" />
+              <button onClick={() => loadData()} disabled={loading}
+                className="px-3 py-1 rounded bg-gold-400/10 text-gold-400 hover:bg-gold-400/20 text-[10px] font-bold border border-gold-400/20">
+                LOAD
+              </button>
             </div>
           </div>
-          {stalkerLoading ? (
+          {loading ? (
              <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gold-400" /></div>
-          ) : stalkerData.length === 0 ? (
-             <div className="py-10 text-center text-gray-500 font-bold">Ketik kode broker (misal: AK, LG) lalu klik STALK BROKER.</div>
+          ) : buyers.length === 0 && sellers.length === 0 ? (
+             <div className="py-10 text-center text-gray-500">Ketik kode saham dan load data.</div>
           ) : (
-            <BrokerStalkingTab data={stalkerData} />
+            <SabarkayaReferenceTab buyers={buyers} sellers={sellers} currentPrice={currentPrice} code={code} />
           )}
         </div>
       )}
