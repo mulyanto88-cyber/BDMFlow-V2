@@ -49,7 +49,6 @@ export async function GET(req: NextRequest) {
     // SCREENER — smart money momentum per saham
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'screener') {
-      // Parameterized — trend/divergence/sector were string-interpolated (SQL injection risk)
       const conditions: string[] = ['ABS(COALESCE(m0_smart,0)) > 0.01']
       const params: any[] = []
       if (trend)  { params.push(trend);  conditions.push(`smart_money_trend = $${params.length}`) }
@@ -69,94 +68,142 @@ export async function GET(req: NextRequest) {
     // DEEP DIVE — full investor breakdown + 12-month trend for one stock
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'deepdive' && code) {
-      // 1. Trend bulanan (smart/foreign/retail flow) — guarded corp action
+      // 1. Trend bulanan (smart/foreign/retail flow + all 18 investor flows) — using precalculated columns
       const trend12 = await run(`
-        WITH lag_data AS (
-          SELECT
-            Date, Price::DOUBLE AS price,
-            ${SMART} AS smart_vol, ${LOCAL_SMART} AS local_smart, ${FOREIGN_SMART} AS foreign_smart,
-            ${RETAIL} AS retail_vol, ${TOTAL_ALL} AS total_all, ${FOREIGN_ALL} AS foreign_all,
-            LAG(${SMART})         OVER (ORDER BY Date) AS p_smart,
-            LAG(${LOCAL_SMART})   OVER (ORDER BY Date) AS p_local,
-            LAG(${FOREIGN_SMART}) OVER (ORDER BY Date) AS p_foreign,
-            LAG(${RETAIL})        OVER (ORDER BY Date) AS p_retail,
-            LAG(${TOTAL_ALL})     OVER (ORDER BY Date) AS p_total
-          FROM ksei.monthly_snapshot WHERE Code = '${code}'
+        SELECT
+          Date::VARCHAR AS month,
+          Price::DOUBLE AS price,
+          ROUND((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Local_MF_Chg_Val +
+                 Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val + Foreign_MF_Chg_Val) / 1e9, 2) AS smart_flow,
+          ROUND((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Local_MF_Chg_Val) / 1e9, 2) AS local_flow,
+          ROUND((Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val + Foreign_MF_Chg_Val) / 1e9, 2) AS foreign_flow,
+          ROUND((Local_ID_Chg_Val + Foreign_ID_Chg_Val) / 1e9, 2) AS retail_flow,
+          ROUND(Total_Foreign / NULLIF(Total_Shares, 0) * 100, 2) AS foreign_own_pct,
+          -- Individual 18 flows
+          ROUND(Local_IS_Chg_Val / 1e9, 2) AS local_is_flow,
+          ROUND(Local_CP_Chg_Val / 1e9, 2) AS local_cp_flow,
+          ROUND(Local_PF_Chg_Val / 1e9, 2) AS local_pf_flow,
+          ROUND(Local_IB_Chg_Val / 1e9, 2) AS local_ib_flow,
+          ROUND(Local_ID_Chg_Val / 1e9, 2) AS local_id_flow,
+          ROUND(Local_MF_Chg_Val / 1e9, 2) AS local_mf_flow,
+          ROUND(Local_SC_Chg_Val / 1e9, 2) AS local_sc_flow,
+          ROUND(Local_FD_Chg_Val / 1e9, 2) AS local_fd_flow,
+          ROUND(Local_OT_Chg_Val / 1e9, 2) AS local_ot_flow,
+          ROUND(Foreign_IS_Chg_Val / 1e9, 2) AS foreign_is_flow,
+          ROUND(Foreign_CP_Chg_Val / 1e9, 2) AS foreign_cp_flow,
+          ROUND(Foreign_PF_Chg_Val / 1e9, 2) AS foreign_pf_flow,
+          ROUND(Foreign_IB_Chg_Val / 1e9, 2) AS foreign_ib_flow,
+          ROUND(Foreign_ID_Chg_Val / 1e9, 2) AS foreign_id_flow,
+          ROUND(Foreign_MF_Chg_Val / 1e9, 2) AS foreign_mf_flow,
+          ROUND(Foreign_SC_Chg_Val / 1e9, 2) AS foreign_sc_flow,
+          ROUND(Foreign_FD_Chg_Val / 1e9, 2) AS foreign_fd_flow,
+          ROUND(Foreign_OT_Chg_Val / 1e9, 2) AS foreign_ot_flow
+        FROM ksei.monthly_snapshot
+        WHERE Code = $1
+          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code = $1) - INTERVAL '12 months'
+        ORDER BY Date ASC
+      `, [code])
+
+      // 2. Komposisi 18 tipe investor (latest month) — % of Total_Shares via unpivot
+      const composition = await run(`
+        WITH latest AS (
+          SELECT * FROM ksei.monthly_snapshot WHERE Code = $1
+          ORDER BY Date DESC LIMIT 1
         )
         SELECT
-          Date::VARCHAR AS month, price,
-          CASE WHEN ${ratioOk('total_all','p_total')}
-               THEN ROUND((smart_vol   - p_smart)   * price / 1e9, 2) ELSE 0 END AS smart_flow,
-          CASE WHEN ${ratioOk('total_all','p_total')}
-               THEN ROUND((local_smart - p_local)   * price / 1e9, 2) ELSE 0 END AS local_flow,
-          CASE WHEN ${ratioOk('total_all','p_total')}
-               THEN ROUND((foreign_smart - p_foreign) * price / 1e9, 2) ELSE 0 END AS foreign_flow,
-          CASE WHEN ${ratioOk('total_all','p_total')}
-               THEN ROUND((retail_vol  - p_retail)  * price / 1e9, 2) ELSE 0 END AS retail_flow,
-          ROUND(foreign_all / NULLIF(total_all,0) * 100, 2) AS foreign_own_pct
-        FROM lag_data
-        WHERE p_smart IS NOT NULL
-          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code='${code}') - INTERVAL '12 months'
-        ORDER BY Date ASC
-      `)
-
-      // 2. Komposisi 18 tipe investor (latest vs prev month) — % of TOTAL_ALL
-      const composition = await run(`
-        WITH latest2 AS (
-          SELECT * FROM ksei.monthly_snapshot WHERE Code = '${code}'
-          ORDER BY Date DESC LIMIT 2
-        ),
-        cur  AS (SELECT * FROM latest2 ORDER BY Date DESC LIMIT 1),
-        prev AS (SELECT * FROM latest2 ORDER BY Date ASC LIMIT 1),
-        tot AS (SELECT ${TOTAL_ALL} AS total_all FROM cur)
-        SELECT
           t.tipe, t.kategori,
-          ROUND(t.cur_vol / NULLIF((SELECT total_all FROM tot),0) * 100, 2) AS pct,
-          t.cur_vol::BIGINT  AS shares,
-          ROUND((t.cur_vol - t.prev_vol) / NULLIF((SELECT total_all FROM tot),0) * 100, 3) AS delta_pct,
-          (t.cur_vol - t.prev_vol)::BIGINT AS delta_shares
-        FROM (
-          SELECT 'Local CP' AS tipe, 'Smart' AS kategori, (SELECT Local_CP FROM cur) AS cur_vol, (SELECT Local_CP FROM prev) AS prev_vol
-          UNION ALL SELECT 'Local PF','Smart',(SELECT Local_PF FROM cur),(SELECT Local_PF FROM prev)
-          UNION ALL SELECT 'Local IB','Smart',(SELECT Local_IB FROM cur),(SELECT Local_IB FROM prev)
-          UNION ALL SELECT 'Local MF','Smart',(SELECT Local_MF FROM cur),(SELECT Local_MF FROM prev)
-          UNION ALL SELECT 'Local ID','Retail',(SELECT Local_ID FROM cur),(SELECT Local_ID FROM prev)
-          UNION ALL SELECT 'Local IS','Inst',(SELECT Local_IS FROM cur),(SELECT Local_IS FROM prev)
-          UNION ALL SELECT 'Local SC','Other',(SELECT Local_SC FROM cur),(SELECT Local_SC FROM prev)
-          UNION ALL SELECT 'Local FD','Other',(SELECT Local_FD FROM cur),(SELECT Local_FD FROM prev)
-          UNION ALL SELECT 'Local OT','Other',(SELECT Local_OT FROM cur),(SELECT Local_OT FROM prev)
-          UNION ALL SELECT 'Foreign CP','Smart',(SELECT Foreign_CP FROM cur),(SELECT Foreign_CP FROM prev)
-          UNION ALL SELECT 'Foreign PF','Smart',(SELECT Foreign_PF FROM cur),(SELECT Foreign_PF FROM prev)
-          UNION ALL SELECT 'Foreign IB','Smart',(SELECT Foreign_IB FROM cur),(SELECT Foreign_IB FROM prev)
-          UNION ALL SELECT 'Foreign MF','Smart',(SELECT Foreign_MF FROM cur),(SELECT Foreign_MF FROM prev)
-          UNION ALL SELECT 'Foreign ID','Retail',(SELECT Foreign_ID FROM cur),(SELECT Foreign_ID FROM prev)
-          UNION ALL SELECT 'Foreign IS','Inst',(SELECT Foreign_IS FROM cur),(SELECT Foreign_IS FROM prev)
-          UNION ALL SELECT 'Foreign SC','Other',(SELECT Foreign_SC FROM cur),(SELECT Foreign_SC FROM prev)
-          UNION ALL SELECT 'Foreign FD','Other',(SELECT Foreign_FD FROM cur),(SELECT Foreign_FD FROM prev)
-          UNION ALL SELECT 'Foreign OT','Other',(SELECT Foreign_OT FROM cur),(SELECT Foreign_OT FROM prev)
+          ROUND(t.shares / NULLIF(latest.Total_Shares, 0) * 100, 2) AS pct,
+          t.shares,
+          ROUND(t.delta_shares / NULLIF(latest.Total_Shares, 0) * 100, 3) AS delta_pct,
+          t.delta_shares
+        FROM latest,
+        (
+          SELECT 'Local CP' AS tipe, 'Smart' AS kategori, Local_CP AS shares, Local_CP_Chg_Vol AS delta_shares FROM latest
+          UNION ALL SELECT 'Local PF','Smart',Local_PF,Local_PF_Chg_Vol
+          UNION ALL SELECT 'Local IB','Smart',Local_IB,Local_IB_Chg_Vol
+          UNION ALL SELECT 'Local MF','Smart',Local_MF,Local_MF_Chg_Vol
+          UNION ALL SELECT 'Local ID','Retail',Local_ID,Local_ID_Chg_Vol
+          UNION ALL SELECT 'Local IS','Inst',Local_IS,Local_IS_Chg_Vol
+          UNION ALL SELECT 'Local SC','Other',Local_SC,Local_SC_Chg_Vol
+          UNION ALL SELECT 'Local FD','Other',Local_FD,Local_FD_Chg_Vol
+          UNION ALL SELECT 'Local OT','Other',Local_OT,Local_OT_Chg_Vol
+          UNION ALL SELECT 'Foreign CP','Smart',Foreign_CP,Foreign_CP_Chg_Vol
+          UNION ALL SELECT 'Foreign PF','Smart',Foreign_PF,Foreign_PF_Chg_Vol
+          UNION ALL SELECT 'Foreign IB','Smart',Foreign_IB,Foreign_IB_Chg_Vol
+          UNION ALL SELECT 'Foreign MF','Smart',Foreign_MF,Foreign_MF_Chg_Vol
+          UNION ALL SELECT 'Foreign ID','Retail',Foreign_ID,Foreign_ID_Chg_Vol
+          UNION ALL SELECT 'Foreign IS','Inst',Foreign_IS,Foreign_IS_Chg_Vol
+          UNION ALL SELECT 'Foreign SC','Other',Foreign_SC,Foreign_SC_Chg_Vol
+          UNION ALL SELECT 'Foreign FD','Other',Foreign_FD,Foreign_FD_Chg_Vol
+          UNION ALL SELECT 'Foreign OT','Other',Foreign_OT,Foreign_OT_Chg_Vol
         ) t
-        WHERE t.cur_vol > 0
+        WHERE t.shares > 0
         ORDER BY pct DESC
-      `)
+      `, [code])
 
-      // 3. Summary stats — foreign% dari sum 18 kolom
+      // 3. Summary stats — using pre-calculated total_shares
       const summary = await run(`
         SELECT
           Code AS stock_code, Date::VARCHAR AS latest_month, Price::DOUBLE AS price,
-          ${TOTAL_ALL} AS total_shares,
-          ROUND(${FOREIGN_ALL} / NULLIF(${TOTAL_ALL},0) * 100, 2) AS foreign_pct,
-          ROUND(${LOCAL_ALL}   / NULLIF(${TOTAL_ALL},0) * 100, 2) AS local_pct,
+          Total_Shares AS total_shares,
+          ROUND(Total_Foreign / NULLIF(Total_Shares, 0) * 100, 2) AS foreign_pct,
+          ROUND(Total_Local / NULLIF(Total_Shares, 0) * 100, 2) AS local_pct,
           Top_Buyer AS top_buyer, Top_Seller AS top_seller,
           Is_Split_Suspect AS is_split, Is_Reverse_Suspect AS is_reverse
         FROM ksei.monthly_snapshot
-        WHERE Code = '${code}'
+        WHERE Code = $1
         ORDER BY Date DESC LIMIT 1
-      `)
+      `, [code])
+
+      // 4. Funds and ETFs holding this stock (latest month vs prev month) from 1% registry
+      const funds = await run(`
+        WITH latest_date AS (
+          SELECT MAX(date) AS mdate FROM ksei.ownership_1pct WHERE share_code = $1
+        ),
+        prev_date AS (
+          SELECT MAX(date) AS pdate FROM ksei.ownership_1pct 
+          WHERE share_code = $1 AND date < (SELECT mdate FROM latest_date)
+        ),
+        cur AS (
+          SELECT * FROM ksei.ownership_1pct, latest_date WHERE date = latest_date.mdate AND share_code = $1
+        ),
+        prev AS (
+          SELECT * FROM ksei.ownership_1pct, prev_date WHERE date = prev_date.pdate AND share_code = $1
+        )
+        SELECT
+          cur.investor_name,
+          cur.percentage AS cur_pct,
+          cur.total_holding_shares AS cur_shares,
+          COALESCE(prev.percentage, 0) AS prev_pct,
+          (cur.percentage - COALESCE(prev.percentage, 0)) AS chg_pct,
+          (cur.total_holding_shares - COALESCE(prev.total_holding_shares, 0))::BIGINT AS chg_shares,
+          CASE
+            WHEN cur.local_foreign IN ('L', 'D') THEN 'Local'
+            WHEN cur.local_foreign = 'F' THEN 'Foreign'
+            ELSE 'Unknown'
+          END AS side,
+          CASE
+            WHEN cur.investor_name ILIKE '%ETF%' 
+              OR cur.investor_name ILIKE '%EXCHANGE TRADED%' 
+              OR cur.investor_type = 'Exchange Traded Funds' 
+              THEN 'ETF'
+            ELSE 'Mutual Fund'
+          END AS category
+        FROM cur
+        LEFT JOIN prev ON cur.investor_name = prev.investor_name
+        WHERE cur.investor_name ILIKE '%ETF%'
+           OR cur.investor_name ILIKE '%EXCHANGE TRADED%'
+           OR cur.investor_name ILIKE '%REKSA DANA%'
+           OR cur.investor_name ILIKE '%MUTUAL FUND%'
+           OR cur.investor_type IN ('Mutual Funds', 'MF', 'Exchange Traded Funds')
+        ORDER BY cur_pct DESC
+      `, [code])
 
       return NextResponse.json({
         trend: trend12,
         composition,
         summary: (summary as any[])[0] ?? null,
+        funds,
       })
     }
 
@@ -174,37 +221,22 @@ export async function GET(req: NextRequest) {
 
     // ════════════════════════════════════════════════════════════════════════
     // STOCK TREND — per-stock 12-month smart-money trend (for the stock-detail
-    // "KSEI Intel" tab). Deltas via LAG() (NOT the zeroed *_Chg_Val cols), with
-    // the corp-action guard. Returns fields the page expects: net_smart, cp_flow,
-    // pf_flow, ib_flow, retail, foreign_smart, month.
+    // "KSEI Intel" tab) using precalculated columns.
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'stock_trend' && code) {
       const data = await run(`
-        WITH lagged AS (
-          SELECT Date, Price::DOUBLE AS price,
-            ${TOTAL_ALL} AS tot,
-            LAG(${TOTAL_ALL}) OVER w AS ptot,
-            (Local_CP - LAG(Local_CP) OVER w) AS d_lcp,
-            (Local_PF - LAG(Local_PF) OVER w) AS d_lpf,
-            (Local_IB - LAG(Local_IB) OVER w) AS d_lib,
-            (Local_ID - LAG(Local_ID) OVER w) AS d_lid,
-            ((Foreign_CP + Foreign_PF + Foreign_IB) - LAG(Foreign_CP + Foreign_PF + Foreign_IB) OVER w) AS d_fsmart
-          FROM ksei.monthly_snapshot
-          WHERE Code = '${code}'
-          WINDOW w AS (ORDER BY Date)
-        )
-        SELECT Date::VARCHAR AS month, price,
-          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND((d_lcp + d_lpf + d_lib + d_fsmart) * price / 1e9, 2) ELSE 0 END AS net_smart,
-          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lcp    * price / 1e9, 2) ELSE 0 END AS cp_flow,
-          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lpf    * price / 1e9, 2) ELSE 0 END AS pf_flow,
-          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lib    * price / 1e9, 2) ELSE 0 END AS ib_flow,
-          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_lid    * price / 1e9, 2) ELSE 0 END AS retail,
-          CASE WHEN ${ratioOk('tot','ptot')} THEN ROUND(d_fsmart * price / 1e9, 2) ELSE 0 END AS foreign_smart
-        FROM lagged
-        WHERE ptot IS NOT NULL
-          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code = '${code}') - INTERVAL '12 months'
+        SELECT Date::VARCHAR AS month, Price::DOUBLE AS price,
+          ROUND((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val) / 1e9, 2) AS net_smart,
+          ROUND(Local_CP_Chg_Val / 1e9, 2) AS cp_flow,
+          ROUND(Local_PF_Chg_Val / 1e9, 2) AS pf_flow,
+          ROUND(Local_IB_Chg_Val / 1e9, 2) AS ib_flow,
+          ROUND(Local_ID_Chg_Val / 1e9, 2) AS retail,
+          ROUND((Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val) / 1e9, 2) AS foreign_smart
+        FROM ksei.monthly_snapshot
+        WHERE Code = $1
+          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code = $1) - INTERVAL '12 months'
         ORDER BY Date ASC
-      `)
+      `, [code])
       return NextResponse.json({ data })
     }
 
@@ -213,24 +245,14 @@ export async function GET(req: NextRequest) {
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'flows') {
       const months  = Math.min(12, Math.max(2, parseInt(searchParams.get('months') || '6')))
-      const lagCols = TYPE_COLS.map(c => `(${c} - LAG(${c}) OVER w) AS d_${c}`).join(',\n            ')
       const sumCols = TYPE_COLS.map(c =>
-        `ROUND(SUM(CASE WHEN ${ratioOk('tot','ptot')} THEN d_${c} * p / 1e9 ELSE 0 END), 1) AS "${c}"`
+        `ROUND(SUM(COALESCE("${c}_Chg_Val", 0)) / 1e9, 1) AS "${c}"`
       ).join(',\n            ')
       const data = await run(`
-        WITH lagged AS (
-          SELECT Date, Price::DOUBLE AS p,
-            ${TOTAL_ALL} AS tot,
-            LAG(${TOTAL_ALL}) OVER w AS ptot,
-            ${lagCols}
-          FROM ksei.monthly_snapshot
-          WINDOW w AS (PARTITION BY Code ORDER BY Date)
-        )
         SELECT Date::VARCHAR AS month,
             ${sumCols}
-        FROM lagged
-        WHERE ptot IS NOT NULL
-          AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot) - INTERVAL '${months} months'
+        FROM ksei.monthly_snapshot
+        WHERE Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot) - INTERVAL '${months} months'
         GROUP BY Date ORDER BY Date ASC
       `)
       return NextResponse.json({ data })
@@ -249,21 +271,14 @@ export async function GET(req: NextRequest) {
       const monthExpr = monthOk ? '$1::DATE' : '(SELECT MAX(Date) FROM ksei.monthly_snapshot)'
       const params    = monthOk ? [month] : []
       const detailSql = (dir: 'buy' | 'sell') => `
-        WITH lagged AS (
-          SELECT Code, Date, Price::DOUBLE AS p,
-            ${type} AS cur, LAG(${type}) OVER w AS prev,
-            ${TOTAL_ALL} AS tot, LAG(${TOTAL_ALL}) OVER w AS ptot
-          FROM ksei.monthly_snapshot
-          WINDOW w AS (PARTITION BY Code ORDER BY Date)
-        )
         SELECT l.Code AS stock_code, s.sector,
-          ROUND((cur - prev) * p / 1e9, 2) AS flow_m,
-          (cur - prev)::BIGINT AS delta_shares, p AS price
-        FROM lagged l
+          ROUND(COALESCE(l."${type}_Chg_Val", 0) / 1e9, 2) AS flow_m,
+          COALESCE(l."${type}_Chg_Vol", 0) AS delta_shares,
+          l.Price::DOUBLE AS price
+        FROM ksei.monthly_snapshot l
         LEFT JOIN ksei.tb_ksei_monthly_scored s ON s.stock_code = l.Code
-        WHERE l.Date = ${monthExpr} AND ptot IS NOT NULL
-          AND ${ratioOk('tot','ptot')}
-          AND (cur - prev) ${dir === 'buy' ? '> 0' : '< 0'}
+        WHERE l.Date = ${monthExpr}
+          AND COALESCE(l."${type}_Chg_Vol", 0) ${dir === 'buy' ? '> 0' : '< 0'}
         ORDER BY flow_m ${dir === 'buy' ? 'DESC' : 'ASC'}
         LIMIT 25
       `
