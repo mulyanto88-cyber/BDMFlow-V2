@@ -509,7 +509,15 @@ function OwnershipDonut({ composition }: { composition: any[] }) {
 // DEEP DIVE CONTENT
 // ════════════════════════════════════════════════════════════════════════════
 function DeepDiveContent({ code, data }: { code: string; data: any }) {
-  const { trend, composition, summary } = data
+  const { trend, composition, summary, funds = [] } = data
+
+  const [chartMode, setChartMode] = useState<'overview' | 'all'>('overview')
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([
+    'Local_MF', 'Foreign_MF', 'Local_CP', 'Foreign_CP', 'Local_ID'
+  ])
+
+  const activeFunds = useMemo(() => funds.filter((f: any) => f.category === 'Mutual Fund'), [funds])
+  const etfs        = useMemo(() => funds.filter((f: any) => f.category === 'ETF'), [funds])
 
   // Insight generation
   const latest = trend[trend.length - 1] || {}
@@ -548,17 +556,17 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
             </Link>
             <div>
               <p className="text-[11px] text-muted-foreground/60">{summary.latest_month}</p>
-              <p className="text-sm font-bold">Rp{Number(summary.price).toLocaleString('id-ID')}</p>
+              <p className="text-sm font-bold font-mono">Rp{Number(summary.price).toLocaleString('id-ID')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-center">
               <p className="text-[9px] text-muted-foreground/45 uppercase tracking-wide mb-1">Local</p>
-              <p className="text-lg font-black text-emerald-400">{summary.local_pct}%</p>
+              <p className="text-lg font-black text-emerald-400 font-mono">{summary.local_pct}%</p>
             </div>
             <div className="text-center">
               <p className="text-[9px] text-muted-foreground/45 uppercase tracking-wide mb-1">Foreign</p>
-              <p className="text-lg font-black text-blue-400">{summary.foreign_pct}%</p>
+              <p className="text-lg font-black text-blue-400 font-mono">{summary.foreign_pct}%</p>
             </div>
             {/* Toggle ke chart saham */}
             <Link href={`/stock/${code}`} prefetch={false}
@@ -577,13 +585,186 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
       {/* Donut: Komposisi kepemilikan terkini */}
       <OwnershipDonut composition={composition} />
 
-      {/* Chart 1: Smart Money Flow bulanan */}
-      <div className="glass rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={15} className="text-gold-400" />
-          <h3 className="text-[11px] font-black uppercase tracking-widest">Smart Money Flow Bulanan (Miliar Rp)</h3>
+      {/* ── Active Funds & ETFs Section ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        
+        {/* Active Mutual Funds Card */}
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between border-b border-border/40 pb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles size={15} className="text-gold-400" />
+              <h3 className="text-[11px] font-black uppercase tracking-widest">Active Mutual Funds (Kepemilikan &ge; 1%)</h3>
+            </div>
+            <span className="text-[9px] text-muted-foreground/45 font-mono">{summary.latest_month}</span>
+          </div>
+          <div className="overflow-x-auto max-h-[300px] overflow-y-auto pr-1">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-card/70 border-b border-border/40 text-[9px] text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left font-bold">Nama Fund</th>
+                  <th className="px-2 py-2 text-center font-bold">Dom</th>
+                  <th className="px-2 py-2 text-right font-bold">% Porsi</th>
+                  <th className="px-2 py-2 text-right font-bold">MoM &Delta;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeFunds.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-2 py-8 text-center text-muted-foreground/35 text-[11px]">
+                      Tidak ada active fund dengan kepemilikan &ge; 1%
+                    </td>
+                  </tr>
+                ) : (
+                  activeFunds.map((f: any, i: number) => (
+                    <tr key={i} className="border-b border-border/15 hover:bg-white/[0.02] tr-hover">
+                      <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
+                        {f.investor_name}
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${f.side === 'Foreign' ? 'text-blue-400 bg-blue-500/10' : 'text-emerald-400 bg-emerald-500/10'}`}>
+                          {f.side}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right font-mono font-bold">{f.cur_pct.toFixed(2)}%</td>
+                      <td className={`px-2 py-2 text-right font-mono font-bold ${numCls(f.chg_pct)}`}>
+                        {f.chg_pct > 0 ? '+' : ''}{f.chg_pct.toFixed(2)}%
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <ResponsiveContainer width="100%" height={240}>
+
+        {/* ETFs Card */}
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between border-b border-border/40 pb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles size={15} className="text-gold-400" />
+              <h3 className="text-[11px] font-black uppercase tracking-widest">Exchange Traded Funds (Kepemilikan &ge; 1%)</h3>
+            </div>
+            <span className="text-[9px] text-muted-foreground/45 font-mono">{summary.latest_month}</span>
+          </div>
+          <div className="overflow-x-auto max-h-[300px] overflow-y-auto pr-1">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-card/70 border-b border-border/40 text-[9px] text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left font-bold">Nama ETF</th>
+                  <th className="px-2 py-2 text-center font-bold">Dom</th>
+                  <th className="px-2 py-2 text-right font-bold">% Porsi</th>
+                  <th className="px-2 py-2 text-right font-bold">MoM &Delta;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {etfs.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-2 py-8 text-center text-muted-foreground/35 text-[11px]">
+                      Tidak ada ETF dengan kepemilikan &ge; 1%
+                    </td>
+                  </tr>
+                ) : (
+                  etfs.map((f: any, i: number) => (
+                    <tr key={i} className="border-b border-border/15 hover:bg-white/[0.02] tr-hover">
+                      <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
+                        {f.investor_name}
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${f.side === 'Foreign' ? 'text-blue-400 bg-blue-500/10' : 'text-emerald-400 bg-emerald-500/10'}`}>
+                          {f.side}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right font-mono font-bold">{f.cur_pct.toFixed(2)}%</td>
+                      <td className={`px-2 py-2 text-right font-mono font-bold ${numCls(f.chg_pct)}`}>
+                        {f.chg_pct > 0 ? '+' : ''}{f.chg_pct.toFixed(2)}%
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Chart 1: Aliran Dana Bulanan (Miliar Rp) */}
+      <div className="glass rounded-2xl p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/20 pb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={15} className="text-gold-400" />
+            <h3 className="text-[11px] font-black uppercase tracking-widest">Aliran Dana Bulanan (Miliar Rp)</h3>
+          </div>
+          <div className="flex items-center gap-1.5 rounded-xl bg-card border border-border/40 p-1">
+            <button
+              onClick={() => setChartMode('overview')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                chartMode === 'overview'
+                  ? 'bg-gold-400 text-black shadow'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Overview (Smart vs Retail)
+            </button>
+            <button
+              onClick={() => setChartMode('all')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                chartMode === 'all'
+                  ? 'bg-gold-400 text-black shadow'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Detil Tipe Investor (18 Tipe)
+            </button>
+          </div>
+        </div>
+
+        {chartMode === 'all' && (
+          <div className="p-3 rounded-xl bg-background/50 border border-border/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-wider">Filter Tipe Investor</span>
+              <div className="flex gap-2 text-[9px]">
+                <button onClick={() => setSelectedTypes(KSEI_BUCKETS.map(b => b.key))} className="text-gold-400 font-bold hover:underline">Pilih Semua</button>
+                <span className="text-muted-foreground/30">|</span>
+                <button onClick={() => setSelectedTypes(['Local_MF', 'Foreign_MF', 'Local_CP', 'Foreign_CP', 'Local_ID'])} className="text-gold-400 font-bold hover:underline">Reset (Top 5)</button>
+                <span className="text-muted-foreground/30">|</span>
+                <button onClick={() => setSelectedTypes([])} className="text-muted-foreground/60 hover:underline">Bersihkan</button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+              {KSEI_BUCKETS.map(b => {
+                const isSelected = selectedTypes.includes(b.key)
+                const color = b.side === 'Foreign' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(34, 197, 94, 0.12)'
+                const textColor = b.side === 'Foreign' ? 'text-blue-400' : 'text-emerald-400'
+                const border = isSelected ? `1px solid ${b.side === 'Foreign' ? '#3b82f6' : '#22c55e'}` : '1px solid rgba(255,255,255,0.05)'
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedTypes(prev => prev.filter(t => t !== b.key))
+                      } else {
+                        setSelectedTypes(prev => [...prev, b.key])
+                      }
+                    }}
+                    style={{
+                      background: isSelected ? color : 'transparent',
+                      border: border
+                    }}
+                    className={`px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1.5 transition-all ${
+                      isSelected ? textColor : 'text-muted-foreground/60 hover:text-foreground bg-white/[0.02]'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: TIPE_COLOR[b.label] || '#94a3b8' }} />
+                    {b.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        <ResponsiveContainer width="100%" height={260}>
           <ComposedChart data={trend}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
             <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9 }} tickFormatter={(v) => v?.slice(2, 7)} />
@@ -592,12 +773,35 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
               contentStyle={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: 10, fontSize: 11, color: 'hsl(var(--foreground))' }}
               labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 700 }}
               itemStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(v: any, n: any) => [`${Number(v).toFixed(1)} M`, n]} />
+              formatter={(v: any, n: any) => [fmtM(Number(v)), n]} />
             <ReferenceLine y={0} stroke="hsl(var(--border))" />
-            <Bar dataKey="smart_flow" name="Smart Money" radius={[3, 3, 0, 0]}>
-              {trend.map((d: any, i: number) => <Cell key={i} fill={Number(d.smart_flow) >= 0 ? '#22c55e' : '#ef4444'} />)}
-            </Bar>
-            <Line dataKey="retail_flow" name="Retail" stroke="#f59e0b" strokeWidth={1.5} dot={false} />
+            
+            {chartMode === 'overview' ? (
+              <>
+                <Bar dataKey="smart_flow" name="Smart Money" radius={[3, 3, 0, 0]}>
+                  {trend.map((d: any, i: number) => <Cell key={i} fill={Number(d.smart_flow) >= 0 ? '#22c55e' : '#ef4444'} />)}
+                </Bar>
+                <Line dataKey="retail_flow" name="Retail" stroke="#f59e0b" strokeWidth={1.5} dot={false} />
+              </>
+            ) : (
+              selectedTypes.map(key => {
+                const b = KSEI_BUCKETS.find(bucket => bucket.key === key)
+                if (!b) return null
+                const dataKey = `${key.toLowerCase()}_flow`
+                return (
+                  <Line
+                    key={key}
+                    type="monotone"
+                    dataKey={dataKey}
+                    name={b.label}
+                    stroke={TIPE_COLOR[b.label] || '#94a3b8'}
+                    strokeWidth={1.5}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                )
+              })
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -618,7 +822,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                 contentStyle={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: 10, fontSize: 11, color: 'hsl(var(--foreground))' }}
                 labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 700 }}
                 itemStyle={{ color: 'hsl(var(--foreground))' }}
-                formatter={(v: any, n: any) => [`${Number(v).toFixed(1)} M`, n]} />
+                formatter={(v: any, n: any) => [fmtM(Number(v)), n]} />
               <ReferenceLine y={0} stroke="hsl(var(--border))" />
               <Bar dataKey="local_flow" name="Local Smart" fill="#22c55e" radius={[2, 2, 0, 0]} />
               <Bar dataKey="foreign_flow" name="Foreign Smart" fill="#3b82f6" radius={[2, 2, 0, 0]} />
