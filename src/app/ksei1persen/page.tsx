@@ -1729,6 +1729,7 @@ export default function InsiderPage() {
                 ) : <div className="p-8 text-center text-muted-foreground text-sm">No data.</div>}
               </div>
             </div>
+          )}
           {/* ══ TAB: DEEP DIVE ══ */}
           {activeTab === 'deepdive' && (
             <div className="space-y-4">
