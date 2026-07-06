@@ -5,17 +5,18 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatShares, formatPercent, formatRupiah } from '@/lib/utils'
 import {
   Eye, Search, TrendingUp, TrendingDown,
-  PieChart as PieChartIcon, Activity, Shield, Users,
+  PieChart as PieChartIcon, LineChart as LineChartIcon, Activity, Shield, Users,
   X, RefreshCw, AlertTriangle, Target, Zap, Fish,
   EyeOff, Trophy, ArrowUpRight, ArrowDownRight, Clock,
   Filter, ChevronUp, ChevronDown, Minus, BarChart2,
   Flame, Star, Globe, Building2, ChevronRight, ExternalLink,
-  GitMerge, Crosshair, ScatterChart as ScatterIcon
+  GitMerge, Crosshair, ScatterChart as ScatterIcon, Layers, Sparkles
 } from 'lucide-react'
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   ScatterChart, Scatter, ZAxis, ReferenceLine,
+  BarChart, Bar, ComposedChart, Line
 } from 'recharts'
 import Link from 'next/link'
 
@@ -93,7 +94,7 @@ interface TopFlow {
   Foreign_Flow_Miliar: number
 }
 
-type Tab = 'screener' | 'confluence' | 'activity' | 'whale' | 'stealth' | 'topplayer'
+type Tab = 'screener' | 'confluence' | 'activity' | 'whale' | 'stealth' | 'topplayer' | 'deepdive'
 type SortKey = 'score' | 'corp_change' | 'foreign_change' | 'ind_change'
 
 interface ActivityRow {
@@ -118,6 +119,44 @@ const INVESTOR_TYPE_COLORS: Record<string, string> = {
   'Financial Institutional': '#8b5cf6', 'Insurance': '#ec4899',
   'Pension Fund': '#06b6d4', 'Securities': '#f97316', 'Others': '#6b7280',
 }
+
+const fmtM = (v: number) => {
+  if (v == null || isNaN(v)) return '—'
+  const a = Math.abs(v)
+  if (a >= 1000) return `${v >= 0 ? '+' : ''}${(v / 1000).toFixed(2)} T`
+  if (a >= 1) return `${v >= 0 ? '+' : ''}${v.toFixed(1)} M`
+  return `${v >= 0 ? '+' : ''}${(v * 1000).toFixed(0)} Jt`
+}
+
+const KAT_COLOR: Record<string, string> = {
+  Smart:  '#22c55e',
+  Inst:   '#3b82f6',
+  Retail: '#ef4444',
+  Other:  '#94a3b8',
+}
+
+const TIPE_COLOR: Record<string, string> = {
+  'Local CP': '#16a34a', 'Local PF': '#22c55e', 'Local IB': '#4ade80', 'Local MF': '#86efac',
+  'Local ID': '#ef4444', 'Local IS': '#3b82f6', 'Local SC': '#64748b', 'Local FD': '#94a3b8', 'Local OT': '#cbd5e1',
+  'Foreign CP': '#0d9488', 'Foreign PF': '#14b8a6', 'Foreign IB': '#2dd4bf', 'Foreign MF': '#5eead4',
+  'Foreign ID': '#f87171', 'Foreign IS': '#60a5fa', 'Foreign SC': '#475569', 'Foreign FD': '#78716c', 'Foreign OT': '#a8a29e',
+}
+
+const TIPE_GLOSS: Record<string, string> = {
+  CP: 'Corporate', PF: 'Pension Fund', IB: 'Insurance/Bank', MF: 'Mutual Fund',
+  ID: 'Individual', IS: 'Insurance', SC: 'Securities', FD: 'Foundation', OT: 'Others',
+}
+
+const BUCKET_KAT: Record<string, string> = {
+  CP: 'Smart', PF: 'Smart', IB: 'Smart', MF: 'Smart',
+  ID: 'Retail', IS: 'Inst', SC: 'Other', FD: 'Other', OT: 'Other',
+}
+
+const KSEI_BUCKETS = (['Local', 'Foreign'] as const).flatMap(side =>
+  ['CP', 'PF', 'IB', 'MF', 'ID', 'IS', 'SC', 'FD', 'OT'].map(code => ({
+    key: `${side}_${code}`, label: `${side} ${code}`, code, side, kat: BUCKET_KAT[code],
+  }))
+)
 
 const VERDICT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   'STRONG HOLD': { color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30', icon: '💎' },
@@ -211,6 +250,29 @@ export default function InsiderPage() {
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [searchStock, setSearchStock] = useState('')
 
+  // Deep dive states
+  const [ddCode, setDdCode] = useState('')
+  const [ddInput, setDdInput] = useState('')
+  const [ddData, setDdData] = useState<any>(null)
+  const [ddLoading, setDdLoading] = useState(false)
+  const [ddError, setDdError] = useState<string | null>(null)
+
+  const loadDeepDive = useCallback(async (code: string) => {
+    if (!code) return
+    setDdLoading(true); setDdData(null); setDdError(null)
+    try {
+      const res = await fetch(`/api/ksei-monthly?action=deepdive&code=${code.toUpperCase()}`)
+      const json = await res.json()
+      if (json.error) throw new Error(json.error)
+      setDdData(json)
+      setDdCode(code.toUpperCase())
+    } catch (err: any) {
+      setDdError(err.message || 'Failed to load deep dive')
+    } finally {
+      setDdLoading(false)
+    }
+  }, [])
+
   // Screener state
   const [topStocks, setTopStocks] = useState<TopStock[]>([])
   const [filterAction, setFilterAction] = useState<FilterAction>('all')
@@ -286,7 +348,7 @@ export default function InsiderPage() {
       try {
         if (activeTab === 'activity' && activityData.length === 0) {
           const data = await mdQuery(`
-            SELECT report_date::VARCHAR, share_code, investor_name, investor_type,
+            SELECT report_date::VARCHAR AS report_date, share_code, investor_name, investor_type,
                    nationality, prev_percentage, curr_percentage, pct_point_change,
                    share_change, action, alert_level
             FROM ksei.vw_ksei_individual_changes
@@ -616,6 +678,7 @@ export default function InsiderPage() {
     { id: 'whale',      label: 'Whale Tracker', icon: <Fish className="w-3.5 h-3.5" />,       count: whaleData.length || undefined },
     { id: 'stealth',    label: 'Stealth',       icon: <EyeOff className="w-3.5 h-3.5" />,     count: stealthData.length || undefined },
     { id: 'topplayer',  label: 'Top Players',   icon: <Trophy className="w-3.5 h-3.5" />,     count: topInvestors.length || undefined },
+    { id: 'deepdive',   label: 'Deep Dive',     icon: <Layers className="w-3.5 h-3.5" /> },
   ]
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -1541,10 +1604,10 @@ export default function InsiderPage() {
                               <DeltaBadge value={s.Price_Chg_Pct} />
                             </td>
                             <td className={`p-3 text-right font-bold ${s.CP_Flow_Miliar > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {s.CP_Flow_Miliar > 0 ? '+' : ''}{s.CP_Flow_Miliar.toFixed(2)} M
+                              {s.CP_Flow_Miliar > 0 ? '+' : ''}{formatRupiah(s.CP_Flow_Miliar * 1_000_000_000)}
                             </td>
                             <td className={`p-3 text-right font-bold hidden md:table-cell ${s.Foreign_CP_Miliar > 0 ? 'text-blue-400' : 'text-rose-400'}`}>
-                              {s.Foreign_CP_Miliar > 0 ? '+' : ''}{s.Foreign_CP_Miliar.toFixed(2)} M
+                              {s.Foreign_CP_Miliar > 0 ? '+' : ''}{formatRupiah(s.Foreign_CP_Miliar * 1_000_000_000)}
                             </td>
                             <td className="p-3 text-center">
                               <span className={`text-[9px] px-2 py-1 rounded-full font-bold border ${
@@ -1649,14 +1712,14 @@ export default function InsiderPage() {
                               {f.Price > 0 ? `Rp${f.Price.toLocaleString('id-ID')}` : '—'}
                             </td>
                             <td className="p-2 text-emerald-400 text-[10px] truncate max-w-[100px]">{f.Top_Buyer}</td>
-                            <td className="p-2 text-right text-emerald-400 font-bold">+{f.Top_Buyer_Miliar.toFixed(1)} M</td>
+                            <td className="p-2 text-right text-emerald-400 font-bold">+{formatRupiah(f.Top_Buyer_Miliar * 1_000_000_000)}</td>
                             <td className="p-2 text-red-400 text-[10px] truncate max-w-[100px] hidden md:table-cell">{f.Top_Seller}</td>
-                            <td className="p-2 text-right text-red-400 font-bold hidden md:table-cell">-{f.Top_Seller_Miliar.toFixed(1)} M</td>
-                            <td className="p-2 text-right">
-                              <DeltaBadge value={f.CP_Flow_Miliar} />
+                            <td className="p-2 text-right text-red-400 font-bold hidden md:table-cell">-{formatRupiah(f.Top_Seller_Miliar * 1_000_000_000)}</td>
+                            <td className={`p-2 text-right font-bold ${f.CP_Flow_Miliar > 0 ? 'text-emerald-400' : f.CP_Flow_Miliar < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                              {f.CP_Flow_Miliar > 0 ? '+' : ''}{f.CP_Flow_Miliar !== 0 ? formatRupiah(f.CP_Flow_Miliar * 1_000_000_000) : '0'}
                             </td>
-                            <td className="p-2 text-right hidden sm:table-cell">
-                              <DeltaBadge value={f.Foreign_Flow_Miliar} />
+                            <td className={`p-2 text-right font-bold hidden sm:table-cell ${f.Foreign_Flow_Miliar > 0 ? 'text-blue-400' : f.Foreign_Flow_Miliar < 0 ? 'text-rose-400' : 'text-muted-foreground'}`}>
+                              {f.Foreign_Flow_Miliar > 0 ? '+' : ''}{f.Foreign_Flow_Miliar !== 0 ? formatRupiah(f.Foreign_Flow_Miliar * 1_000_000_000) : '0'}
                             </td>
                           </tr>
                         ))}
@@ -1665,6 +1728,45 @@ export default function InsiderPage() {
                   </div>
                 ) : <div className="p-8 text-center text-muted-foreground text-sm">No data.</div>}
               </div>
+            </div>
+          {/* ══ TAB: DEEP DIVE ══ */}
+          {activeTab === 'deepdive' && (
+            <div className="space-y-4">
+              {/* Search */}
+              <div className="glass rounded-2xl p-3 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+                  <input value={ddInput}
+                    onChange={e => setDdInput(e.target.value.toUpperCase())}
+                    onKeyDown={e => e.key === 'Enter' && loadDeepDive(ddInput)}
+                    placeholder="Masukkan kode saham — mis. BBCA, lalu Enter..."
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#0F172A] rounded-xl border border-border/50 text-sm focus:outline-none focus:border-red-400/50 uppercase font-mono" />
+                </div>
+                <button onClick={() => loadDeepDive(ddInput)} disabled={!ddInput || ddLoading}
+                  className="px-5 py-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30 font-black text-xs hover:bg-red-500/30 active:scale-95 transition-all disabled:opacity-40">
+                  {ddLoading ? <RefreshCw size={13} className="animate-spin" /> : 'Analisa'}
+                </button>
+              </div>
+
+              {ddError && <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{ddError}</div>}
+
+              {!ddData && !ddLoading && (
+                <div className="glass rounded-2xl p-16 text-center">
+                  <Layers size={32} className="mx-auto mb-4 text-red-400/30" />
+                  <p className="text-sm font-bold text-muted-foreground/50">Masukkan kode saham untuk analisis mendalam</p>
+                  <p className="text-[11px] text-muted-foreground/30 mt-1">Komposisi 18 tipe investor · Trend 12 bulan · Smart vs Retail</p>
+                </div>
+              )}
+
+              {ddLoading && (
+                <div className="glass rounded-2xl p-16 flex items-center justify-center">
+                  <RefreshCw size={24} className="animate-spin text-red-400" />
+                </div>
+              )}
+
+              {ddData && ddData.summary && (
+                <DeepDiveContent code={ddCode} data={ddData} />
+              )}
             </div>
           )}
         </>
@@ -1734,6 +1836,522 @@ export default function InsiderPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// OWNERSHIP DONUT — komposisi kepemilikan terkini (group by kategori)
+// ════════════════════════════════════════════════════════════════════════════
+function OwnershipDonut({ composition }: { composition: any[] }) {
+  // Group by kategori (Smart / Inst / Retail / Other)
+  const byKat = useMemo(() => {
+    const map: Record<string, number> = {}
+    ;(composition || []).forEach((c: any) => {
+      map[c.kategori] = (map[c.kategori] || 0) + Number(c.pct || 0)
+    })
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value: Number(value.toFixed(2)) }))
+      .sort((a, b) => b.value - a.value)
+  }, [composition])
+
+  // Top 6 tipe investor individual untuk detail
+  const KAT_LABEL: Record<string, string> = {
+    Smart: 'Smart Money', Inst: 'Institusi', Retail: 'Retail', Other: 'Lainnya',
+  }
+
+  // Detail per tipe investor (semua 18, untuk donut kedua)
+  const byTipe = useMemo(() =>
+    [...(composition || [])]
+      .map((c: any) => ({ name: c.tipe, value: Number(Number(c.pct).toFixed(2)), kategori: c.kategori, delta: Number(c.delta_shares || 0) }))
+      .filter(t => t.value > 0)
+      .sort((a, b) => b.value - a.value),
+  [composition])
+
+  if (!byKat.length) return null
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      {/* ═══ Donut 1: by Kategori ═══ */}
+      <div className="glass rounded-2xl p-5 border border-border/30">
+        <div className="flex items-center gap-2 mb-4">
+          <PieChartIcon size={15} className="text-red-400" />
+          <h3 className="text-[11px] font-black uppercase tracking-widest">Komposisi — Kategori</h3>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="w-44 h-44 shrink-0 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={byKat} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                  innerRadius={54} outerRadius={82} paddingAngle={3} stroke="none">
+                  {byKat.map((e, i) => <Cell key={i} fill={KAT_COLOR[e.name] || '#94a3b8'} />)}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: '#0F172A', borderColor: 'rgba(255,255,255,0.06)', borderRadius: 10, fontSize: 11, color: '#fff' }}
+                  itemStyle={{ color: '#fff' }}
+                  formatter={(v: any, n: any) => [`${Number(v).toFixed(2)}%`, KAT_LABEL[n] || n]} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[8px] text-muted-foreground/45 uppercase tracking-wide">Smart</span>
+              <span className="text-lg font-black text-emerald-400">
+                {(byKat.find(k => k.name === 'Smart')?.value ?? 0).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 space-y-2">
+            {byKat.map((e, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: KAT_COLOR[e.name] || '#94a3b8' }} />
+                <span className="text-[11px] text-muted-foreground/70 flex-1">{KAT_LABEL[e.name] || e.name}</span>
+                <span className="text-[12px] font-black text-foreground">{e.value.toFixed(1)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ Donut 2: by Tipe Investor (detail real) ═══ */}
+      <div className="glass rounded-2xl p-5 border border-border/30">
+        <div className="flex items-center gap-2 mb-4">
+          <PieChartIcon size={15} className="text-red-400" />
+          <h3 className="text-[11px] font-black uppercase tracking-widest">Komposisi — Tipe Investor</h3>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="w-44 h-44 shrink-0 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={byTipe} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                  innerRadius={54} outerRadius={82} paddingAngle={1.5} stroke="none">
+                  {byTipe.map((e, i) => <Cell key={i} fill={TIPE_COLOR[e.name] || '#94a3b8'} />)}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: '#0F172A', borderColor: 'rgba(255,255,255,0.06)', borderRadius: 10, fontSize: 11, color: '#fff' }}
+                  itemStyle={{ color: '#fff' }}
+                  formatter={(v: any, n: any) => {
+                    const kode = String(n).split(' ')[1] || ''
+                    return [`${Number(v).toFixed(2)}%`, `${n} (${TIPE_GLOSS[kode] || ''})`]
+                  }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[8px] text-muted-foreground/45 uppercase tracking-wide">Tipe</span>
+              <span className="text-lg font-black text-red-400">{byTipe.length}</span>
+            </div>
+          </div>
+          {/* Legend scrollable — top types + delta */}
+          <div className="flex-1 space-y-1 max-h-44 overflow-y-auto pr-1">
+            {byTipe.map((e, i) => (
+              <div key={i} className="flex items-center gap-2 text-[10px]">
+                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: TIPE_COLOR[e.name] || '#94a3b8' }} />
+                <span className="text-muted-foreground/70 flex-1 truncate">{e.name}</span>
+                <span className="font-bold text-foreground w-12 text-right">{e.value.toFixed(2)}%</span>
+                <span className={`font-mono w-12 text-right ${e.delta > 0 ? 'text-emerald-400' : e.delta < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                  {e.delta > 0 ? '+' : ''}{formatShares(e.delta)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DEEP DIVE CONTENT
+// ════════════════════════════════════════════════════════════════════════════
+function DeepDiveContent({ code, data }: { code: string; data: any }) {
+  const { trend, composition, summary, funds = [] } = data
+
+  const [chartMode, setChartMode] = useState<'overview' | 'all'>('overview')
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([
+    'Local_MF', 'Foreign_MF', 'Local_CP', 'Foreign_CP', 'Local_ID'
+  ])
+
+  const activeFunds = useMemo(() => funds.filter((f: any) => f.category === 'Mutual Fund'), [funds])
+  const etfs        = useMemo(() => funds.filter((f: any) => f.category === 'ETF'), [funds])
+
+  // Insight generation
+  const latest = trend[trend.length - 1] || {}
+  const smartFlow = Number(latest.smart_flow || 0)
+  const retailFlow = Number(latest.retail_flow || 0)
+
+  const insight = useMemo(() => {
+    const parts: string[] = []
+    if (smartFlow > 0 && retailFlow < 0)
+      parts.push(`🟢 Smart money akumulasi ${fmtM(smartFlow)} sementara retail distribusi — pola DIVERGEN BULLISH klasik.`)
+    else if (smartFlow < 0 && retailFlow > 0)
+      parts.push(`🔴 Smart money distribusi ${fmtM(smartFlow)} sementara retail beli — waspada distribusi ke retail.`)
+    else if (smartFlow > 0)
+      parts.push(`🟢 Smart money net akumulasi ${fmtM(smartFlow)} bulan terakhir.`)
+    else if (smartFlow < 0)
+      parts.push(`🔴 Smart money net distribusi ${fmtM(smartFlow)} bulan terakhir.`)
+    else
+      parts.push(`⚪ Tidak ada pergerakan smart money signifikan bulan terakhir.`)
+
+    if (summary.foreign_pct > 50) parts.push(`Kepemilikan asing dominan (${summary.foreign_pct}%).`)
+    if (summary.is_split) parts.push(`⚠️ Terdeteksi indikasi stock split.`)
+    if (summary.is_reverse) parts.push(`⚠️ Terdeteksi indikasi reverse split.`)
+    return parts.join(' ')
+  }, [smartFlow, retailFlow, summary])
+
+  return (
+    <div className="space-y-4">
+
+      {/* Summary header */}
+      <div className="glass rounded-2xl p-5 border border-border/30">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <Link href={`/stock/${code}`} prefetch={false}
+              className="text-2xl font-black font-mono text-foreground hover:text-red-400 transition-colors">
+              {code}
+            </Link>
+            <div>
+              <p className="text-[11px] text-muted-foreground/60">{summary.latest_month}</p>
+              <p className="text-sm font-bold font-mono">Rp{Number(summary.price).toLocaleString('id-ID')}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <p className="text-[9px] text-muted-foreground/45 uppercase tracking-wide mb-1">Local</p>
+              <p className="text-lg font-black text-emerald-400 font-mono">{summary.local_pct}%</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[9px] text-muted-foreground/45 uppercase tracking-wide mb-1">Foreign</p>
+              <p className="text-lg font-black text-blue-400 font-mono">{summary.foreign_pct}%</p>
+            </div>
+            {/* Toggle ke chart saham */}
+            <Link href={`/stock/${code}`} prefetch={false}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-400/10 border border-red-400/30 text-red-400 text-[11px] font-bold hover:bg-red-400/20 active:scale-95 transition-all">
+              <LineChartIcon size={13} /> Chart Saham
+            </Link>
+          </div>
+        </div>
+        {/* Insight box */}
+        <div className="mt-4 p-3 rounded-xl bg-red-400/[0.05] border border-red-400/20 flex items-start gap-2.5">
+          <Sparkles size={14} className="text-red-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-muted-foreground/75 leading-relaxed">{insight}</p>
+        </div>
+      </div>
+
+      {/* Donut: Komposisi kepemilikan terkini */}
+      <OwnershipDonut composition={composition} />
+
+      {/* ── Active Funds & ETFs Section ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        
+        {/* Active Mutual Funds Card */}
+        <div className="glass rounded-2xl p-5 border border-border/30 space-y-3">
+          <div className="flex items-center justify-between border-b border-border/40 pb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles size={15} className="text-red-400" />
+              <h3 className="text-[11px] font-black uppercase tracking-widest">Active Mutual Funds (Kepemilikan &ge; 1%)</h3>
+            </div>
+            <span className="text-[9px] text-muted-foreground/45 font-mono">{summary.latest_month}</span>
+          </div>
+          <div className="overflow-x-auto max-h-[300px] overflow-y-auto pr-1">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-card/70 border-b border-border/40 text-[9px] text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left font-bold">Nama Fund</th>
+                  <th className="px-2 py-2 text-center font-bold">Dom</th>
+                  <th className="px-2 py-2 text-right font-bold">% Porsi</th>
+                  <th className="px-2 py-2 text-right font-bold">MoM &Delta;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeFunds.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-2 py-8 text-center text-muted-foreground/35 text-[11px]">
+                      Tidak ada active fund dengan kepemilikan &ge; 1%
+                    </td>
+                  </tr>
+                ) : (
+                  activeFunds.map((f: any, i: number) => (
+                    <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.02] tr-hover">
+                      <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
+                        {f.investor_name}
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${f.side === 'Foreign' ? 'text-blue-400 bg-blue-500/10' : 'text-emerald-400 bg-emerald-500/10'}`}>
+                          {f.side}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right font-mono font-bold">{f.cur_pct.toFixed(2)}%</td>
+                      <td className={`px-2 py-2 text-right font-mono font-bold ${f.chg_pct > 0 ? 'text-emerald-400' : f.chg_pct < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                        {f.chg_pct > 0 ? '+' : ''}{f.chg_pct.toFixed(2)}%
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ETFs Card */}
+        <div className="glass rounded-2xl p-5 border border-border/30 space-y-3">
+          <div className="flex items-center justify-between border-b border-border/40 pb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles size={15} className="text-red-400" />
+              <h3 className="text-[11px] font-black uppercase tracking-widest">Exchange Traded Funds (Kepemilikan &ge; 1%)</h3>
+            </div>
+            <span className="text-[9px] text-muted-foreground/45 font-mono">{summary.latest_month}</span>
+          </div>
+          <div className="overflow-x-auto max-h-[300px] overflow-y-auto pr-1">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-card/70 border-b border-border/40 text-[9px] text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left font-bold">Nama ETF</th>
+                  <th className="px-2 py-2 text-center font-bold">Dom</th>
+                  <th className="px-2 py-2 text-right font-bold">% Porsi</th>
+                  <th className="px-2 py-2 text-right font-bold">MoM &Delta;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {etfs.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-2 py-8 text-center text-muted-foreground/35 text-[11px]">
+                      Tidak ada ETF dengan kepemilikan &ge; 1%
+                    </td>
+                  </tr>
+                ) : (
+                  etfs.map((f: any, i: number) => (
+                    <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.02] tr-hover">
+                      <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
+                        {f.investor_name}
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${f.side === 'Foreign' ? 'text-blue-400 bg-blue-500/10' : 'text-emerald-400 bg-emerald-500/10'}`}>
+                          {f.side}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right font-mono font-bold">{f.cur_pct.toFixed(2)}%</td>
+                      <td className={`px-2 py-2 text-right font-mono font-bold ${f.chg_pct > 0 ? 'text-emerald-400' : f.chg_pct < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                        {f.chg_pct > 0 ? '+' : ''}{f.chg_pct.toFixed(2)}%
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Chart 1: Aliran Dana Bulanan (Miliar Rp) */}
+      <div className="glass rounded-2xl p-5 border border-border/30 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.05] pb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={15} className="text-red-400" />
+            <h3 className="text-[11px] font-black uppercase tracking-widest">Aliran Dana Bulanan (Miliar Rp)</h3>
+          </div>
+          <div className="flex items-center gap-1.5 rounded-xl bg-white/[0.02] border border-white/[0.06] p-1">
+            <button
+              onClick={() => setChartMode('overview')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                chartMode === 'overview'
+                  ? 'bg-red-500/20 text-red-300 border border-red-500/30 shadow'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Overview (Smart vs Retail)
+            </button>
+            <button
+              onClick={() => setChartMode('all')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                chartMode === 'all'
+                  ? 'bg-red-500/20 text-red-300 border border-red-500/30 shadow'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Detil Tipe Investor (18 Tipe)
+            </button>
+          </div>
+        </div>
+
+        {chartMode === 'all' && (
+          <div className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.05] space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-wider">Filter Tipe Investor</span>
+              <div className="flex gap-2 text-[9px]">
+                <button onClick={() => setSelectedTypes(KSEI_BUCKETS.map(b => b.key))} className="text-red-400 font-bold hover:underline">Pilih Semua</button>
+                <span className="text-muted-foreground/30">|</span>
+                <button onClick={() => setSelectedTypes(['Local_MF', 'Foreign_MF', 'Local_CP', 'Foreign_CP', 'Local_ID'])} className="text-red-400 font-bold hover:underline">Reset (Top 5)</button>
+                <span className="text-muted-foreground/30">|</span>
+                <button onClick={() => setSelectedTypes([])} className="text-muted-foreground/60 hover:underline">Bersihkan</button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+              {KSEI_BUCKETS.map(b => {
+                const isSelected = selectedTypes.includes(b.key)
+                const color = b.side === 'Foreign' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(34, 197, 94, 0.12)'
+                const textColor = b.side === 'Foreign' ? 'text-blue-400' : 'text-emerald-400'
+                const border = isSelected ? `1px solid ${b.side === 'Foreign' ? '#3b82f6' : '#22c55e'}` : '1px solid rgba(255,255,255,0.05)'
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedTypes(prev => prev.filter(t => t !== b.key))
+                      } else {
+                        setSelectedTypes(prev => [...prev, b.key])
+                      }
+                    }}
+                    style={{
+                      background: isSelected ? color : 'transparent',
+                      border: border
+                    }}
+                    className={`px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1.5 transition-all ${
+                      isSelected ? textColor : 'text-muted-foreground/60 hover:text-foreground bg-white/[0.02]'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: TIPE_COLOR[b.label] || '#94a3b8' }} />
+                    {b.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        <ResponsiveContainer width="100%" height={260}>
+          <ComposedChart data={trend}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" opacity={0.3} />
+            <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={(v) => v?.slice(2, 7)} />
+            <YAxis tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={(v) => `${v}`} />
+            <Tooltip
+              contentStyle={{ background: '#0F172A', borderColor: 'rgba(255,255,255,0.06)', borderRadius: 10, fontSize: 11, color: '#fff' }}
+              labelStyle={{ color: '#fff', fontWeight: 700 }}
+              itemStyle={{ color: '#fff' }}
+              formatter={(v: any, n: any) => [fmtM(Number(v)), n]} />
+            <ReferenceLine y={0} stroke="rgba(255,255,255,0.08)" />
+            
+            {chartMode === 'overview' ? (
+              <>
+                <Bar dataKey="smart_flow" name="Smart Money" radius={[3, 3, 0, 0]}>
+                  {trend.map((d: any, i: number) => <Cell key={i} fill={Number(d.smart_flow) >= 0 ? '#22c55e' : '#ef4444'} />)}
+                </Bar>
+                <Line dataKey="retail_flow" name="Retail" stroke="#f59e0b" strokeWidth={1.5} dot={false} />
+              </>
+            ) : (
+              selectedTypes.map(key => {
+                const b = KSEI_BUCKETS.find(bucket => bucket.key === key)
+                if (!b) return null
+                const dataKey = `${key.toLowerCase()}_flow`
+                return (
+                  <Line
+                    key={key}
+                    type="monotone"
+                    dataKey={dataKey}
+                    name={b.label}
+                    stroke={TIPE_COLOR[b.label] || '#94a3b8'}
+                    strokeWidth={1.5}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                )
+              })
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Chart 2: Local vs Foreign Smart Flow */}
+        <div className="glass rounded-2xl p-5 border border-border/30">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity size={15} className="text-red-400" />
+            <h3 className="text-[11px] font-black uppercase tracking-widest">Local vs Foreign Smart Flow</h3>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <ComposedChart data={trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" opacity={0.3} />
+              <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={(v) => v?.slice(2, 7)} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 9 }} />
+              <Tooltip
+                contentStyle={{ background: '#0F172A', borderColor: 'rgba(255,255,255,0.06)', borderRadius: 10, fontSize: 11, color: '#fff' }}
+                labelStyle={{ color: '#fff', fontWeight: 700 }}
+                itemStyle={{ color: '#fff' }}
+                formatter={(v: any, n: any) => [fmtM(Number(v)), n]} />
+              <ReferenceLine y={0} stroke="rgba(255,255,255,0.08)" />
+              <Bar dataKey="local_flow" name="Local Smart" fill="#22c55e" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="foreign_flow" name="Foreign Smart" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Chart 3: Foreign Ownership % trend */}
+        <div className="glass rounded-2xl p-5 border border-border/30">
+          <div className="flex items-center gap-2 mb-4">
+            <Building2 size={15} className="text-red-400" />
+            <h3 className="text-[11px] font-black uppercase tracking-widest">Foreign Ownership Trend (%)</h3>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <ComposedChart data={trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" opacity={0.3} />
+              <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 9 }} tickFormatter={(v) => v?.slice(2, 7)} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 9 }} domain={['dataMin - 2', 'dataMax + 2']} />
+              <Tooltip
+                contentStyle={{ background: '#0F172A', borderColor: 'rgba(255,255,255,0.06)', borderRadius: 10, fontSize: 11, color: '#fff' }}
+                labelStyle={{ color: '#fff', fontWeight: 700 }}
+                itemStyle={{ color: '#fff' }}
+                formatter={(v: any) => [`${Number(v).toFixed(2)}%`, 'Foreign']} />
+              <defs>
+                <linearGradient id="fo" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area dataKey="foreign_own_pct" name="Foreign %" stroke="#3b82f6" strokeWidth={2} fill="url(#fo)" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Investor Composition Table */}
+      <div className="glass rounded-2xl overflow-hidden border border-border/30">
+        <div className="px-5 py-3.5 border-b border-white/[0.05] flex items-center gap-2">
+          <Users size={15} className="text-red-400" />
+          <h3 className="text-[11px] font-black uppercase tracking-widest">Komposisi Investor — Bulan Terakhir vs Sebelumnya</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-card/70 border-b border-border/40 text-[10px] text-muted-foreground uppercase tracking-wide">
+                <th className="px-4 py-3 text-left font-bold">Tipe Investor</th>
+                <th className="px-4 py-3 text-center font-bold">Kategori</th>
+                <th className="px-4 py-3 text-right font-bold">% Kepemilikan</th>
+                <th className="px-4 py-3 text-right font-bold hidden md:table-cell">Lembar Saham</th>
+                <th className="px-4 py-3 text-right font-bold">Δ% (vs prev)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(composition || []).map((c: any, i: number) => (
+                <tr key={i} className="tr-hover border-b border-white/[0.02]">
+                  <td className="px-4 py-2.5 font-bold text-foreground/85">{c.tipe}</td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                      style={{ color: KAT_COLOR[c.kategori], background: `${KAT_COLOR[c.kategori]}1a`, border: `1px solid ${KAT_COLOR[c.kategori]}33` }}>
+                      {c.kategori}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono font-bold">{Number(c.pct).toFixed(2)}%</td>
+                  <td className="px-4 py-2.5 text-right font-mono text-muted-foreground/60 hidden md:table-cell">
+                    {Number(c.shares).toLocaleString('id-ID')}
+                  </td>
+                  <td className={`px-4 py-2.5 text-right font-mono font-bold ${Number(c.delta_pct) > 0 ? 'text-emerald-400' : Number(c.delta_pct) < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                    {Number(c.delta_pct) > 0 ? '+' : ''}{Number(c.delta_pct).toFixed(3)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
