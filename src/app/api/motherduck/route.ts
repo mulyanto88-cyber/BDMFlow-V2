@@ -2,46 +2,74 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { getQuery, validateParams } from '@/lib/query-registry'
+import { getViewer, shouldBlockPro } from '@/lib/auth-server'
+import { rateLimit, clientKey } from '@/lib/rate-limit'
+
+// This endpoint used to execute arbitrary SQL supplied by the browser, which made
+// the entire dataset scrapeable by anyone and leaked the schema into the JS
+// bundle. It now runs only named queries defined server-side in query-registry.ts;
+// callers choose an id, never the SQL.
+
+const LIMIT = 120          // requests
+const WINDOW_MS = 60_000   // per minute
 
 export async function GET() {
   return NextResponse.json({ status: 'ok' })
 }
 
 export async function POST(req: NextRequest) {
+  const viewer = await getViewer(req)
+
+  const rl = rateLimit(clientKey(req, viewer.userId), LIMIT, WINDOW_MS)
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi sebentar lagi.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
+  let body: unknown
   try {
-    const { query, params } = await req.json()
-    if (!query || typeof query !== 'string') {
-      return NextResponse.json({ error: 'Query diperlukan' }, { status: 400 })
-    }
-    if (query.length > 8000) {
-      return NextResponse.json({ error: 'Query terlalu panjang.' }, { status: 413 })
-    }
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Body JSON tidak valid.' }, { status: 400 })
+  }
 
-    // Read-only guard. Strip one trailing semicolon, then reject any remaining ';'
-    // — this blocks the multi-statement bypass (e.g. "SELECT 1; ATTACH ...").
-    const cleaned = query.trim().replace(/;\s*$/, '')
-    if (cleaned.includes(';')) {
-      return NextResponse.json({ error: 'Hanya satu statement diizinkan.' }, { status: 403 })
-    }
-    const upper = cleaned.toUpperCase()
-    if (!upper.startsWith('SELECT') && !upper.startsWith('WITH')) {
-      return NextResponse.json({ error: 'Operation not permitted. Only SELECT or WITH queries are allowed.' }, { status: 403 })
-    }
+  const { id, params } = (body ?? {}) as { id?: unknown; params?: unknown }
 
-    // Denylist DML/DDL + DuckDB-specific side-effecting commands (defense in depth), AND the
-    // file/URL-reading table functions (read_csv/read_parquet/glob/…) which are an SSRF / local-file
-    // read / data-exfiltration vector. None of these appear in the app's legitimate read queries.
-    const forbiddenPatterns = /\b(INSERT|UPDATE|DELETE|MERGE|DROP|ALTER|TRUNCATE|GRANT|REVOKE|EXEC|EXECUTE|CREATE|ATTACH|DETACH|COPY|INSTALL|LOAD|PRAGMA|CALL|INTO|read_csv|read_csv_auto|read_parquet|read_json|read_json_auto|read_ndjson|read_text|read_blob|parquet_scan|csv_scan|glob|sniff_csv|parquet_metadata|parquet_schema)\b/i
-    if (forbiddenPatterns.test(cleaned)) {
-      return NextResponse.json({ error: 'Operation not permitted. Modifications are not allowed.' }, { status: 403 })
-    }
+  if (typeof id !== 'string' || !id) {
+    return NextResponse.json({ error: 'Parameter "id" diperlukan.' }, { status: 400 })
+  }
 
-    const data = await run(cleaned, params || [])
+  const def = getQuery(id)
+  if (!def) {
+    return NextResponse.json({ error: 'Query tidak dikenal.' }, { status: 404 })
+  }
+
+  const args = params === undefined ? [] : params
+  if (!Array.isArray(args)) {
+    return NextResponse.json({ error: 'Parameter "params" harus berupa array.' }, { status: 400 })
+  }
+
+  const invalid = validateParams(def, args)
+  if (invalid) {
+    return NextResponse.json({ error: invalid }, { status: 400 })
+  }
+
+  if (def.pro && shouldBlockPro(viewer)) {
+    return NextResponse.json(
+      { error: 'Fitur Pro. Silakan upgrade untuk mengakses data ini.', upgrade: true },
+      { status: 402 },
+    )
+  }
+
+  try {
+    const data = await run(def.sql, args as unknown[])
     return NextResponse.json({ data })
-  } catch (error: any) {
-    // Log the real error server-side; return a generic message so DB internals (schema, table
-    // names) aren't leaked to a public, unauthenticated caller.
-    console.error('[motherduck]', error.message)
+  } catch (error: unknown) {
+    // Log server-side; return a generic message so DB internals stay private.
+    console.error('[motherduck]', id, (error as Error)?.message)
     return NextResponse.json({ error: 'Query gagal dijalankan.' }, { status: 500 })
   }
 }

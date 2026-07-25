@@ -45,7 +45,7 @@ export default function CompositePage() {
 
   if (error) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center glass rounded-2xl p-12 border border-white/5">
+      <div className="text-center glass rounded-2xl p-12 border border-line-2">
         <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-4" />
         <p className="text-muted-foreground font-bold text-lg">Composite data unavailable</p>
         <p className="text-xs text-muted-foreground/60 mt-2 mb-4">{error}</p>
@@ -69,7 +69,7 @@ export default function CompositePage() {
         {/* Top 3 Score Gauges */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {data.slice(0, 3).map((s: any, i: number) => (
-            <Link key={s.stock_code} href={`/stock/${s.stock_code}`} className="glass rounded-xl p-5 border border-white/5 card-hover flex items-center gap-4">
+            <Link key={s.stock_code} href={`/stock/${s.stock_code}`} className="glass rounded-xl p-5 border border-line-2 card-hover flex items-center gap-4">
               <ScoreGauge score={Number(s.composite_score ?? 0)} size="md" />
               <div>
                 <div className="flex items-center gap-2">
@@ -89,13 +89,13 @@ export default function CompositePage() {
         </div>
 
         {/* Composite Leaderboard Table */}
-        <div className="glass rounded-2xl p-5 border border-white/5">
+        <div className="glass rounded-2xl p-5 border border-line-2">
           <div className="flex items-center gap-2 mb-4"><BarChart3 size={18} className="text-purple-400" /><h2 className="text-lg font-bold">Composite Leaderboard</h2><span className="text-xs text-muted-foreground ml-auto">Ranked by convergence score</span></div>
           <DataTable data={data} columns={columns} pageSize={20} emptyText="No composite data. Run Phase A views in MotherDuck." />
         </div>
 
         {/* Legend */}
-        <div className="glass rounded-xl p-4 border border-white/5 text-xs text-muted-foreground">
+        <div className="glass rounded-xl p-4 border border-line-2 text-xs text-muted-foreground">
           <span className="font-bold text-foreground">Score (0-100):</span> Foreign 25 + Broker 20 + Whale 15 + Price 10 + KSEI 20 + Insider 10.{' '}
           <span className="text-gold-400 font-semibold">STRONG BUY ≥80</span> · <span className="text-emerald-400 font-semibold">BUY 65-79</span> · <span className="text-lime-400 font-semibold">ACCUMULATE 50-64</span> · <span className="text-amber-400 font-semibold">WATCH 35-49</span> · <span className="text-red-400 font-semibold">AVOID &lt;20</span>
         </div>

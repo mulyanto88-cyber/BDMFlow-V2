@@ -38,5 +38,7 @@ export function useStockOverview(code: string | null, days: number) {
     queryKey: ['stock-detail', code, days],
     queryFn: () => fetchStockDetail(code!, days),
     enabled: !!code,
+    staleTime: 10 * 60 * 1000, // 10 minutes client cache
+    gcTime: 30 * 60 * 1000,    // 30 minutes garbage collection
   })
 }

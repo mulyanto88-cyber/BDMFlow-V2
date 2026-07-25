@@ -9,6 +9,10 @@ type AuthState = {
   session: Session | null
   loading: boolean
   isPro: boolean
+  /** Days left on the account's server-side trial; null when there is none. */
+  trialDaysLeft: number | null
+  /** Paid, or still inside the trial window — mirrors the server's entitlement. */
+  entitled: boolean
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
@@ -17,6 +21,7 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState>({
   user: null, session: null, loading: true, isPro: false,
+  trialDaysLeft: null, entitled: false,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
   signOut: async () => {},
@@ -28,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [isPro, setIsPro]     = useState(false)
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -57,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) checkPlan(session.user.id)
-      else setIsPro(false)
+      else { setIsPro(false); setTrialDaysLeft(null) }
     })
 
     return () => {
@@ -71,10 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await supabase
         .from('profiles')
-        .select('plan')
+        .select('plan, trial_ends_at')
         .eq('id', userId)
         .single()
+
       setIsPro(data?.plan === 'pro')
+
+      // trial_ends_at may be absent until migration 001 has been applied.
+      const ends = data?.trial_ends_at ? new Date(data.trial_ends_at).getTime() : null
+      setTrialDaysLeft(
+        ends && ends > Date.now() ? Math.ceil((ends - Date.now()) / 86400000) : null,
+      )
     } catch (err) {
       console.warn('[auth] checkPlan failed:', (err as Error)?.message)
     }
@@ -129,7 +142,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isPro, signIn, signUp, signOut, signInWithGoogle }}>
+    <AuthContext.Provider value={{
+      user, session, loading, isPro,
+      trialDaysLeft,
+      entitled: isPro || (trialDaysLeft ?? 0) > 0,
+      signIn, signUp, signOut, signInWithGoogle,
+    }}>
       {children}
     </AuthContext.Provider>
   )

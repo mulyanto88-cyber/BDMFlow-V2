@@ -143,7 +143,7 @@ export default function LandingPage() {
             href="/auth"
             event="cta_click"
             data={{ cta: 'hero_masuk' }}
-            className="flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-foreground/70 border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] hover:text-foreground transition-all duration-200"
+            className="flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-foreground/70 border border-line-5 bg-surface-3 hover:bg-surface-4 hover:text-foreground transition-all duration-200"
           >
             Masuk ke Akun
           </TrackLink>
@@ -322,7 +322,7 @@ export default function LandingPage() {
         <div className="max-w-[760px] mx-auto flex items-center justify-center gap-3 px-5 py-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05]">
           <span className="text-base">🎉</span>
           <p className="text-[12px] font-bold text-emerald-400/90">
-            Coba <span className="text-emerald-300 font-black">semua fitur Pro gratis 7 hari, tanpa daftar</span> — lalu daftar gratis untuk akses permanen.
+            Coba <span className="text-emerald-300 font-black">semua fitur Pro gratis 7 hari, tanpa daftar</span> — tanpa kartu kredit. Setelah itu lanjutkan dengan Pro.
           </p>
         </div>
 
@@ -356,7 +356,7 @@ export default function LandingPage() {
               href="/auth"
               event="cta_click"
               data={{ cta: 'pricing_daftar' }}
-              className="w-full py-3.5 rounded-xl text-sm font-bold text-center border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-foreground/60 hover:text-foreground transition-all duration-200"
+              className="w-full py-3.5 rounded-xl text-sm font-bold text-center border border-line-4 bg-surface-3 hover:bg-surface-4 text-foreground/60 hover:text-foreground transition-all duration-200"
             >
               Daftar Gratis
             </TrackLink>
@@ -445,7 +445,7 @@ export default function LandingPage() {
               href="/dashboard"
               event="cta_click"
               data={{ cta: 'final_preview' }}
-              className="flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-foreground/60 border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] hover:text-foreground transition-all duration-200"
+              className="flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-foreground/60 border border-line-4 bg-surface-2 hover:bg-surface-4 hover:text-foreground transition-all duration-200"
             >
               Lihat Preview <ChevronRight size={13} />
             </TrackLink>

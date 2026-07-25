@@ -9,7 +9,10 @@ import {
   AlertTriangle, Activity, ArrowRight, Eye, BarChart2,
 } from 'lucide-react'
 
-export const revalidate = 60
+// Data is T+1 (changes once a day, ~20:00 WIB). Re-rendering every 60s burned
+// ~7K MotherDuck queries/day for nothing and ate into the plan's daily compute
+// quota. 30 minutes matches the edge-cache TTL used by the API routes.
+export const revalidate = 1800
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 async function getMorningBrief() {
@@ -23,8 +26,8 @@ async function getMorningBrief() {
         ORDER BY trading_date DESC LIMIT 1`
     ).catch(() => []),
     run(`SELECT r.stock_code, r.sector, s.close::DOUBLE AS close,
-               ROUND(r.change_percent::DOUBLE,2) AS chg, r.radar_score::INTEGER,
-               r.composite_signal, r.whale_signal::BOOLEAN, r.fresh_insider_buy::BOOLEAN,
+               ROUND(r.change_percent::DOUBLE,2) AS chg, r.radar_score::INTEGER AS radar_score,
+               r.composite_signal, r.whale_signal::BOOLEAN AS whale_signal, r.fresh_insider_buy::BOOLEAN AS fresh_insider_buy,
                ROUND(r.foreign_broker_net_7d::DOUBLE,2) AS fg7d,
                ROUND(r.local_inst_net_7d::DOUBLE,2) AS inst7d,
                ROUND(r.ksei_net_smart_miliar::DOUBLE,2) AS ksei
@@ -33,23 +36,42 @@ async function getMorningBrief() {
         WHERE r.warning_flag IS NULL AND s.close>100 AND s.value>5000000000
         ORDER BY r.radar_score DESC LIMIT 8`
     ).catch(() => []),
-    run(`SELECT group_name, composite_score::INTEGER, market_phase, group_action_signal,
+    run(`SELECT group_name, composite_score::INTEGER AS composite_score, market_phase, group_action_signal,
                ROUND(perf_1d::DOUBLE,2) AS perf_1d, smart_money_trend
         FROM market.vw_group_phase_composite
         WHERE group_name!='Others' ORDER BY composite_score DESC LIMIT 8`
     ).catch(() => []),
-    run(`SELECT transaction_date::VARCHAR, stock_code, insider_name, insider_type,
+    run(`SELECT transaction_date::VARCHAR AS transaction_date, stock_code, insider_name, insider_type,
                action_type, ROUND(ABS(pct_change)::DOUBLE,4) AS pct_chg,
-               alert_level, days_ago::INTEGER, sector
+               alert_level, days_ago::INTEGER AS days_ago, sector
         FROM main.vw_insider_alert_feed
         WHERE days_ago<=7 AND action_type='BUY'
         ORDER BY days_ago ASC, ABS(pct_change) DESC LIMIT 6`
     ).catch(() => []),
-    run(`SELECT Code AS code, Price::DOUBLE AS price,
-               ROUND(CP_Flow_Miliar::DOUBLE,2) AS cp_flow,
-               ROUND(Price_Chg_Pct::DOUBLE,2) AS chg, Signal AS signal
-        FROM ksei.vw_stealth_accumulation WHERE signal!='NORMAL'
-        ORDER BY ABS(CP_Flow_Miliar) DESC LIMIT 6`
+    // Latest KSEI month only. Ranking all history made this widget show months-old
+    // rows (the same stock twice at different prices). Months where the share count
+    // moved are excluded: Δshares×price is then a corporate-action artifact, not a
+    // flow — the source of the impossible "-52 T" reading.
+    run(`WITH latest AS (SELECT MAX(Date) AS d FROM ksei.vw_stealth_accumulation),
+              shares AS (
+                SELECT Code, Date, Price, Total_Shares,
+                       LAG(Total_Shares) OVER (PARTITION BY Code ORDER BY Date) AS prev_shares
+                FROM ksei.monthly_snapshot
+              )
+         SELECT sa.Code AS code, sa.Price::DOUBLE AS price,
+                ROUND(sa.CP_Flow_Miliar::DOUBLE,2) AS cp_flow,
+                ROUND(sa.Price_Chg_Pct::DOUBLE,2) AS chg, sa.Signal AS signal,
+                sa.Date::VARCHAR AS as_of
+         FROM ksei.vw_stealth_accumulation sa
+         CROSS JOIN latest l
+         LEFT JOIN shares sh ON sh.Code = sa.Code AND sh.Date = sa.Date
+         WHERE sa.Date = l.d
+           AND sa.Signal <> 'NORMAL'
+           AND (sh.prev_shares IS NULL OR sh.prev_shares = 0
+                OR ABS(sh.Total_Shares::DOUBLE / sh.prev_shares - 1) <= 0.05)
+           AND (sh.Price IS NULL OR sh.Total_Shares IS NULL OR sh.Total_Shares = 0
+                OR ABS(sa.CP_Flow_Miliar) * 1e9 <= sh.Price * sh.Total_Shares)
+         ORDER BY ABS(sa.CP_Flow_Miliar) DESC LIMIT 6`
     ).catch(() => []),
   ])
   return {
@@ -62,6 +84,13 @@ async function getMorningBrief() {
 }
 
 // ── Formatters ────────────────────────────────────────────────────────────────
+/** "2026-06-30" → "Jun 2026" — the KSEI reporting month, not a trading date. */
+function formatKseiMonth(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+}
+
 function formatMiliar(value: number): string {
   const abs = Math.abs(value)
   if (abs >= 1000) return `${(value / 1000).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} T`
@@ -188,7 +217,7 @@ export default async function MorningBrief() {
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground/45 font-medium">
-            {pulse.date} · Data T+1 · Auto-refresh 60 detik
+            {pulse.date} · Data T+1 · Diperbarui setiap hari ~20:00 WIB
           </p>
         </div>
         <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/50 border border-border/40 bg-card/40 backdrop-blur rounded-xl px-3 py-2 shadow-sm max-w-max">
@@ -200,13 +229,13 @@ export default async function MorningBrief() {
 
       {/* ── Quick Shortcuts ─────────────────────────────────────────── */}
       <div className="px-4 md:px-6 mb-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 stagger">
           {SHORTCUTS.map(s => (
             <Link key={s.href} href={s.href}
-              className={`shortcut-pill ${s.color}`}
+              className={`shortcut-pill flex items-center justify-center text-center py-2 ${s.color}`}
             >
-              <ArrowRight size={9} />
-              {s.label}
+              <ArrowRight size={10} className="shrink-0" />
+              <span className="truncate">{s.label}</span>
             </Link>
           ))}
         </div>
@@ -446,7 +475,16 @@ export default async function MorningBrief() {
           {stealth.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="section-heading">Stealth Accumulation</h2>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="section-heading">Stealth Accumulation</h2>
+                  {/* KSEI publishes monthly and lands weeks late — say which month
+                      this is so it is never mistaken for today's flow. */}
+                  {stealth[0]?.as_of && (
+                    <span className="text-[9px] font-semibold text-muted-foreground/50">
+                      KSEI per {formatKseiMonth(stealth[0].as_of)}
+                    </span>
+                  )}
+                </div>
                 <Eye size={12} className="text-teal-400/60" />
               </div>
               <div className="space-y-2">

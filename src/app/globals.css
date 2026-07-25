@@ -10,68 +10,68 @@
 
 @layer base {
 
-  /* ── LIGHT: Premium Silver Lustre ────────────────────────── */
+  /* ── 1. LIGHT: Premium Silver Lustre & Gold ───────────────── */
   :root {
-    --background:           226 25% 92%;      /* Sophisticated off-white */
-    --foreground:           224 55% 8%;       /* Deep charcoal-navy */
-    --card:                 226 40% 97%;      /* Clean premium white */
-    --card-foreground:      224 55% 8%;
-    --popover:              226 40% 97%;
-    --popover-foreground:   224 55% 8%;
-    --primary:              41  85% 42%;      /* Rich gold — premium accent */
-    --primary-foreground:   224 55% 8%;
-    --secondary:            226 18% 88%;      /* Subtle silver */
-    --secondary-foreground: 224 55% 8%;
-    --muted:                226 18% 88%;
-    --muted-foreground:     222 15% 38%;      /* Enhanced contrast */
-    --accent:               226 20% 90%;
-    --accent-foreground:    224 55% 8%;
-    --destructive:          0   78% 48%;
+    --background:           220 20% 96%;      /* Ultra-clean pearl silver background (#f1f5f9) */
+    --foreground:           222 50% 6%;       /* Pitch crisp charcoal slate (#020617) */
+    --card:                 0   0%  100%;     /* Pure clean card (#ffffff) */
+    --card-foreground:      222 50% 6%;
+    --popover:              0   0%  100%;
+    --popover-foreground:   222 50% 6%;
+    --primary:              38  92% 48%;      /* Vibrant warm amber gold (#d97706) */
+    --primary-foreground:   222 50% 6%;
+    --secondary:            215 25% 91%;      /* Subtle slate silver */
+    --secondary-foreground: 222 50% 6%;
+    --muted:                215 25% 91%;
+    --muted-foreground:     215 25% 30%;      /* Ultra-high contrast readable dark slate (#334155) */
+    --accent:               215 25% 88%;
+    --accent-foreground:    222 50% 6%;
+    --destructive:          0   84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border:               224 22% 78%;      /* Sharp silver border */
-    --input:                224 22% 78%;
-    --ring:                 41  85% 42%;
+    --border:               215 20% 78%;      /* Sharp defined silver border (#94a3b8) */
+    --input:                215 20% 78%;
+    --ring:                 38  92% 48%;
 
-    /* Glass — ultra-premium polished */
-    --glass-bg:           rgba(242, 247, 254, 0.94);
-    --glass-border:       rgba(140, 160, 210, 0.60);
-    --glass-border-top:   rgba(255, 255, 255, 0.98);
-    --glass-shadow:       0 4px 28px rgba(0, 0, 0, 0.12);
-    --glass-hover-bg:     rgba(251, 254, 255, 0.99);
-    --glass-hover-border: rgba(196, 154, 26, 0.55);
-    --glass-hover-shadow: 0 10px 40px rgba(0,0,0,0.16), 0 0 24px rgba(196,154,26,0.18);
+    /* Glass — polished frosted silver */
+    --glass-bg:           rgba(255, 255, 255, 0.92);
+    --glass-border:       rgba(148, 163, 184, 0.45);
+    --glass-border-top:   rgba(255, 255, 255, 1);
+    --glass-shadow:       0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+    --glass-hover-bg:     rgba(255, 255, 255, 1);
+    --glass-hover-border: rgba(217, 119, 6, 0.50);
+    --glass-hover-shadow: 0 12px 36px rgba(15,23,42,0.12), 0 0 24px rgba(217,119,6,0.20);
 
     /* Panel */
-    --panel-bg:     rgba(237, 242, 252, 0.90);
-    --panel-border: rgba(140, 160, 210, 0.50);
+    --panel-bg:     rgba(248, 250, 252, 0.92);
+    --panel-border: rgba(203, 213, 225, 0.50);
 
-    /* Body gradient accents — subtle premium feel */
-    --grad-1: rgba(196, 154, 26,  0.08);
-    --grad-2: rgba(140, 160, 210, 0.08);
-    --grad-3: rgba(180, 200, 235, 0.06);
+    /* Body gradient accents */
+    --grad-1: rgba(245, 158, 11, 0.06);
+    --grad-2: rgba(59, 130, 246, 0.04);
+    --grad-3: rgba(16, 185, 129, 0.04);
 
     /* Header */
-    --header-bg:     rgba(245, 249, 255, 0.98);
-    --header-border: rgba(140, 160, 210, 0.55);
+    --header-bg:     rgba(255, 255, 255, 0.94);
+    --header-border: rgba(203, 213, 225, 0.60);
 
     /* Sidebar */
-    --sidebar-bg:     rgba(240, 245, 254, 0.99);
-    --sidebar-border: rgba(140, 160, 210, 0.50);
+    --sidebar-bg:     rgba(248, 250, 252, 0.98);
+    --sidebar-border: rgba(203, 213, 225, 0.55);
 
-    /* Shadows — dimensional premium */
-    --shadow-xs:   0 1px 3px  rgba(0,0,0,0.08);
-    --shadow-sm:   0 2px 8px  rgba(0,0,0,0.10);
-    --shadow-md:   0 6px 20px rgba(0,0,0,0.12);
-    --shadow-lg:   0 14px 48px rgba(0,0,0,0.15);
-    --shadow-xl:   0 28px 64px rgba(0,0,0,0.18);
-    --shadow-gold: 0 0 32px rgba(196,154,26,0.26);
-    --shadow-glow: 0 0 20px rgba(var(--primary-glow-rgb),0.25);
+    /* Shadows */
+    --shadow-xs:   0 1px 3px  rgba(15,23,42,0.05);
+    --shadow-sm:   0 2px 8px  rgba(15,23,42,0.08);
+    --shadow-md:   0 6px 20px rgba(15,23,42,0.10);
+    --shadow-lg:   0 14px 48px rgba(15,23,42,0.12);
+    --shadow-xl:   0 28px 64px rgba(15,23,42,0.15);
+    --shadow-gold: 0 0 35px rgba(245,158,11,0.22);
+    --shadow-glow: 0 0 20px rgba(var(--primary-glow-rgb),0.22);
 
     /* Ticker */
-    --ticker-bg:    rgba(235, 242, 252, 0.94);
-    --ticker-border:rgba(140, 160, 210, 0.48);
+    --ticker-bg:    rgba(248, 250, 252, 0.95);
+    --ticker-border:rgba(203, 213, 225, 0.50);
 
-    /* Radii system (shared) — modern rounded corners */
+    /* Radii system */
     --radius:     0.875rem;
     --radius-xs:  0.25rem;
     --radius-sm:  0.375rem;
@@ -80,228 +80,292 @@
     --radius-xl:  1.125rem;
     --radius-2xl: 1.5rem;
 
-    /* Accent gradients (shared) */
-    --theme-gradient:    linear-gradient(135deg, #c49a1a 0%, #e7b733 35%, #f3db99 50%, #e7b733 70%, #c49a1a 100%);
-    --primary-glow-rgb:  196, 154, 26;
-    --success-glow-rgb:  34, 197, 94;
-    --danger-glow-rgb:   239, 68, 68;
+    /* Accent gradients */
+    --theme-gradient:    linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+    --primary-glow-rgb:  245, 158, 11;
+    --success-glow-rgb:  16, 185, 129;
+    --danger-glow-rgb:   244, 63, 94;
     --info-glow-rgb:     59, 130, 246;
 
     /* Scrollbar */
-    --scrollbar-thumb: rgba(140, 160, 210, 0.60);
-    --scrollbar-hover: rgba(110, 135, 190, 0.85);
+    --scrollbar-thumb: rgba(148, 163, 184, 0.45);
+    --scrollbar-hover: rgba(100, 116, 139, 0.70);
     --scrollbar-bg:    transparent;
+
+    /* ── Semantic surfaces & hairlines ──────────────────────────
+       Components used to hardcode bg-white/[0.0x] + border-white/[..],
+       which only read on a dark ground and forced a large !important
+       override layer for light mode. These flip per theme instead.
+       Light values keep the tuning the old overrides had: black reads
+       heavier than white at equal alpha, and hairlines use slate. */
+    --surface-1: rgba(0,0,0,0.025);
+    --surface-2: rgba(0,0,0,0.030);
+    --surface-3: rgba(0,0,0,0.040);
+    --surface-4: rgba(0,0,0,0.050);
+    --surface-5: rgba(0,0,0,0.055);
+    --line-1:    rgba(100,116,139,0.12);
+    --line-2:    rgba(100,116,139,0.15);
+    --line-3:    rgba(100,116,139,0.18);
+    --line-4:    rgba(100,116,139,0.22);
+    --line-5:    rgba(100,116,139,0.26);
+    --line-6:    rgba(100,116,139,0.38);
+
   }
 
-  /* ── DARK: Premium Obsidian (Modern AI-Forward) ─────────── */
+  /* ── 2. DARK: Obsidian Gold & Glow ────────────────────────── */
   .dark {
-    --background:           221 50% 5%;       /* Deep navy with premium feel */
-    --foreground:           208 42% 97%;      /* Crisp white with slight warmth */
-    --card:                 221 48% 8%;       /* Rich dark card */
-    --card-foreground:      208 42% 97%;
-    --popover:              221 50% 6%;       /* Darker popover for contrast */
-    --popover-foreground:   208 42% 97%;
-    --primary:              43  82% 52%;      /* Vibrant gold — modern premium */
-    --primary-foreground:   221 50% 5%;
-    --secondary:            218 35% 14%;      /* Mid-tone secondary */
-    --secondary-foreground: 208 42% 97%;
-    --muted:                218 35% 14%;
-    --muted-foreground:     214 24% 68%;      /* Elevated muted text */
-    --accent:               218 38% 18%;      /* Strong accent depth */
-    --accent-foreground:    208 42% 97%;
-    --destructive:          0   68% 38%;      /* Bold red */
-    --destructive-foreground: 208 42% 97%;
-    --border:               218 35% 16%;      /* Sharp borders */
-    --input:                218 35% 16%;
-    --ring:                 43  82% 52%;      /* Gold ring — modern */
+    --background:           224 71% 4%;       /* Pitch obsidian navy (#030712) */
+    --foreground:           210 40% 98%;      /* Crisp white (#f8fafc) */
+    --card:                 222 47% 7%;       /* Rich elevated dark card (#090e1a) */
+    --card-foreground:      210 40% 98%;
+    --popover:              224 71% 5%;       /* Dark popover */
+    --popover-foreground:   210 40% 98%;
+    --primary:              43  96% 56%;      /* Radiant gold accent (#fbbf24) */
+    --primary-foreground:   224 71% 4%;
+    --secondary:            217 33% 12%;      /* Dark secondary */
+    --secondary-foreground: 210 40% 98%;
+    --muted:                217 33% 12%;
+    --muted-foreground:     215 20% 65%;      /* Crisp muted text */
+    --accent:               217 33% 16%;
+    --accent-foreground:    210 40% 98%;
+    --destructive:          0   72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border:               217 33% 14%;      /* Sharp obsidian borders (#1e293b) */
+    --input:                217 33% 14%;
+    --ring:                 43  96% 56%;
 
-    /* Glass — sophisticated dark */
-    --glass-bg:           rgba(8, 16, 38, 0.62);
-    --glass-border:       rgba(255, 255, 255, 0.070);
-    --glass-border-top:   rgba(255, 255, 255, 0.15);
-    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.45);
-    --glass-hover-bg:     rgba(12, 22, 50, 0.88);
-    --glass-hover-border: rgba(196, 154, 26, 0.25);
-    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.62), 0 0 28px rgba(196,154,26,0.12);
+    /* Glass — sophisticated obsidian glass */
+    --glass-bg:           rgba(9, 14, 26, 0.75);
+    --glass-border:       rgba(255, 255, 255, 0.08);
+    --glass-border-top:   rgba(255, 255, 255, 0.18);
+    --glass-shadow:       0 8px 32px rgba(0, 0, 0, 0.55);
+    --glass-hover-bg:     rgba(15, 23, 42, 0.92);
+    --glass-hover-border: rgba(251, 191, 36, 0.35);
+    --glass-hover-shadow: 0 16px 48px rgba(0,0,0,0.70), 0 0 32px rgba(251,191,36,0.18);
 
     /* Panel */
-    --panel-bg:     rgba(6, 12, 28, 0.76);
-    --panel-border: rgba(255, 255, 255, 0.055);
+    --panel-bg:     rgba(7, 11, 20, 0.82);
+    --panel-border: rgba(255, 255, 255, 0.06);
 
-    /* Body gradient accents — refined AI modern */
-    --grad-1: rgba(196, 154, 26,  0.05);
-    --grad-2: rgba(34,  197, 94,  0.035);
-    --grad-3: rgba(79,  172, 254, 0.035);
+    /* Body gradient accents */
+    --grad-1: rgba(251, 191, 36, 0.06);
+    --grad-2: rgba(16, 185, 129, 0.04);
+    --grad-3: rgba(59, 130, 246, 0.04);
 
     /* Header */
-    --header-bg:     rgba(5, 10, 24, 0.94);
-    --header-border: rgba(255, 255, 255, 0.055);
+    --header-bg:     rgba(5, 9, 18, 0.94);
+    --header-border: rgba(255, 255, 255, 0.07);
 
     /* Sidebar */
-    --sidebar-bg:     rgba(3, 8, 20, 0.99);
-    --sidebar-border: rgba(255, 255, 255, 0.050);
+    --sidebar-bg:     rgba(3, 6, 14, 0.99);
+    --sidebar-border: rgba(255, 255, 255, 0.06);
 
-    /* Shadows — deep dimensional */
-    --shadow-xs:   0 1px 3px  rgba(0,0,0,0.20);
-    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.30);
-    --shadow-md:   0 6px 16px rgba(0,0,0,0.42);
-    --shadow-lg:   0 16px 48px rgba(0,0,0,0.55);
-    --shadow-xl:   0 32px 72px rgba(0,0,0,0.65);
-    --shadow-gold: 0 0 48px rgba(196,154,26,0.22);
-    --shadow-glow: 0 0 28px rgba(var(--primary-glow-rgb),0.22);
+    /* Shadows */
+    --shadow-xs:   0 1px 3px  rgba(0,0,0,0.30);
+    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.40);
+    --shadow-md:   0 6px 16px rgba(0,0,0,0.52);
+    --shadow-lg:   0 16px 48px rgba(0,0,0,0.65);
+    --shadow-xl:   0 32px 72px rgba(0,0,0,0.78);
+    --shadow-gold: 0 0 50px rgba(251,191,36,0.28);
+    --shadow-glow: 0 0 32px rgba(var(--primary-glow-rgb),0.28);
 
-    /* Scrollbar — premium dark */
-    --scrollbar-thumb: rgba(255, 255, 255, 0.10);
-    --scrollbar-hover: rgba(255, 255, 255, 0.18);
+    /* Scrollbar */
+    --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+    --scrollbar-hover: rgba(255, 255, 255, 0.22);
 
     /* Accent gradients */
-    --theme-gradient:   linear-gradient(135deg, #c49a1a 0%, #e7b733 35%, #f3db99 50%, #e7b733 70%, #c49a1a 100%);
-    --primary-glow-rgb: 196, 154, 26;
+    --theme-gradient:   linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    --primary-glow-rgb: 251, 191, 36;
 
     /* Ticker */
-    --ticker-bg:    rgba(4, 9, 22, 0.88);
-    --ticker-border:rgba(255, 255, 255, 0.050);
+    --ticker-bg:    rgba(5, 9, 18, 0.94);
+    --ticker-border:rgba(255, 255, 255, 0.06);
+
+    /* ── Semantic surfaces & hairlines ──────────────────────────
+       Components used to hardcode bg-white/[0.0x] + border-white/[..],
+       which only read on a dark ground and forced a large !important
+       override layer for light mode. These flip per theme instead.
+       Light values keep the tuning the old overrides had: black reads
+       heavier than white at equal alpha, and hairlines use slate. */
+    --surface-1: rgba(255,255,255,0.02);
+    --surface-2: rgba(255,255,255,0.03);
+    --surface-3: rgba(255,255,255,0.05);
+    --surface-4: rgba(255,255,255,0.08);
+    --surface-5: rgba(255,255,255,0.10);
+    --line-1:    rgba(255,255,255,0.04);
+    --line-2:    rgba(255,255,255,0.05);
+    --line-3:    rgba(255,255,255,0.06);
+    --line-4:    rgba(255,255,255,0.08);
+    --line-5:    rgba(255,255,255,0.10);
+    --line-6:    rgba(255,255,255,0.20);
+
   }
 
-  /* ── CANVAS BLUE: Blue-Tosca Gradient (Canva-Style) ──────── */
-  .theme-blue {
-    --background:           200 70% 15%;      /* Vibrant blue background */
-    --foreground:           210 40% 98%;      /* Bright white */
-    --card:                 200 65% 20%;      /* Blue card */
-    --card-foreground:      210 40% 98%;
-    --popover:              200 68% 18%;      /* Blue popover */
-    --popover-foreground:   210 40% 98%;
-    --primary:              195 100% 50%;     /* Vibrant cyan — Canva primary */
-    --primary-foreground:   200 70% 15%;
-    --secondary:            160 90% 48%;      /* Tosca accent — warm turquoise */
-    --secondary-foreground: 210 40% 98%;
-    --muted:                200 50% 30%;      /* Muted blue */
-    --muted-foreground:     210 35% 75%;      /* Strong teal-gray */
-    --accent:               200 55% 35%;      /* Bold accent */
-    --accent-foreground:    195 100% 60%;     /* Bright cyan */
-    --destructive:          10   75% 45%;     /* Warm red */
+  /* ── 3. PURPLE: Royal Amethyst Velvet (Auth Theme Aesthetic) ── */
+  .theme-purple {
+    --background:           270 60% 4%;       /* Midnight velvet purple (#070310) */
+    --foreground:           270 30% 98%;      /* Crisp white (#fcfaff) */
+    --card:                 270 50% 8%;       /* Elevated dark amethyst card (#120826) */
+    --card-foreground:      270 30% 98%;
+    --popover:              270 60% 5%;
+    --popover-foreground:   270 30% 98%;
+    --primary:              271 91% 65%;      /* Electric glowing purple (#c084fc / #a855f7) */
+    --primary-foreground:   270 60% 4%;
+    --secondary:            270 40% 14%;      /* Deep violet secondary */
+    --secondary-foreground: 270 30% 98%;
+    --muted:                270 40% 14%;
+    --muted-foreground:     270 20% 70%;      /* Clear muted violet text */
+    --accent:               270 40% 18%;
+    --accent-foreground:    270 30% 98%;
+    --destructive:          0   72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border:               200 60% 28%;      /* Sharp blue borders */
-    --input:                200 60% 28%;
-    --ring:                 195 100% 50%;     /* Vibrant cyan ring */
+    --border:               270 40% 16%;      /* Sharp amethyst borders (#28124d) */
+    --input:                270 40% 16%;
+    --ring:                 271 91% 65%;
 
-    /* Glass — blue with cyan glow */
-    --glass-bg:           rgba(20, 60, 100, 0.75);
-    --glass-border:       rgba(34, 211, 238, 0.18);
-    --glass-border-top:   rgba(34, 211, 238, 0.35);
-    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.48);
-    --glass-hover-bg:     rgba(25, 75, 120, 0.92);
-    --glass-hover-border: rgba(34, 211, 238, 0.42);
-    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.55), 0 0 32px rgba(34,211,238,0.20);
+    /* Glass — velvet purple glassmorphism */
+    --glass-bg:           rgba(18, 8, 38, 0.78);
+    --glass-border:       rgba(192, 132, 252, 0.15);
+    --glass-border-top:   rgba(192, 132, 252, 0.32);
+    --glass-shadow:       0 8px 32px rgba(0, 0, 0, 0.58);
+    --glass-hover-bg:     rgba(26, 12, 54, 0.94);
+    --glass-hover-border: rgba(192, 132, 252, 0.40);
+    --glass-hover-shadow: 0 16px 48px rgba(0,0,0,0.70), 0 0 32px rgba(192,132,252,0.28);
 
     /* Panel */
-    --panel-bg:     rgba(18, 50, 80, 0.82);
-    --panel-border: rgba(34, 211, 238, 0.14);
+    --panel-bg:     rgba(14, 6, 30, 0.85);
+    --panel-border: rgba(192, 132, 252, 0.12);
 
-    /* Body gradient accents — blue-tosca shimmer */
-    --grad-1: rgba(34, 211, 238, 0.08);
-    --grad-2: rgba(20, 184, 166, 0.052);
-    --grad-3: rgba(45, 212, 191, 0.040);
+    /* Body gradient accents — purple glow leak */
+    --grad-1: rgba(192, 132, 252, 0.09);
+    --grad-2: rgba(168, 85, 247, 0.06);
+    --grad-3: rgba(147, 51, 234, 0.04);
 
     /* Header */
-    --header-bg:     rgba(15, 45, 70, 0.96);
-    --header-border: rgba(34, 211, 238, 0.16);
+    --header-bg:     rgba(12, 5, 26, 0.96);
+    --header-border: rgba(192, 132, 252, 0.14);
 
     /* Sidebar */
-    --sidebar-bg:     rgba(10, 35, 60, 0.99);
-    --sidebar-border: rgba(34, 211, 238, 0.14);
+    --sidebar-bg:     rgba(8, 3, 18, 0.99);
+    --sidebar-border: rgba(192, 132, 252, 0.12);
 
-    /* Shadows — deep with cyan-tosca glow */
-    --shadow-xs:   0 1px 2px  rgba(0,0,0,0.32);
-    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.45);
-    --shadow-md:   0 6px 16px rgba(0,0,0,0.55);
+    /* Shadows */
+    --shadow-xs:   0 1px 3px  rgba(0,0,0,0.30);
+    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.40);
+    --shadow-md:   0 6px 16px rgba(0,0,0,0.52);
     --shadow-lg:   0 16px 48px rgba(0,0,0,0.65);
-    --shadow-xl:   0 32px 72px rgba(0,0,0,0.72);
-    --shadow-cyan: 0 0 48px rgba(34, 211, 238, 0.28);
-    --shadow-glow: 0 0 32px rgba(var(--primary-glow-rgb),0.28);
-
-    /* Scrollbar */
-    --scrollbar-thumb: rgba(34, 211, 238, 0.20);
-    --scrollbar-hover: rgba(34, 211, 238, 0.38);
-
-    /* Accent gradients — blue-tosca */
-    --theme-gradient:   linear-gradient(135deg, #22d3ee 0%, #14b8a6 50%, #06b6d4 100%);
-    --primary-glow-rgb: 34, 211, 238;
-
-    /* Ticker */
-    --ticker-bg:    rgba(15, 45, 70, 0.96);
-    --ticker-border:rgba(34, 211, 238, 0.14);
-  }
-
-  /* ── GRAPHITE: Cyberpunk Cyan Premium ───────────────────── */
-  .theme-midnight {
-    --background:           160 46% 5%;           /* Deep plasma teal */
-    --foreground:           0 0% 97%;              /* Crisp white */
-    --card:                 160 42% 8%;            /* Dark teal card premium */
-    --card-foreground:      0 0% 97%;
-    --popover:              160 44% 6%;            /* Ultra-dark teal */
-    --popover-foreground:   0 0% 97%;
-    --primary:              163 100% 52%;         /* Vibrant neon cyan — AI modern */
-    --primary-foreground:   160 46% 5%;
-    --secondary:            160 38% 13%;          /* Secondary teal */
-    --secondary-foreground: 0 0% 97%;
-    --muted:                160 36% 11%;          /* Muted teal */
-    --muted-foreground:     163 28% 65%;          /* Strong cyan-gray */
-    --accent:               160 38% 16%;          /* Bold accent */
-    --accent-foreground:    163 100% 74%;         /* Bright cyan */
-    --destructive:          350  82% 54%;
-    --destructive-foreground: 0 0% 98%;
-    --border:               160 35% 15%;          /* Sharp teal borders */
-    --input:                160 35% 15%;
-    --ring:                 163 100% 52%;         /* Neon cyan ring */
-
-    /* Glass — dark plasma teal premium */
-    --glass-bg:           rgba(8, 28, 22, 0.78);
-    --glass-border:       rgba(0, 255, 180, 0.12);
-    --glass-border-top:   rgba(0, 255, 180, 0.25);
-    --glass-shadow:       0 6px 32px rgba(0, 0, 0, 0.58);
-    --glass-hover-bg:     rgba(14, 38, 30, 0.94);
-    --glass-hover-border: rgba(0, 255, 180, 0.36);
-    --glass-hover-shadow: 0 12px 48px rgba(0,0,0,0.68), 0 0 32px rgba(0,255,180,0.18);
-
-    /* Panel */
-    --panel-bg:     rgba(6, 22, 16, 0.85);
-    --panel-border: rgba(0, 255, 180, 0.10);
-
-    /* Body gradient accents — neon cyan shimmer modern */
-    --grad-1: rgba(0, 255, 180, 0.06);
-    --grad-2: rgba(0, 200, 140, 0.040);
-    --grad-3: rgba(0, 160, 120, 0.028);
-
-    /* Header */
-    --header-bg:     rgba(4, 16, 12, 0.96);
-    --header-border: rgba(0, 255, 180, 0.12);
-
-    /* Sidebar */
-    --sidebar-bg:     rgba(3, 12, 9, 0.99);
-    --sidebar-border: rgba(0, 255, 180, 0.10);
-
-    /* Shadows — deep with cyan glow premium */
-    --shadow-xs:   0 1px 2px  rgba(0,0,0,0.32);
-    --shadow-sm:   0 2px 5px  rgba(0,0,0,0.45);
-    --shadow-md:   0 6px 16px rgba(0,0,0,0.58);
-    --shadow-lg:   0 16px 48px rgba(0,0,0,0.68);
     --shadow-xl:   0 32px 72px rgba(0,0,0,0.78);
-    --shadow-gold: 0 0 48px rgba(0,255,180,0.28);
-    --shadow-glow: 0 0 32px rgba(var(--primary-glow-rgb),0.28);
+    --shadow-gold: 0 0 50px rgba(192,132,252,0.30);
+    --shadow-glow: 0 0 32px rgba(var(--primary-glow-rgb),0.30);
 
     /* Scrollbar */
-    --scrollbar-thumb: rgba(0, 255, 180, 0.16);
-    --scrollbar-hover: rgba(0, 255, 180, 0.32);
+    --scrollbar-thumb: rgba(192, 132, 252, 0.20);
+    --scrollbar-hover: rgba(192, 132, 252, 0.38);
 
-    /* Accent gradients — neon cyan modern */
-    --theme-gradient:   linear-gradient(135deg, #00ffcc 0%, #06ffd2 35%, #00cc99 65%, #00ffcc 100%);
-    --primary-glow-rgb: 0, 255, 180;
+    /* Accent gradients */
+    --theme-gradient:   linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%);
+    --primary-glow-rgb: 192, 132, 252;
 
     /* Ticker */
-    --ticker-bg:    rgba(4, 16, 12, 0.96);
-    --ticker-border:rgba(0, 255, 180, 0.10);
+    --ticker-bg:    rgba(12, 5, 26, 0.96);
+    --ticker-border:rgba(192, 132, 252, 0.14);
+
+    /* ── Semantic surfaces & hairlines ──────────────────────────
+       Components used to hardcode bg-white/[0.0x] + border-white/[..],
+       which only read on a dark ground and forced a large !important
+       override layer for light mode. These flip per theme instead.
+       Light values keep the tuning the old overrides had: black reads
+       heavier than white at equal alpha, and hairlines use slate. */
+    --surface-1: rgba(255,255,255,0.02);
+    --surface-2: rgba(255,255,255,0.03);
+    --surface-3: rgba(255,255,255,0.05);
+    --surface-4: rgba(255,255,255,0.08);
+    --surface-5: rgba(255,255,255,0.10);
+    --line-1:    rgba(255,255,255,0.04);
+    --line-2:    rgba(255,255,255,0.05);
+    --line-3:    rgba(255,255,255,0.06);
+    --line-4:    rgba(255,255,255,0.08);
+    --line-5:    rgba(255,255,255,0.10);
+    --line-6:    rgba(255,255,255,0.20);
+
   }
+
+  /* ── 4. BLUE: Deep Harbor (BI-blue surfaces, gold accent) ────
+     Navy-blue ground in the spirit of corporate BI dashboards, but the
+     accent stays gold: that is BDMFlow's identity, and cyan-on-navy reads
+     like a generic template. Blue carries the surfaces; gold carries meaning. */
+  .theme-blue {
+    --background:           215 55% 8%;        /* Deep harbor navy (#0a1628) */
+    --foreground:           210 40% 98%;
+    --card:                 214 50% 12%;       /* Panel blue (#0f2648) */
+    --card-foreground:      210 40% 98%;
+    --popover:              215 52% 10%;
+    --popover-foreground:   210 40% 98%;
+    --primary:              43 96% 56%;        /* Gold — kept as the accent */
+    --primary-foreground:   215 55% 8%;
+    --secondary:            213 40% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted:                213 40% 18%;
+    --muted-foreground:     213 25% 72%;
+    --accent:               212 45% 22%;
+    --accent-foreground:    210 40% 98%;
+    --destructive:          0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border:               213 38% 20%;
+    --input:                213 38% 20%;
+    --ring:                 43 96% 56%;
+
+    --glass-bg:           rgba(15, 38, 72, 0.55);
+    --glass-border:       rgba(255, 255, 255, 0.07);
+    --glass-border-top:   rgba(255, 255, 255, 0.14);
+    --glass-shadow:       0 6px 32px rgba(2, 10, 24, 0.50);
+    --glass-hover-bg:     rgba(19, 48, 90, 0.82);
+    --glass-hover-border: rgba(251, 191, 36, 0.24);
+    --glass-hover-shadow: 0 12px 48px rgba(2, 10, 24, 0.62), 0 0 28px rgba(251, 191, 36, 0.10);
+
+    --panel-bg:     rgba(12, 32, 62, 0.76);
+    --panel-border: rgba(255, 255, 255, 0.06);
+
+    --grad-1: rgba(251, 191, 36, 0.05);
+    --grad-2: rgba(56, 189, 248, 0.045);
+    --grad-3: rgba(37, 99, 235, 0.04);
+
+    --header-bg:     rgba(9, 24, 46, 0.94);
+    --header-border: rgba(255, 255, 255, 0.06);
+    --sidebar-bg:    rgba(8, 21, 41, 0.99);
+    --sidebar-border:rgba(255, 255, 255, 0.055);
+
+    --shadow-xs:   0 1px 3px  rgba(2, 10, 24, 0.22);
+    --shadow-sm:   0 2px 5px  rgba(2, 10, 24, 0.32);
+    --shadow-md:   0 6px 16px rgba(2, 10, 24, 0.44);
+    --shadow-lg:   0 16px 48px rgba(2, 10, 24, 0.56);
+    --shadow-xl:   0 32px 72px rgba(2, 10, 24, 0.66);
+    --shadow-gold: 0 0 48px rgba(251, 191, 36, 0.22);
+    --shadow-glow: 0 0 20px rgba(251, 191, 36, 0.25);
+
+    --scrollbar-thumb: rgba(148, 180, 220, 0.28);
+    --scrollbar-hover: rgba(148, 180, 220, 0.48);
+
+    --theme-gradient:   linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    --primary-glow-rgb: 251, 191, 36;
+
+    --ticker-bg:    rgba(9, 24, 46, 0.94);
+    --ticker-border:rgba(255, 255, 255, 0.06);
+
+    /* Dark-family overlays — identical ladder to .dark */
+    --surface-1: rgba(255,255,255,0.02);
+    --surface-2: rgba(255,255,255,0.03);
+    --surface-3: rgba(255,255,255,0.05);
+    --surface-4: rgba(255,255,255,0.08);
+    --surface-5: rgba(255,255,255,0.10);
+    --line-1:    rgba(255,255,255,0.04);
+    --line-2:    rgba(255,255,255,0.05);
+    --line-3:    rgba(255,255,255,0.06);
+    --line-4:    rgba(255,255,255,0.08);
+    --line-5:    rgba(255,255,255,0.10);
+    --line-6:    rgba(255,255,255,0.20);
+  }
+
 
   /* ── Base resets ─────────────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; }
@@ -337,15 +401,44 @@
     font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
   }
 
-  html.dark      body { background-color: #060a16; }
-  html.theme-blue body { background-color: #05060f; }
-  html.theme-midnight body { background-color: #091e17; }
+  html.dark           body { background-color: #030712; }
+  html.theme-purple   body { background-color: #070310; }
+
+  /* ── Light Mode High-Contrast Typography & Color Overrides ─ */
+  /* Light-mode repaint of Tailwind's dark-tuned data colours. EVERY dark theme
+     must be listed here — omitting one ships light-mode text on a dark ground,
+     which is how both purple and blue first shipped broken. */
+  html.theme-light {
+    /* High contrast dark charcoal for muted text */
+    .text-muted-foreground {
+      color: #334155 !important; /* Slate 700 - sharp, bold, legible dark charcoal */
+    }
+
+    /* Transform low-contrast pastel text into rich vibrant dark tones in Light Mode */
+    .text-purple-400 { color: #6b21a8 !important; } /* Deep Royal Purple 800 */
+    .text-cyan-400   { color: #0e7490 !important; } /* Deep Ocean Cyan 700 */
+    .text-teal-400   { color: #0f766e !important; } /* Deep Forest Teal 700 */
+    .text-blue-400   { color: #1d4ed8 !important; } /* Deep Sapphire Blue 700 */
+    .text-orange-400 { color: #c2410c !important; } /* Deep Burnt Orange 700 */
+    .text-amber-400  { color: #b45309 !important; } /* Deep Warm Amber 700 */
+    .text-yellow-400 { color: #a16207 !important; } /* Deep Golden Yellow 700 */
+    .text-emerald-400{ color: #047857 !important; } /* Deep Emerald Green 700 */
+    .text-red-400    { color: #b91c1c !important; } /* Deep Crimson Red 700 */
+
+    .bg-black\/10 {
+      background-color: rgba(15, 23, 42, 0.06) !important;
+    }
+
+    /* Input placeholders & icons contrast */
+    input::placeholder {
+      color: #64748b !important;
+    }
+  }
 
   /* ── Gauge Track Color (tema-aware) ──────────────────────── */
-  :root             { --gauge-track: rgba(0,0,0,0.12);   --gauge-text: #1e2a3a; }
+  :root             { --gauge-track: rgba(0,0,0,0.12);       --gauge-text: #020617; }
   .dark             { --gauge-track: rgba(255,255,255,0.10); --gauge-text: #ffffff; }
-  .theme-blue       { --gauge-track: rgba(255,255,255,0.10); --gauge-text: #ffffff; }
-  .theme-midnight   { --gauge-track: rgba(255,255,255,0.10); --gauge-text: #ffffff; }
+  .theme-purple     { --gauge-track: rgba(255,255,255,0.10); --gauge-text: #ffffff; }
 
   /* ── Focus ───────────────────────────────────────────────── */
   :focus-visible {
@@ -507,40 +600,7 @@
   background-size: 200px 200px;
 }
 .dark .noise-overlay    { opacity: 0.032; }
-.theme-blue .noise-overlay { opacity: 0.025; }
-.theme-midnight .noise-overlay { opacity: 0.040; }
 
-/* ── Plasma Edge — override hardcoded purple/blue → cyan ──── */
-.theme-midnight .from-purple-400 {
-  --tw-gradient-from: #00ffcc var(--tw-gradient-from-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,255,204,0));
-}
-.theme-midnight .from-purple-500 {
-  --tw-gradient-from: #00e5b0 var(--tw-gradient-from-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,229,176,0));
-}
-.theme-midnight .to-blue-400 {
-  --tw-gradient-to: #22d3ee var(--tw-gradient-to-position);
-}
-.theme-midnight .to-blue-500 {
-  --tw-gradient-to: #06b6d4 var(--tw-gradient-to-position);
-}
-.theme-midnight .text-purple-400,
-.theme-midnight .text-purple-500 {
-  color: #00e5b0;
-}
-.theme-midnight .text-blue-400,
-.theme-midnight .text-blue-500 {
-  color: #22d3ee;
-}
-.theme-midnight .border-purple-400\/40,
-.theme-midnight .border-purple-500\/30 {
-  border-color: rgba(0, 255, 180, 0.35);
-}
-.theme-midnight .bg-purple-500\/10,
-.theme-midnight .bg-purple-400\/10 {
-  background-color: rgba(0, 255, 180, 0.10);
-}
 
 /* ── Glass Card ───────────────────────────────────────────── */
 .glass {
@@ -802,6 +862,23 @@
   background: linear-gradient(180deg, hsl(var(--primary)) 0%, transparent 100%);
 }
 
+/* ============================================================
+   🖐️ HAPTIC FEEDBACK — Global active:scale for tactile feel
+   ============================================================ */
+button:not([disabled]),
+a[role="button"],
+.card-hover,
+.glass,
+.bento-card,
+.shortcut-pill,
+.metric-card {
+  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+button:not([disabled]):active,
+a[role="button"]:active {
+  transform: scale(0.97);
+}
+
 /* ── Financial Utilities ─────────────────────────────────── */
 .text-profit    { @apply text-emerald-500 font-semibold; }
 .text-loss      { @apply text-red-500    font-semibold; }
@@ -945,80 +1022,66 @@
    ============================================================ */
 
 /* ── 1. bg-white/X → near-invisible on white, invert to bg-black/X ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-white\/\[0\.02\]  { background: rgba(0,0,0,0.025) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-white\/\[0\.03\]  { background: rgba(0,0,0,0.030) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-white\/5          { background: rgba(0,0,0,0.040) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-white\/10         { background: rgba(0,0,0,0.055) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-white\/\[0\.08\]  { background: rgba(0,0,0,0.050) !important; }
 
 /* ── 2. border-white/X → invisible hairlines, swap to slate tints ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .border-white\/5          { border-color: rgba(100,116,139,0.20) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .border-white\/10         { border-color: rgba(100,116,139,0.26) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .border-white\/\[0\.04\]  { border-color: rgba(100,116,139,0.12) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .border-white\/\[0\.05\]  { border-color: rgba(100,116,139,0.15) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .border-white\/\[0\.06\]  { border-color: rgba(100,116,139,0.18) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .border-white\/\[0\.08\]  { border-color: rgba(100,116,139,0.22) !important; }
 
 /* ── 3. Table row dividers ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) [class*="divide-white"] > * + * {
-  border-color: rgba(100,116,139,0.15) !important;
-}
 
 /* ── 4. text-white = invisible text on light bg ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-white {
+:root.theme-light .text-white {
   color: hsl(var(--foreground)) !important;
 }
 
 /* ── 5. Semantic -400 text: too light for white bg → promote to -600 ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-emerald-400 { color: #16a34a; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-red-400     { color: #dc2626; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-sky-400     { color: #0284c7; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-amber-400   { color: #b45309; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-blue-400    { color: #2563eb; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-teal-400    { color: #0d9488; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-pink-400    { color: #db2777; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-purple-400  { color: #9333ea; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-gold-400    { color: #92660a; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-slate-400   { color: #475569; }
+:root.theme-light .text-emerald-400 { color: #16a34a; }
+:root.theme-light .text-red-400     { color: #dc2626; }
+:root.theme-light .text-sky-400     { color: #0284c7; }
+:root.theme-light .text-amber-400   { color: #b45309; }
+:root.theme-light .text-blue-400    { color: #2563eb; }
+:root.theme-light .text-teal-400    { color: #0d9488; }
+:root.theme-light .text-pink-400    { color: #db2777; }
+:root.theme-light .text-purple-400  { color: #9333ea; }
+:root.theme-light .text-gold-400    { color: #92660a; }
+:root.theme-light .text-slate-400   { color: #475569; }
 
 /* ── -300 variants: terlalu light di light mode → darken ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-emerald-300 { color: #15803d !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-red-300     { color: #b91c1c !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-teal-300    { color: #0f766e !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-yellow-300  { color: #854d0e !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-amber-300   { color: #92400e !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-blue-300    { color: #1d4ed8 !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-purple-300  { color: #7e22ce !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-indigo-300  { color: #4338ca !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-gray-300    { color: #374151 !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-gray-400    { color: #4b5563 !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-slate-300   { color: #334155 !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-zinc-300    { color: #3f3f46 !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .text-orange-300  { color: #c2410c !important; }
+:root.theme-light .text-emerald-300 { color: #15803d !important; }
+:root.theme-light .text-red-300     { color: #b91c1c !important; }
+:root.theme-light .text-teal-300    { color: #0f766e !important; }
+:root.theme-light .text-yellow-300  { color: #854d0e !important; }
+:root.theme-light .text-amber-300   { color: #92400e !important; }
+:root.theme-light .text-blue-300    { color: #1d4ed8 !important; }
+:root.theme-light .text-purple-300  { color: #7e22ce !important; }
+:root.theme-light .text-indigo-300  { color: #4338ca !important; }
+:root.theme-light .text-gray-300    { color: #374151 !important; }
+:root.theme-light .text-gray-400    { color: #4b5563 !important; }
+:root.theme-light .text-slate-300   { color: #334155 !important; }
+:root.theme-light .text-zinc-300    { color: #3f3f46 !important; }
+:root.theme-light .text-orange-300  { color: #c2410c !important; }
 
 /* ── 6. Coloured badge backgrounds: semi-transparent on white = washed out ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-emerald-500\/15       { background: rgba(22,163,74,  0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-emerald-500\/20       { background: rgba(22,163,74,  0.16) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-red-500\/15           { background: rgba(220,38,38,  0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-red-500\/20           { background: rgba(220,38,38,  0.16) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-amber-500\/15         { background: rgba(180,83,9,   0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-blue-500\/15          { background: rgba(37,99,235,  0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-sky-500\/15           { background: rgba(2,132,199,  0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-teal-500\/15          { background: rgba(13,148,136, 0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-teal-900\/\[0\.07\]   { background: rgba(13,148,136, 0.09) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-emerald-900\/\[0\.07\]{ background: rgba(22,163,74,  0.09) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-purple-500\/15        { background: rgba(147,51,234, 0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-gold-400\/10          { background: rgba(146,102,10, 0.10) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-gold-400\/15          { background: rgba(146,102,10, 0.13) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-gold-400\/20          { background: rgba(146,102,10, 0.16) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-gold-400\/\[0\.04\]   { background: rgba(146,102,10, 0.06) !important; }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .bg-gold-400\/\[0\.05\]   { background: rgba(146,102,10, 0.07) !important; }
+:root.theme-light .bg-emerald-500\/15       { background: rgba(22,163,74,  0.13) !important; }
+:root.theme-light .bg-emerald-500\/20       { background: rgba(22,163,74,  0.16) !important; }
+:root.theme-light .bg-red-500\/15           { background: rgba(220,38,38,  0.13) !important; }
+:root.theme-light .bg-red-500\/20           { background: rgba(220,38,38,  0.16) !important; }
+:root.theme-light .bg-amber-500\/15         { background: rgba(180,83,9,   0.13) !important; }
+:root.theme-light .bg-blue-500\/15          { background: rgba(37,99,235,  0.13) !important; }
+:root.theme-light .bg-sky-500\/15           { background: rgba(2,132,199,  0.13) !important; }
+:root.theme-light .bg-teal-500\/15          { background: rgba(13,148,136, 0.13) !important; }
+:root.theme-light .bg-teal-900\/\[0\.07\]   { background: rgba(13,148,136, 0.09) !important; }
+:root.theme-light .bg-emerald-900\/\[0\.07\]{ background: rgba(22,163,74,  0.09) !important; }
+:root.theme-light .bg-purple-500\/15        { background: rgba(147,51,234, 0.13) !important; }
+:root.theme-light .bg-gold-400\/10          { background: rgba(146,102,10, 0.10) !important; }
+:root.theme-light .bg-gold-400\/15          { background: rgba(146,102,10, 0.13) !important; }
+:root.theme-light .bg-gold-400\/20          { background: rgba(146,102,10, 0.16) !important; }
+:root.theme-light .bg-gold-400\/\[0\.04\]   { background: rgba(146,102,10, 0.06) !important; }
+:root.theme-light .bg-gold-400\/\[0\.05\]   { background: rgba(146,102,10, 0.07) !important; }
 
 /* ── 7. Table hover row: gold tint, slightly deeper on light bg ── */
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .tr-hover:hover {
+:root.theme-light .tr-hover:hover {
   background: rgba(146,102,10, 0.06) !important;
 }
-:root:not(.dark):not(.theme-blue):not(.theme-midnight) .hover\:bg-gold-400\/\[0\.03\]:hover {
+:root.theme-light .hover\:bg-gold-400\/\[0\.03\]:hover {
   background: rgba(146,102,10, 0.06) !important;
 }
 
@@ -1099,23 +1162,13 @@
 /* ============================================================
    🔤 GLOBAL MINIMUM FONT SIZES
    Ensures readability at 80% browser zoom — semua tema
-   8px → 10px | 9px → 11px
+   8px → 11px | 9px → 11px | 10px → 11px
    ============================================================ */
-.text-\[8px\]    { font-size: 10px !important; }
-.text-\[8\.5px\] { font-size: 10px !important; }
+.text-\[8px\]    { font-size: 11px !important; }
+.text-\[8\.5px\] { font-size: 11px !important; }
 .text-\[9px\]    { font-size: 11px !important; }
-
-/* ============================================================
-   📱 MOBILE READABILITY FLOOR
-   On phones (<768px) bump the densest UI text to ≥11px (Apple's legible minimum); desktop keeps
-   its denser scale. Pairs with pinch-zoom now re-enabled in the viewport.
-   ============================================================ */
-@media (max-width: 767px) {
-  .text-\[8px\],
-  .text-\[8\.5px\],
-  .text-\[9px\],
-  .text-\[10px\] { font-size: 11px !important; }
-}
+.text-\[9\.5px\] { font-size: 11px !important; }
+.text-\[10px\]   { font-size: 11px !important; }
 
 /* ============================================================
    📱 MOBILE WIDE-TABLE: pin the stock-code column
@@ -1150,7 +1203,6 @@
   select,
   textarea { min-height: 40px; }
 }
-.text-\[9\.5px\] { font-size: 11px !important; }
 @layer utilities {
   td {
     font-variant-numeric: tabular-nums;

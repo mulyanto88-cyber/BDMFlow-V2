@@ -10,7 +10,8 @@ const PLANS = [
     color: 'border-border/30',
     badge: '',
     features: ['Market Overview real-time','Stock Detail dasar','5 pencarian/hari'],
-    cta: 'Aktif Sekarang', ctaStyle: 'glass border border-border/30 text-foreground hover:border-gold-400/30',
+    cta: 'Mulai Gratis', href: '/auth',
+    ctaStyle: 'glass border border-border/30 text-foreground hover:border-gold-400/30',
   },
   {
     name: 'Pro',
@@ -19,7 +20,8 @@ const PLANS = [
     color: 'border-gold-400/40',
     badge: '🔥 Populer',
     features: ['Semua fitur Free','Screener Pro unlimited','Big Player Radar','5% & 1% Flow Tracker','Smart Money Score','Whale Tracker KSEI'],
-    cta: 'Mulai 7 Hari Gratis', ctaStyle: 'bg-gradient-to-r from-gold-400 to-yellow-500 text-navy-900 font-bold shadow-lg shadow-amber-500/20',
+    cta: 'Mulai 7 Hari Gratis', href: '/auth',
+    ctaStyle: 'bg-gradient-to-r from-gold-400 to-yellow-500 text-navy-900 font-bold shadow-lg shadow-amber-500/20',
   },
   {
     name: 'Institutional',
@@ -27,7 +29,8 @@ const PLANS = [
     color: 'border-purple-500/30',
     badge: '💎 Enterprise',
     features: ['Semua fitur Pro','API access','Multi-user dashboard','Dedicated support','Custom alert & screening'],
-    cta: 'Hubungi Kami', ctaStyle: 'glass border border-purple-500/30 text-purple-400 hover:bg-purple-500/10',
+    cta: 'Hubungi Kami', href: 'mailto:mulyanto.my88@gmail.com?subject=BDMFlow%20Institutional',
+    ctaStyle: 'glass border border-purple-500/30 text-purple-400 hover:bg-purple-500/10',
   },
 ]
 
@@ -66,7 +69,12 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <button className={`w-full py-3 rounded-xl text-sm transition-all ${p.ctaStyle}`}>{p.cta}</button>
+            <Link
+              href={p.href}
+              className={`w-full py-3 rounded-xl text-sm transition-all text-center block ${p.ctaStyle}`}
+            >
+              {p.cta}
+            </Link>
           </div>
         ))}
       </div>

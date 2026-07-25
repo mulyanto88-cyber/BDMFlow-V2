@@ -29,7 +29,7 @@ export default function LiveClock() {
   return (
     <div className="flex items-center gap-2 select-none">
       <div
-        className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/[0.06] bg-white/[0.02]"
+        className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-line-3 bg-surface-1"
         aria-live="polite"
         aria-label="Waktu sekarang"
       >

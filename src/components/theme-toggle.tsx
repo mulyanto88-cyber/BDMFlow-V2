@@ -1,9 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Sun, Moon, Globe, Palette } from 'lucide-react'
+import { Sun, Moon, Sparkles, Anchor } from 'lucide-react'
 
-type Theme = 'dark' | 'light' | 'blue' | 'midnight'
+// Only themes with a full variable block in globals.css belong here. An earlier
+// build listed "blue" and "midnight" with no block behind them, so picking one
+// dropped `.dark`, matched no rule, and fell through to :root — the light theme.
+// Whoever chose "Cyber Cyan" got a white screen. Add the block first, then the entry.
+type Theme = 'dark' | 'light' | 'purple' | 'blue'
 
 interface ThemeConfig {
   key: Theme
@@ -18,39 +22,39 @@ interface ThemeConfig {
 const THEMES: ThemeConfig[] = [
   {
     key: 'dark',
-    label: 'Dark Navy',
-    desc: 'Deep navy · gold accents',
-    icon: <Moon size={13} className="text-amber-400" />,
-    preview: '#060a16',
-    bg: 'bg-gradient-to-br from-[#060a16] to-[#0f1a36]',
-    accent: '#e7b733',
-  },
-  {
-    key: 'midnight',
-    label: 'Plasma Edge',
-    desc: 'Dark teal · neon cyan glow',
-    icon: <Palette size={13} className="text-cyan-400" />,
-    preview: '#061512',
-    bg: 'bg-gradient-to-br from-[#061512] to-[#0d1f1a]',
-    accent: '#00ffcc',
-  },
-  {
-    key: 'blue',
-    label: 'Midnight Azure',
-    desc: 'Deep indigo · elegant',
-    icon: <Globe size={13} className="text-indigo-400" />,
-    preview: '#05060f',
-    bg: 'bg-gradient-to-br from-[#05060f] to-[#0d0f24]',
-    accent: '#818cf8',
+    label: 'Dark Obsidian',
+    desc: 'Deep navy · Gold accents',
+    icon: <Moon size={14} className="text-amber-400" />,
+    preview: '#030712',
+    bg: 'bg-gradient-to-br from-[#030712] via-[#090e1a] to-[#1e293b]',
+    accent: '#fbbf24',
   },
   {
     key: 'light',
-    label: 'Light Silver',
-    desc: 'Clean white · gold',
-    icon: <Sun size={13} className="text-amber-400" />,
-    preview: '#f5f7fa',
-    bg: 'bg-gradient-to-br from-[#f5f7fa] to-[#e8ecf2]',
-    accent: '#c49a1a',
+    label: 'Putih Pearl',
+    desc: 'Clean silver · Gold accents',
+    icon: <Sun size={14} className="text-amber-500" />,
+    preview: '#f8fafc',
+    bg: 'bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]',
+    accent: '#f59e0b',
+  },
+  {
+    key: 'blue',
+    label: 'Deep Harbor',
+    desc: 'Navy analitis · Aksen emas',
+    icon: <Anchor size={14} className="text-sky-400" />,
+    preview: '#0a1628',
+    bg: 'bg-gradient-to-br from-[#0a1628] via-[#0f2648] to-[#1b3b6b]',
+    accent: '#fbbf24',
+  },
+  {
+    key: 'purple',
+    label: 'Ungu Velvet',
+    desc: 'Royal purple · Auth theme',
+    icon: <Sparkles size={14} className="text-purple-400" />,
+    preview: '#070310',
+    bg: 'bg-gradient-to-br from-[#070310] via-[#120826] to-[#28124d]',
+    accent: '#c084fc',
   },
 ]
 
@@ -64,16 +68,26 @@ export default function ThemeToggle() {
   const applyTheme = (t: Theme) => {
     setTheme(t)
     const root = document.documentElement
-    root.classList.remove('dark', 'theme-blue', 'theme-midnight')
+    // Light is marked explicitly with .theme-light rather than being "the absence
+    // of a dark class". The light-mode overrides in globals.css key off that marker,
+    // so adding a dark theme never requires touching their selectors — forgetting
+    // to is what shipped purple and blue with light-mode text on a dark ground.
+    // theme-midnight is still stripped so a stale class from the removed theme clears.
+    root.classList.remove('dark', 'theme-light', 'theme-purple', 'theme-blue', 'theme-midnight')
     if (t === 'dark') root.classList.add('dark')
+    if (t === 'light') root.classList.add('theme-light')
+    if (t === 'purple') root.classList.add('theme-purple')
     if (t === 'blue') root.classList.add('theme-blue')
-    if (t === 'midnight') root.classList.add('theme-midnight')
   }
 
   useEffect(() => {
     const sync = () => {
+      // A saved value that no longer exists (e.g. 'midnight') fails this check and
+      // is migrated to 'dark'.
       const saved = localStorage.getItem('bdmflow-theme') as Theme
-      const t = saved && ['dark', 'light', 'blue', 'midnight'].includes(saved) ? saved : 'dark'
+      const valid: Theme[] = ['dark', 'light', 'purple', 'blue']
+      const t = saved && valid.includes(saved) ? saved : 'dark'
+      if (t !== saved) localStorage.setItem('bdmflow-theme', t)
       applyTheme(t)
     }
     sync()
@@ -110,15 +124,9 @@ export default function ThemeToggle() {
       <button
         ref={btnRef}
         onClick={() => setOpen(!open)}
-        className={[
-          'flex items-center justify-center w-8 h-8 rounded-full',
-          'border border-white/[0.07] bg-white/[0.03]',
-          'hover:bg-white/[0.07] hover:border-white/[0.12]',
-          'text-muted-foreground hover:text-foreground',
-          'transition-all duration-200',
-          'active:scale-90',
-        ].join(' ')}
-        title={`Theme: ${mounted ? current.label : '...'}`}
+        className="flex items-center justify-center w-8 h-8 rounded-full border border-line-5 bg-surface-3 hover:bg-surface-4 hover:border-line-6 text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95 shadow-sm"
+        title={`Tema: ${mounted ? current.label : '...'}`}
+        aria-label="Pilih Tema"
       >
         {mounted ? current.icon : (
           <div className="w-3.5 h-3.5 rounded-full bg-muted-foreground/20" />
@@ -128,40 +136,50 @@ export default function ThemeToggle() {
       {open && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-full mt-2 w-56 p-2 rounded-2xl border border-white/[0.08] bg-black/90 backdrop-blur-2xl shadow-2xl z-50 animate-scale-in"
-          style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)' }}
+          className="absolute right-0 top-full mt-2 w-64 p-2.5 rounded-2xl border border-line-5 bg-card/95 backdrop-blur-2xl shadow-glass-lg z-50 animate-fade-in"
+          style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.08)' }}
         >
-          <p className="px-3 py-1.5 text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">
-            Theme
-          </p>
-          <div className="space-y-1">
-            {THEMES.map(t => (
-              <button
-                key={t.key}
-                onClick={() => select(t.key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group ${
-                  theme === t.key
-                    ? 'bg-white/[0.08] border border-white/[0.10]'
-                    : 'border border-transparent hover:bg-white/[0.04]'
-                }`}
-              >
-                {/* Theme preview swatch */}
-                <div className={`w-8 h-8 rounded-lg shrink-0 border border-white/[0.10] relative overflow-hidden ${t.bg}`}>
-                  <div className="absolute inset-x-0 bottom-0 h-1.5" style={{ backgroundColor: t.accent }} />
-                  <div className="absolute top-1.5 left-1.5 w-3 h-0.5 rounded-full bg-white/20" />
-                  <div className="absolute top-2.5 left-1.5 w-2 h-0.5 rounded-full bg-white/10" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-[11px] font-bold ${theme === t.key ? 'text-foreground' : 'text-foreground/70'}`}>
-                    {t.label}
-                  </p>
-                  <p className="text-[9px] text-muted-foreground/50">{t.desc}</p>
-                </div>
-                {theme === t.key && (
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: t.accent }} />
-                )}
-              </button>
-            ))}
+          <div className="flex items-center justify-between px-3 py-1.5 mb-1">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+              Pilih Tema UI
+            </span>
+            <span className="text-[9px] font-mono font-bold text-amber-400/80 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+              {THEMES.length} TEMA
+            </span>
+          </div>
+
+          <div className="space-y-1.5">
+            {THEMES.map(t => {
+              const active = theme === t.key
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => select(t.key)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group active:scale-[0.98] ${
+                    active
+                      ? 'bg-primary/10 border border-primary/30 shadow-sm'
+                      : 'border border-transparent hover:bg-surface-3'
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-xl shrink-0 border border-line-6 relative overflow-hidden shadow-inner ${t.bg}`}>
+                    <div className="absolute inset-x-0 bottom-0 h-2" style={{ backgroundColor: t.accent }} />
+                    <div className="absolute top-1.5 left-1.5 w-3.5 h-1 rounded-full bg-white/30" />
+                    <div className="absolute top-3 left-1.5 w-2 h-1 rounded-full bg-white/20" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-extrabold ${active ? 'text-foreground' : 'text-foreground/80 group-hover:text-foreground'}`}>
+                      {t.label}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70 truncate">{t.desc}</p>
+                  </div>
+
+                  {active && (
+                    <div className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ backgroundColor: t.accent, boxShadow: `0 0 10px ${t.accent}` }} />
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}

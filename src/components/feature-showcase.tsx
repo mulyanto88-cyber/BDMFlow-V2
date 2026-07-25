@@ -22,8 +22,8 @@ const SHOTS = [
 function Shot({ src, title, desc }: { src: string; title: string; desc: string }) {
   const [err, setErr] = useState(false)
   return (
-    <div className="glass rounded-2xl overflow-hidden border border-white/[0.06] card-hover">
-      <div className="relative aspect-[16/9] bg-gradient-to-br from-white/[0.05] to-transparent border-b border-white/[0.05]">
+    <div className="glass rounded-2xl overflow-hidden border border-line-3 card-hover">
+      <div className="relative aspect-[16/9] bg-gradient-to-br from-white/[0.05] to-transparent border-b border-line-2">
         {err ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/35">
             <ImageIcon size={26} strokeWidth={1.4} />

@@ -10,17 +10,7 @@ import {
 import Link from 'next/link'
 import { SectorHeatmap } from '@/components/sector-heatmap'
 
-// ─── API Helper ───────────────────────────────────────────────────────────────
-async function mdQuery(query: string, params?: any[]): Promise<any[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, params }),
-  })
-  const json = await res.json()
-  if (json.error) throw new Error(json.error)
-  return json.data || []
-}
+import { mdQuery } from '@/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface SectorData {
@@ -100,7 +90,7 @@ export default function SectorPage() {
     setLoading(true)
     setError(null)
     try {
-      const data = await mdQuery(`SELECT * FROM market.vw_sector_analytics ORDER BY momentum_score DESC`)
+      const data = await mdQuery('sector.analytics')
       setSectors(data.map((d: Record<string, any>) => ({
         sector:           d.sector,
         stock_count:      Number(d.stock_count   || 0),
@@ -138,14 +128,8 @@ export default function SectorPage() {
   const fetchSectorStocks = useCallback(async (sector: string) => {
     setStocksLoading(true)
     try {
-      const data = await mdQuery(`
-        SELECT stock_code, close, change_percent, net_foreign_value, value,
-               whale_signal, big_player_anomaly, aov_ratio_ma20, volume, ma20_volume
-        FROM market.vw_stock_latest
-        WHERE sector = $1
-        ORDER BY value DESC LIMIT 50
-      `, [sector])
-      setSectorStocks(data as SectorStock[])
+      const data = await mdQuery('sector.stocks', [sector])
+      setSectorStocks(data as unknown as SectorStock[])
     } catch (err: any) {
       console.error(err)
     } finally {
@@ -367,7 +351,7 @@ export default function SectorPage() {
         <>
           <h2 className="section-heading">Detail per Sektor</h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 stagger">
             {displayed.map((sec) => {
               const flowBar   = Math.min((Math.abs(sec.foreign_flow) / maxForeignAbs) * 100, 100)
               const vwmaPct   = sec.stock_count > 0 ? (sec.above_vwma_count / sec.stock_count * 100) : 0
@@ -459,7 +443,7 @@ export default function SectorPage() {
                         <span>Flow Intensity: <span className="font-bold text-foreground/60">{sec.flow_intensity}</span></span>
                         <span>{fmtMiliar(sec.foreign_30d)} 30d</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${sec.foreign_flow >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
                           style={{
@@ -471,7 +455,7 @@ export default function SectorPage() {
                     </div>
 
                     {/* Bottom stats */}
-                    <div className="grid grid-cols-4 gap-2 pt-2.5 border-t border-white/[0.04] text-center">
+                    <div className="grid grid-cols-4 gap-2 pt-2.5 border-t border-line-1 text-center">
                       <div>
                         <p className="text-[8px] text-muted-foreground uppercase">VWMA</p>
                         <p className={`text-xs font-bold counter ${vwmaPct >= 50 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -502,7 +486,7 @@ export default function SectorPage() {
                   {/* ── Drill-down stocks ──────────────────────────────────── */}
                   {isOpen && (
                     <div className="mt-2 glass rounded-2xl border-gold-400/20 overflow-hidden animate-fade-in">
-                      <div className="px-4 py-2.5 border-b border-white/[0.05] bg-gold-400/[0.03] flex items-center justify-between">
+                      <div className="px-4 py-2.5 border-b border-line-2 bg-gold-400/[0.03] flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Building2 className="w-3.5 h-3.5 text-gold-400" />
                           <p className="text-xs font-black text-gold-400 uppercase tracking-wider">
@@ -526,7 +510,7 @@ export default function SectorPage() {
                           ))}
                         </div>
                       ) : sectorStocks.length > 0 ? (
-                        <div className="divide-y divide-white/[0.03] max-h-[320px] overflow-y-auto">
+                        <div className="divide-y divide-line-1 max-h-[320px] overflow-y-auto">
                           {sectorStocks.map((stock) => {
                             const chg      = Number(stock.change_percent)
                             const netFg    = Number(stock.net_foreign_value)
@@ -579,7 +563,7 @@ export default function SectorPage() {
 
                                 {/* Value bar (flex-fill) */}
                                 <div className="flex-1 min-w-0 hidden md:block">
-                                  <div className="h-1 w-full bg-white/[0.04] rounded-full overflow-hidden">
+                                  <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
                                     <div
                                       className="h-full bg-gold-400/35 rounded-full"
                                       style={{ width: `${barW}%` }}

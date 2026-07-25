@@ -13,20 +13,9 @@ import {
   Cell, Legend,
 } from 'recharts'
 import { formatRupiah } from '@/lib/utils'
+import { mdQuery } from '@/lib/api'
 
 declare const window: any
-
-// ─── API Helper ───────────────────────────────────────────────────────────────
-async function mdQuery(query: string, params?: any[]): Promise<any[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, params }),
-  })
-  const json = await res.json()
-  if (json.error) throw new Error(json.error)
-  return json.data || []
-}
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 function fmtRp(v: number): string {
@@ -153,14 +142,7 @@ export default function BacktestPage() {
     setLoading(true); setError(null); setStratResult(null)
 
     try {
-      const data = await mdQuery(
-        `SELECT trading_date, open_price, high, low, close,
-                whale_signal, net_foreign_value, aov_ratio_ma20, big_player_anomaly
-         FROM market.daily_transactions
-         WHERE stock_code = $1
-         ORDER BY trading_date ASC`,
-        [stockCode.toUpperCase()]
-      )
+      const data = await mdQuery('backtest.pricesAll', [stockCode.toUpperCase()])
       if (!data.length) throw new Error(`Tidak ada data untuk ${stockCode.toUpperCase()}`)
 
       const lots = lotsStrat
@@ -295,21 +277,8 @@ export default function BacktestPage() {
     try {
       // Fetch stock + IHSG parallel
       const [data, ihsgData] = await Promise.all([
-        mdQuery(
-          `SELECT trading_date, open_price, high, low, close,
-                  net_foreign_value, aov_ratio_ma20, whale_signal, big_player_anomaly
-           FROM market.daily_transactions
-           WHERE stock_code = $1 AND trading_date >= $2 AND trading_date <= $3
-           ORDER BY trading_date ASC LIMIT 1000`,
-          [stockCode.toUpperCase(), startDate, endDate]
-        ),
-        mdQuery(
-          `SELECT trading_date, close
-           FROM market.daily_transactions
-           WHERE stock_code = 'COMPOSITE' AND trading_date >= $1 AND trading_date <= $2
-           ORDER BY trading_date ASC LIMIT 1000`,
-          [startDate, endDate]
-        ),
+        mdQuery('backtest.pricesRange', [stockCode.toUpperCase(), startDate, endDate]),
+        mdQuery('backtest.compositeRange', [startDate, endDate]),
       ])
 
       if (!data.length) throw new Error(`Tidak ada data untuk ${stockCode.toUpperCase()} dalam periode ini`)
@@ -380,6 +349,7 @@ export default function BacktestPage() {
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stockCode, startDate, endDate, lotsBnH])
 
   // ─── Render Buy & Hold Candlestick Chart ───────────────────────────────────
@@ -468,11 +438,11 @@ export default function BacktestPage() {
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex bg-white/5 p-1 rounded-xl">
+        <div className="flex bg-surface-3 p-1 rounded-xl">
           {(['strategy', 'bnh'] as Mode[]).map(m => (
             <button key={m} onClick={() => { setMode(m); setError(null) }}
               className={`px-5 py-2 rounded-lg text-xs font-black transition-all capitalize ${
-                mode === m ? 'bg-white/[0.08] text-gold-400 shadow-lg shadow-gold-400/5' : 'text-muted-foreground hover:text-white'
+                mode === m ? 'bg-surface-4 text-gold-400 shadow-lg shadow-gold-400/5' : 'text-muted-foreground hover:text-white'
               }`}>
               {m === 'strategy' ? '⚡ Strategy' : '📊 Buy & Hold'}
             </button>
@@ -505,7 +475,7 @@ export default function BacktestPage() {
               onChange={e => setStockCode(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && handleRun()}
               placeholder="BBCA"
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm font-mono font-bold uppercase focus:border-gold-400/50 outline-none" maxLength={10} />
+              className="w-full bg-surface-2 border border-line-4 rounded-xl px-4 py-2.5 text-sm font-mono font-bold uppercase focus:border-gold-400/50 outline-none" maxLength={10} />
           </div>
 
           {/* ── Strategy-only params ── */}
@@ -514,7 +484,7 @@ export default function BacktestPage() {
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Signal Entry</label>
                 <select value={signalType} onChange={e => setSignalType(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm focus:border-gold-400/50 outline-none">
+                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-4 py-2.5 text-sm focus:border-gold-400/50 outline-none">
                   <option value="WHALE_SIGNAL">🐋 Whale Signal (AOV anomaly)</option>
                   <option value="AOV_SPIKE">📊 AOV Spike ≥ 1.5x</option>
                   <option value="FOREIGN_BUY">🌏 Foreign Net Buy</option>
@@ -527,25 +497,25 @@ export default function BacktestPage() {
                 <div>
                   <label className="text-[10px] font-bold text-emerald-400 uppercase block mb-1.5">TP %</label>
                   <input type="number" value={takeProfit} onChange={e => setTakeProfit(Number(e.target.value))} min="0.5" step="0.5"
-                    className="w-full bg-white/[0.03] border border-emerald-500/20 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/50 outline-none" />
+                    className="w-full bg-surface-2 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/50 outline-none" />
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-red-400 uppercase block mb-1.5">SL %</label>
                   <input type="number" value={stopLoss} onChange={e => setStopLoss(Number(e.target.value))} min="0.5" step="0.5"
-                    className="w-full bg-white/[0.03] border border-red-500/20 rounded-xl px-3 py-2.5 text-sm focus:border-red-500/50 outline-none" />
+                    className="w-full bg-surface-2 border border-red-500/20 rounded-xl px-3 py-2.5 text-sm focus:border-red-500/50 outline-none" />
                 </div>
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Max Hold (Hari)</label>
                 <input type="number" value={holdingPeriod} onChange={e => setHoldingPeriod(Number(e.target.value))} min="1"
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
+                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Lot per Trade</label>
                 <input type="number" value={lotsStrat} onChange={e => setLotsStrat(Number(e.target.value))} min="1"
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
+                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
               </div>
             </>
           )}
@@ -556,23 +526,23 @@ export default function BacktestPage() {
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Jumlah Lot</label>
                 <input type="number" value={lotsBnH} onChange={e => setLotsBnH(Number(e.target.value))} min="1"
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
+                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Tanggal Beli</label>
                 <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} max={endDate}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none [color-scheme:dark]" />
+                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none [color-scheme:dark]" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Tanggal Jual</label>
                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} min={startDate} max={todayStr}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none [color-scheme:dark]" />
+                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none [color-scheme:dark]" />
               </div>
               {/* Quick presets */}
               <div className="flex gap-1.5 flex-wrap">
                 {[['1M',30],['3M',90],['6M',180],['1Y',365]].map(([l, d]) => (
                   <button key={l} onClick={() => setPreset(Number(d))}
-                    className="px-3 py-1 text-[10px] font-bold bg-white/[0.03] border border-white/[0.08] rounded-lg hover:border-gold-400/30 hover:text-gold-400 transition-colors">
+                    className="px-3 py-1 text-[10px] font-bold bg-surface-2 border border-line-4 rounded-lg hover:border-gold-400/30 hover:text-gold-400 transition-colors">
                     {l}
                   </button>
                 ))}
@@ -671,14 +641,14 @@ export default function BacktestPage() {
               {/* Trade Log */}
               {stratResult.trades.length > 0 && (
                 <div className="glass rounded-2xl overflow-hidden border border-border/50">
-                  <div className="p-3 border-b border-white/[0.05] flex items-center gap-2">
+                  <div className="p-3 border-b border-line-2 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gold-400" />
                     <h3 className="font-bold text-sm">Trade Log ({stratResult.trades.length} trades)</h3>
                   </div>
                   <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
                     <table className="w-full text-xs">
                       <thead className="sticky top-0 bg-card/95 backdrop-blur-sm">
-                        <tr className="text-[9px] text-muted-foreground uppercase border-b border-white/[0.05]">
+                        <tr className="text-[9px] text-muted-foreground uppercase border-b border-line-2">
                           <th className="p-2 text-left">Entry</th>
                           <th className="p-2 text-right">Harga Beli</th>
                           <th className="p-2 text-left">Exit</th>
@@ -691,7 +661,7 @@ export default function BacktestPage() {
                       </thead>
                       <tbody>
                         {stratResult.trades.map((t, i) => (
-                          <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.02]">
+                          <tr key={i} className="border-b border-line-1 hover:bg-surface-1">
                             <td className="p-2 font-mono text-[10px]">{t.entryDate}</td>
                             <td className="p-2 text-right">{formatRupiah(t.entryPrice)}</td>
                             <td className="p-2 font-mono text-[10px]">{t.exitDate}</td>
@@ -758,7 +728,7 @@ export default function BacktestPage() {
                     { l: 'Max Drawdown (peak→trough)',               v: `-${bnhResult.maxDrawdown.toFixed(2)}%`,                c: 'text-red-400' },
                     { l: 'Net Foreign (total periode)',              v: fmtRp(bnhResult.totalForeign),   c: bnhResult.totalForeign >= 0 ? 'text-emerald-400' : 'text-red-400' },
                   ].map((m, i) => (
-                    <div key={i} className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.03]">
+                    <div key={i} className="p-2 rounded-lg bg-surface-1 border border-line-1">
                       <p className="text-[8px] text-muted-foreground uppercase mb-0.5">{m.l}</p>
                       <p className={`font-bold ${m.c || 'text-foreground'}`}>{m.v}</p>
                     </div>
@@ -773,19 +743,19 @@ export default function BacktestPage() {
                     <BarChart3 className="w-4 h-4 text-gold-400" /> vs IHSG Benchmark
                   </h3>
                   <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="p-3 rounded-lg bg-white/[0.02]">
+                    <div className="p-3 rounded-lg bg-surface-1">
                       <p className="text-[9px] text-muted-foreground uppercase">{stockCode.toUpperCase()} Return</p>
                       <p className={`text-xl font-black mt-1 ${bnhResult.returnPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {bnhResult.returnPct >= 0 ? '+' : ''}{bnhResult.returnPct.toFixed(2)}%
                       </p>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/[0.02]">
+                    <div className="p-3 rounded-lg bg-surface-1">
                       <p className="text-[9px] text-muted-foreground uppercase">IHSG Return</p>
                       <p className={`text-xl font-black mt-1 ${bnhResult.ihsgReturnPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {bnhResult.ihsgReturnPct >= 0 ? '+' : ''}{bnhResult.ihsgReturnPct.toFixed(2)}%
                       </p>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/[0.02]">
+                    <div className="p-3 rounded-lg bg-surface-1">
                       <p className="text-[9px] text-muted-foreground uppercase">Alpha</p>
                       <p className={`text-xl font-black mt-1 ${(bnhResult.returnPct - bnhResult.ihsgReturnPct) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {(bnhResult.returnPct - bnhResult.ihsgReturnPct) >= 0 ? '+' : ''}{(bnhResult.returnPct - bnhResult.ihsgReturnPct).toFixed(2)}%

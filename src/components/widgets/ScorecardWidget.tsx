@@ -14,7 +14,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
   
   const { data, isLoading, error } = useStockOverview(code, period)
 
-  const { stockData, smartMoneyIndex } = data || {}
+  const { stockData, smartMoneyIndex, scorecard, verdict: serverVerdict, dataQuality } = (data || {}) as any
 
   const smiScore = smartMoneyIndex?.smart_money_score || 0
   const convictionScore = useMemo(() => {
@@ -24,27 +24,51 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
     return Math.round(s)
   }, [smiScore, stockData])
 
+  // ── Verdict panel ──────────────────────────────────────────────────────────
+  // Single authority: the server's buildVerdict (v2 scorecard + flow context).
+  // This widget used to run its OWN scoring engine on 1-day foreign flow, so the
+  // header could say AVOID while the overview below said Netral — one screen,
+  // two verdicts. Evidence chips are signed and window-scoped so mixed evidence
+  // reads as mixed, never as a contradiction.
   const verdict = useMemo(() => {
-    let score = 0
-    const reasons: string[] = []
-    if (convictionScore >= 80) { score += 3; reasons.push('Conviction tinggi') }
-    else if (convictionScore >= 60) { score += 1.5; reasons.push('Conviction moderat') }
-    else reasons.push('Conviction rendah')
-    if (smiScore >= 60) { score += 2; reasons.push('Smart Money positif') }
-    else if (smiScore < 30) { score -= 1; reasons.push('Smart Money negatif') }
-    const netF = stockData?.net_foreign_value || 0
-    if (netF > 1e9) { score += 1.5; reasons.push('Foreign net buy besar') }
-    else if (netF < -1e9) { score -= 1; reasons.push('Foreign net sell besar') }
-    if ((stockData?.aov_ratio_ma20 || 1) >= 1.5) { score += 1; reasons.push('AOV spike (whale aktif)') }
-    if (score >= 5) return { label: 'STRONG BUY', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', reasons }
-    if (score >= 3) return { label: 'WATCH / ACCUMULATE', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', reasons }
-    if (score >= 1) return { label: 'HOLD / MONITOR', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30', reasons }
-    return { label: 'AVOID / REDUCE', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30', reasons }
-  }, [convictionScore, smiScore, stockData])
+    const styleFor = (emoji: string) => {
+      switch (emoji) {
+        case '🟢': return { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' }
+        case '🟡': return { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30' }
+        case '🔻': return { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30' }
+        default:   return { color: 'text-blue-300',    bg: 'bg-surface-3',   border: 'border-line-5' }
+      }
+    }
+    const s = styleFor(serverVerdict?.emoji || '⚪')
 
-  if (!code) return <div className="glass rounded-2xl p-5 text-center text-muted-foreground border border-white/[0.06]">Pilih saham untuk melihat Scorecard</div>
+    const fmtM = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} M`
+    const evidence: { sign: '+' | '−' | '·'; text: string }[] = []
+
+    const f1d = (stockData?.net_foreign_value || 0) / 1e9
+    if (Math.abs(f1d) >= 0.05) evidence.push({ sign: f1d >= 0 ? '+' : '−', text: `Asing 1D ${fmtM(f1d)}` })
+
+    if (scorecard) {
+      const f20 = Number(scorecard.foreign_20d_miliar ?? 0)
+      evidence.push({ sign: f20 >= 0 ? '+' : '−', text: `Asing 20D ${fmtM(f20)}` })
+      evidence.push({
+        sign: ['STRONG_BUY', 'BUY', 'ACCUMULATE'].includes(scorecard.tier_v2) ? '+' : '·',
+        text: `Skor v2 ${scorecard.v2_score ?? 0}/73 · ${scorecard.tier_v2 ?? '—'}`,
+      })
+    } else {
+      evidence.push({ sign: '·', text: 'Di luar universe v2' })
+    }
+
+    return {
+      label: serverVerdict?.headline || 'Belum ada verdict',
+      detail: serverVerdict?.detail || '',
+      ...s,
+      evidence,
+    }
+  }, [serverVerdict, scorecard, stockData])
+
+  if (!code) return <div className="glass rounded-2xl p-5 text-center text-muted-foreground border border-line-3">Pilih saham untuk melihat Scorecard</div>
   if (isLoading) return (
-    <div className="glass rounded-2xl p-5 flex items-center justify-center min-h-[160px] border border-white/[0.06]">
+    <div className="glass rounded-2xl p-5 flex items-center justify-center min-h-[160px] border border-line-3">
       <Loader2 className="w-6 h-6 text-gold-400 animate-spin" />
     </div>
   )
@@ -61,16 +85,31 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
   const marketCap     = (stockData.tradeable_shares || 0) * stockData.close
 
   return (
-    <div className="glass rounded-2xl p-4 lg:p-5 border border-white/[0.06] relative overflow-hidden">
+    <div className="glass rounded-2xl p-4 lg:p-5 border border-line-3 relative overflow-hidden">
+      {/* Data-quality banner: an unadjusted split/bonus inside the window means every
+          return spanning that date (including the v2 scorecard's) is fiction. */}
+      {dataQuality?.returnsUnreliable && dataQuality.unadjustedAction && (
+        <div className="relative z-10 mb-3 flex items-start gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-amber-200/90 leading-snug">
+            <span className="font-black text-amber-400">
+              {dataQuality.unadjustedAction.kind === 'REVERSE_SPLIT' ? 'Reverse split' : 'Stock split / bonus'} terdeteksi{' '}
+              {String(dataQuality.unadjustedAction.date)}
+            </span>{' '}
+            ({formatNumber(dataQuality.unadjustedAction.priceBefore)} → {formatNumber(dataQuality.unadjustedAction.priceAfter)}, belum disesuaikan di data historis).
+            Return 5D/20D dan indikator berbasis harga lintas tanggal itu <span className="font-bold">tidak andal</span>.
+          </p>
+        </div>
+      )}
       <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col xl:flex-row gap-4 justify-between items-stretch">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Price block */}
-        <div className="flex flex-col justify-center min-w-fit">
+        <div className="lg:col-span-4 flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl lg:text-4xl font-black font-mono tracking-tight gradient-gold">{code}</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-white/[0.06] text-muted-foreground border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider">{stockData.sector || 'Stock'}</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-surface-4 text-muted-foreground border border-line-4 text-[10px] font-bold uppercase tracking-wider">{stockData.sector || 'Stock'}</span>
           </div>
           <div className="flex items-baseline gap-3 mt-1">
             <span className="text-4xl lg:text-5xl font-black tracking-tighter">{formatRupiah(stockData.close)}</span>
@@ -79,7 +118,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
               {Math.abs(stockData.change_percent).toFixed(2)}%
             </span>
           </div>
-          <div className="text-xs text-muted-foreground mt-2 font-medium flex gap-2 lg:gap-3 bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.06] w-fit">
+          <div className="text-xs text-muted-foreground mt-2 font-medium flex gap-2 lg:gap-3 bg-surface-2 px-2.5 py-1.5 rounded-lg border border-line-3 w-fit">
             <span>H: <span className="text-foreground/80">{formatNumber(stockData.high)}</span></span>
             <span>L: <span className="text-foreground/80">{formatNumber(stockData.low)}</span></span>
             <span>O: <span className="text-foreground/80">{formatNumber(stockData.open_price)}</span></span>
@@ -88,8 +127,8 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
           </div>
         </div>
 
-        {/* Metrics grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 flex-1 xl:max-w-[400px]">
+        {/* Metrics grid — fluid columns */}
+        <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-2 items-center">
           {[
             { l: 'Market Cap', v: formatRupiah(marketCap),           c: 'text-purple-400' },
             { l: 'Float Cap',  v: formatRupiah(floatCap),            c: 'text-purple-400' },
@@ -97,27 +136,29 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             { l: 'Volume',     v: formatShares(stockData.volume),    c: 'text-orange-400' },
             { l: 'Value',      v: formatRupiah(stockData.value),     c: 'text-blue-400'   },
           ].map((m, i) => (
-            <div key={i} className="metric-card p-2.5 rounded-xl flex flex-col justify-center">
+            <div key={i} className="metric-card p-3 rounded-xl flex flex-col justify-center bg-surface-2 border border-line-3 hover:border-line-6 transition-all">
               <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-1 font-medium">{m.l}</p>
-              <p className={`text-sm font-black ${m.c} tracking-tight`}>{m.v}</p>
+              <p className={`text-sm font-black font-mono ${m.c} tracking-tight`}>{m.v}</p>
             </div>
           ))}
         </div>
 
-        {/* Verdict panel */}
-        <div className={`rounded-2xl p-3.5 ${verdict.bg} border ${verdict.border} xl:min-w-[200px] xl:max-w-[230px] flex flex-col justify-center relative overflow-hidden shrink-0`}>
+        {/* Verdict panel — fluid column */}
+        <div className={`lg:col-span-3 rounded-2xl p-4 ${verdict.bg} border ${verdict.border} flex flex-col justify-center relative overflow-hidden`}>
           <div className="absolute -right-4 -bottom-4 opacity-[0.04]"><Shield className="w-24 h-24" /></div>
           <div className="relative z-10">
             <div className="flex items-center gap-1.5 mb-2">
               <Shield className={`w-3.5 h-3.5 ${verdict.color}`} />
               <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Verdict</span>
             </div>
-            <p className={`text-lg font-black ${verdict.color} mb-2 tracking-tight`}>{verdict.label}</p>
+            <p className={`text-base font-black ${verdict.color} mb-2 tracking-tight leading-snug`}>{verdict.label}</p>
             <div className="space-y-1">
-              {verdict.reasons.map((r, i) => (
-                <div key={i} className="flex items-center gap-1.5 bg-black/10 px-1.5 py-1 rounded">
-                  <span className={`text-[9px] ${verdict.color} shrink-0`}>◆</span>
-                  <p className="text-[10px] text-foreground/80 font-medium leading-tight">{r}</p>
+              {verdict.evidence.map((e, i) => (
+                <div key={i} className="flex items-center gap-1.5 bg-black/10 px-2 py-1 rounded">
+                  <span className={`text-[10px] font-black shrink-0 ${
+                    e.sign === '+' ? 'text-emerald-400' : e.sign === '−' ? 'text-red-400' : 'text-muted-foreground'
+                  }`}>{e.sign}</span>
+                  <p className="text-[10px] text-foreground/80 font-medium leading-tight">{e.text}</p>
                 </div>
               ))}
             </div>
@@ -126,16 +167,16 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
       </div>
 
       {/* Bottom KPI strip */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-3 pt-3 border-t border-white/[0.05]">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-3 pt-3 border-t border-line-2">
         {[
           { l: 'Conviction',   v: `${convictionScore}`,                           c: convictionScore >= 80 ? 'text-emerald-400' : convictionScore >= 60 ? 'text-amber-400' : 'text-red-400' },
           { l: 'Smart Money',  v: `${Math.round(smiScore)}`,                      c: smiScore >= 60 ? 'text-emerald-400' : smiScore >= 30 ? 'text-amber-400' : 'text-red-400' },
-          { l: 'Foreign Flow', v: formatRupiah(stockData.net_foreign_value),      c: stockData.net_foreign_value >= 0 ? 'text-emerald-400' : 'text-red-400' },
+          { l: 'Foreign 1D',   v: formatRupiah(stockData.net_foreign_value),      c: stockData.net_foreign_value >= 0 ? 'text-emerald-400' : 'text-red-400' },
           { l: 'AOV Ratio',    v: `${(stockData.aov_ratio_ma20||1).toFixed(2)}x`, c: stockData.aov_ratio_ma20 >= 1.5 ? 'text-purple-400' : 'text-muted-foreground' },
           { l: 'Turnover',     v: `${dailyTurnover.toFixed(2)}%`,                 c: dailyTurnover > 5 ? 'text-emerald-400' : dailyTurnover < 1 ? 'text-red-400' : 'text-amber-400' },
           { l: 'Free Float',   v: `${stockData.free_float?.toFixed(1)||'--'}%`,   c: 'text-blue-400' },
         ].map((m, i) => (
-          <div key={i} className="py-1.5 px-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-center">
+          <div key={i} className="py-1.5 px-2 rounded-lg bg-surface-2 border border-line-2 text-center">
             <p className="text-[8px] text-muted-foreground uppercase tracking-wider mb-0.5">{m.l}</p>
             <p className={`text-sm font-black ${m.c}`}>{m.v}</p>
           </div>

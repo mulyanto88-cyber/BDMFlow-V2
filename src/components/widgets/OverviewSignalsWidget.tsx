@@ -15,7 +15,7 @@ function tierCls(t: string): string {
     case 'BUY':        return 'bg-green-500/15 text-green-400 border border-green-500/30'
     case 'ACCUMULATE': return 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
     case 'WATCH':      return 'bg-slate-500/15 text-slate-300 border border-slate-500/20'
-    default:           return 'bg-slate-500/10 text-muted-foreground border border-white/10'
+    default:           return 'bg-slate-500/10 text-muted-foreground border border-line-5'
   }
 }
 function ScoreBar({ label, v, max }: { label: string; v: number; max: number }) {
@@ -23,7 +23,7 @@ function ScoreBar({ label, v, max }: { label: string; v: number; max: number }) 
   return (
     <div className="flex items-center gap-2">
       <span className="text-[9px] text-muted-foreground w-12 flex-shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+      <div className="flex-1 h-1.5 rounded-full bg-surface-4 overflow-hidden">
         <div className="h-full rounded-full bg-gold-400/70" style={{ width: `${pct}%` }} />
       </div>
       <span className="text-[9px] font-mono text-muted-foreground w-9 text-right">{Number(v || 0)}/{max}</span>
@@ -59,7 +59,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
   const smartMoneyIndex = data?.smartMoneyIndex
   const brokerData = data?.brokerData || []
   const foreignDivergence = data?.foreignDivergence
-  const foreignFlowTrend = data?.foreignFlowTrend || []
+  const foreignFlowTrend = useMemo(() => data?.foreignFlowTrend || [], [data?.foreignFlowTrend])
   const scorecard = data?.scorecard
   const scVerdict = data?.verdict
 
@@ -87,40 +87,40 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
     <div className="space-y-4">
       {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
       {(scorecard || scVerdict) && (
-        <div className="glass rounded-2xl p-4 border border-white/[0.06]">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 min-w-0">
+        <div className="glass rounded-2xl p-4 border border-line-3">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <div className="lg:col-span-7 xl:col-span-8 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">{scVerdict?.emoji}</span>
-                <h3 className="font-black text-sm">{scVerdict?.headline}</h3>
+                <h3 className="font-black text-sm text-foreground">{scVerdict?.headline}</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{scVerdict?.detail}</p>
               {scorecard && (
-                <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-3.5 pt-3 border-t border-line-2">
                   <ScoreKPI label="Return 5D"   val={`${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        pos={Number(scorecard.return_5d) >= 0} />
                   <ScoreKPI label="Return 20D"  val={`${Number(scorecard.return_20d ?? 0).toFixed(1)}%`}       pos={Number(scorecard.return_20d) >= 0} />
-                  <ScoreKPI label="AOV"         val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`} />
+                  <ScoreKPI label="AOV Ratio"   val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`} />
                   <ScoreKPI label="Foreign 20D" val={`${Number(scorecard.foreign_20d_miliar ?? 0).toFixed(1)} M`} pos={Number(scorecard.foreign_20d_miliar) >= 0} />
                   <ScoreKPI label="Rank v2"     val={`#${scorecard.rank_overall ?? '—'}`} />
                 </div>
               )}
             </div>
             {scorecard && (
-              <div className="lg:w-72 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-white/[0.06] lg:pl-4 pt-3 lg:pt-0">
+              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-line-3 lg:pl-5 pt-3 lg:pt-0">
                 <div className="flex items-center justify-between mb-2.5">
                   <div>
-                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Composite v2</div>
-                    <div className="text-2xl font-black leading-none">{scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span></div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold">Composite V2</div>
+                    <div className="text-2xl font-black font-mono leading-none">{scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span></div>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${tierCls(scorecard.tier_v2)}`}>{scorecard.tier_v2}</span>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
                   <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
                   <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
                   <ScoreBar label="Foreign" v={scorecard.foreign_pts} max={6} />
                 </div>
-                <div className="text-[9px] text-muted-foreground mt-2">
+                <div className="text-[9px] font-mono text-muted-foreground/80 mt-2 truncate">
                   v1: {scorecard.v1_tier} ({scorecard.v1_score}) · flow: {scorecard.flow_context}
                 </div>
               </div>
@@ -132,7 +132,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
       {/* 3 Signal Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Smart Money Index */}
-        <div className="glass rounded-2xl p-4 border border-white/[0.06] card-hover">
+        <div className="glass rounded-2xl p-4 border border-line-3 card-hover">
           <div className="flex items-center gap-2 mb-3">
             <Target className="w-4 h-4 text-purple-400" />
             <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Smart Money Index</h3>
@@ -146,7 +146,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                   { l: 'Broker Net', v: formatRupiah(smartMoneyIndex.broker_net || 0), c: (smartMoneyIndex.broker_net || 0) >= 0 ? 'text-emerald-400' : 'text-red-400' },
                   { l: 'Foreign 30D',v: formatRupiah(smartMoneyIndex.foreign_30d || 0),c: (smartMoneyIndex.foreign_30d || 0) >= 0 ? 'text-emerald-400' : 'text-red-400' },
                 ].map((m, i) => (
-                  <div key={i} className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                  <div key={i} className="p-2 rounded-lg bg-surface-2 border border-line-2">
                     <p className="text-[8px] text-muted-foreground uppercase">{m.l}</p>
                     <p className={`text-xs font-black ${m.c}`}>{m.v}</p>
                   </div>
@@ -158,7 +158,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
         </div>
 
         {/* Broker Activity */}
-        <div className="glass rounded-2xl p-4 border border-white/[0.06] card-hover">
+        <div className="glass rounded-2xl p-4 border border-line-3 card-hover">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-blue-400" />
@@ -172,7 +172,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
           {brokerData.length > 0 ? (
             <div className="space-y-1.5">
               {brokerData.map((b: any, i: number) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
+                <div key={i} className="flex items-center justify-between py-1.5 border-b border-line-1 last:border-0">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-foreground truncate">{b.kode_broker}</p>
                     <p className="text-[8px] text-muted-foreground truncate max-w-[120px]">{b.nama_broker}</p>
@@ -192,7 +192,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
         </div>
 
         {/* Foreign Flow — mini card */}
-        <div className="glass rounded-2xl p-4 border border-white/[0.06] card-hover flex flex-col">
+        <div className="glass rounded-2xl p-4 border border-line-3 card-hover flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-teal-400" />
@@ -206,14 +206,17 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
 
           {foreignDivergence ? (
             <div className="space-y-2.5 flex-1">
-              <div className={`px-3 py-2 rounded-xl text-[11px] font-black text-center border ${
+              {/* Window is part of the claim: this badge is computed from the 30-day
+                  net vs the latest 1-day move, nothing else. */}
+              <div className={`px-3 py-2 rounded-xl text-center border ${
                 foreignDivergence.divergence_type?.includes('STEALTH') || foreignDivergence.divergence_type?.includes('BULLISH')
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   : foreignDivergence.divergence_type?.includes('BEARISH') || foreignDivergence.divergence_type?.includes('DISTRIBUTION')
                     ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                    : 'bg-white/[0.03] text-muted-foreground border-white/[0.06]'
+                    : 'bg-surface-2 text-muted-foreground border-line-3'
               }`}>
-                {foreignDivergence.divergence_type || 'NEUTRAL'}
+                <div className="text-[8px] uppercase tracking-widest opacity-60 mb-0.5">Sinyal 30D</div>
+                <div className="text-[11px] font-black">{foreignDivergence.divergence_type || 'NEUTRAL'}</div>
               </div>
 
               <div className="grid grid-cols-4 gap-1">
@@ -223,7 +226,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                   { l: '30D', v: flow30d },
                   { l: '60D', v: flow60d },
                 ] as { l: string; v: number }[]).map(({ l, v }) => (
-                  <div key={l} className="text-center py-1.5 px-1 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                  <div key={l} className="text-center py-1.5 px-1 rounded-lg bg-surface-2 border border-line-2">
                     <div className="text-[8px] text-muted-foreground uppercase mb-0.5">{l}</div>
                     <div className={`text-[10px] font-black leading-none ${v >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {fmtFlow(v)}
@@ -248,14 +251,16 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               )}
 
               <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                <div className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                  <span className="text-muted-foreground block text-[8px] mb-0.5">TREND 60D</span>
+                <div className="p-2 rounded-lg bg-surface-1 border border-line-2">
+                  {/* The SQL behind this is a 20-day rolling sum (ROWS 19 PRECEDING);
+                      it was mislabeled "60D" because the series spans 60 days. */}
+                  <span className="text-muted-foreground block text-[8px] mb-0.5">TREND 20D</span>
                   <span className={`font-bold ${
                     latestTrend?.trend?.includes('ACCUMULATION') ? 'text-emerald-400' :
                     latestTrend?.trend?.includes('DISTRIBUTION') ? 'text-red-400' : 'text-muted-foreground'
                   }`}>{String(latestTrend?.trend || 'NEUTRAL').replace(/_/g, ' ')}</span>
                 </div>
-                <div className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                <div className="p-2 rounded-lg bg-surface-1 border border-line-2">
                   <span className="text-muted-foreground block text-[8px] mb-0.5">SIGNAL</span>
                   <span className={`font-bold ${
                     foreignDivergence.signal_strength === 'STRONG' ? 'text-emerald-400' :
@@ -265,7 +270,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               </div>
 
               {latestTrend && (
-                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.05] text-[9px]">
+                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-surface-1 border border-line-2 text-[9px]">
                   <span className="text-muted-foreground">MA5 vs MA20</span>
                   <span className={`font-black ${Number(latestTrend.flow_ma5) >= Number(latestTrend.flow_ma20) ? 'text-emerald-400' : 'text-red-400'}`}>
                     {Number(latestTrend.flow_ma5) >= Number(latestTrend.flow_ma20) ? '↑ Accumulation' : '↓ Distribution'}
@@ -273,7 +278,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                 </div>
               )}
 
-              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.05] text-[9px]">
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-surface-1 border border-line-2 text-[9px]">
                 <span className="text-muted-foreground">Harga 1D</span>
                 <span className={`font-bold ${(foreignDivergence.price_chg_pct || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {Number(foreignDivergence.price_chg_pct || 0) >= 0 ? '+' : ''}{Number(foreignDivergence.price_chg_pct || 0).toFixed(2)}%
@@ -281,14 +286,40 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                 </span>
               </div>
 
-              {foreignDivergence.interpretation && (
-                <div className="p-2.5 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12]">
-                  <p className="text-[10px] text-teal-200/80 leading-relaxed flex items-start gap-1.5">
-                    <span className="shrink-0 mt-0.5">💡</span>
-                    <span>{foreignDivergence.interpretation}</span>
-                  </p>
-                </div>
-              )}
+              {(() => {
+                // The badge/interpretation read the 30-day window; the trend chip reads a
+                // 20-day rolling sum. When they disagree, a confident one-sided takeaway
+                // ("potensi breakout" beside "DISTRIBUTION") reads as the product
+                // contradicting itself — name the disagreement instead.
+                const dv = String(foreignDivergence.divergence_type || '')
+                const tr = String(latestTrend?.trend || '')
+                const bull30 = dv.includes('STEALTH') || dv.includes('BULLISH')
+                const bear30 = dv.includes('BEARISH') || dv.includes('DISTRIBUTION')
+                const conflict =
+                  (bull30 && tr.includes('DISTRIBUTION')) ||
+                  (bear30 && tr.includes('ACCUMULATION'))
+
+                if (conflict) return (
+                  <div className="p-2.5 rounded-lg bg-amber-500/[0.06] border border-amber-500/[0.18]">
+                    <p className="text-[10px] text-amber-200/85 leading-relaxed flex items-start gap-1.5">
+                      <span className="shrink-0 mt-0.5">⚖️</span>
+                      <span>
+                        Sinyal 30D ({dv.replace(/_/g, ' ').toLowerCase()}) dan tren 20D ({tr.replace(/_/g, ' ').toLowerCase()}) sedang
+                        <span className="font-bold"> berlawanan arah</span> — aliran asing dalam fase transisi. Tunggu konfirmasi, jangan andalkan satu jendela saja.
+                      </span>
+                    </p>
+                  </div>
+                )
+
+                return foreignDivergence.interpretation ? (
+                  <div className="p-2.5 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12]">
+                    <p className="text-[10px] text-teal-200/80 leading-relaxed flex items-start gap-1.5">
+                      <span className="shrink-0 mt-0.5">💡</span>
+                      <span>{foreignDivergence.interpretation}</span>
+                    </p>
+                  </div>
+                ) : null
+              })()}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 opacity-50 flex-1">

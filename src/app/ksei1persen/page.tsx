@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { mdQuery } from '@/lib/api'
 import { formatShares, formatPercent, formatRupiah } from '@/lib/utils'
 import {
   Eye, Search, TrendingUp, TrendingDown,
@@ -166,18 +167,6 @@ const VERDICT_CONFIG: Record<string, { color: string; bg: string; icon: string }
   'NEW ENTRY': { color: 'text-purple-400', bg: 'bg-purple-500/15 border-purple-500/30', icon: '🆕' },
 }
 
-// ─── API Helper ──────────────────────────────────────────────────────────────
-async function mdQuery(query: string, params?: any[]): Promise<any[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, params }),
-  })
-  const json = await res.json()
-  if (json.error) throw new Error(json.error)
-  return json.data || []
-}
-
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function KpiCard({ icon, label, value, sub, color }: {
@@ -185,7 +174,7 @@ function KpiCard({ icon, label, value, sub, color }: {
 }) {
   return (
     <div className={`glass card-hover rounded-xl p-4 border ${color} flex items-center gap-3`}>
-      <div className={`p-2 rounded-lg bg-white/[0.04]`}>{icon}</div>
+      <div className={`p-2 rounded-lg bg-surface-3`}>{icon}</div>
       <div className="min-w-0">
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">{label}</div>
         <div className="text-xl font-black leading-tight">{value}</div>
@@ -208,7 +197,7 @@ function ScorePill({ score }: { score: number }) {
       </span>
       <div className="flex gap-0.5">
         {Array.from({ length: max }).map((_, i) => (
-          <div key={i} className={`w-1.5 h-3 rounded-sm ${i < filled ? color : 'bg-white/[0.08]'}`} />
+          <div key={i} className={`w-1.5 h-3 rounded-sm ${i < filled ? color : 'bg-surface-4'}`} />
         ))}
       </div>
     </div>
@@ -230,7 +219,7 @@ function DeltaBadge({ value, prefix = '' }: { value: number; prefix?: string }) 
 function SignalBadge({ signal }: { signal: string }) {
   // vw_insider_screener emits emoji labels ('🟢 Corp Acc', '🔴 Foreign Out', …),
   // so key on substrings — the old exact-match map ('CORP_BUY') never matched → all grey.
-  let cls = 'bg-white/[0.05] text-muted-foreground border-white/10'
+  let cls = 'bg-surface-3 text-muted-foreground border-line-5'
   if      (signal.includes('Corp Acc'))    cls = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
   else if (signal.includes('Foreign In'))  cls = 'bg-blue-500/20 text-blue-400 border-blue-500/30'
   else if (signal.includes('Inst Dom'))    cls = 'bg-amber-500/20 text-amber-400 border-amber-500/30'
@@ -322,7 +311,7 @@ export default function InsiderPage() {
   const fetchTopStocks = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const data = await mdQuery(`SELECT * FROM ksei.vw_insider_screener ORDER BY score DESC`)
+      const data = await mdQuery('ksei.insiderScreener')
       setTopStocks(data.map((d: any) => ({
         code: d.code,
         corp_change: Number(d.corp_change || 0),
@@ -347,14 +336,7 @@ export default function InsiderPage() {
     ;(async () => {
       try {
         if (activeTab === 'activity' && activityData.length === 0) {
-          const data = await mdQuery(`
-            SELECT report_date::VARCHAR AS report_date, share_code, investor_name, investor_type,
-                   nationality, prev_percentage, curr_percentage, pct_point_change,
-                   share_change, action, alert_level
-            FROM ksei.vw_ksei_individual_changes
-            ORDER BY report_date DESC, ABS(pct_point_change) DESC
-            LIMIT 500
-          `)
+          const data = await mdQuery('ksei.individualChanges')
           setActivityData(data.map((d: any) => ({
             report_date:     String(d.report_date || '').slice(0, 10),
             share_code:      d.share_code,
@@ -370,9 +352,7 @@ export default function InsiderPage() {
           })))
         }
         if (activeTab === 'whale' && whaleData.length === 0) {
-          const data = await mdQuery(
-            `SELECT * FROM ksei.vw_whale_timing ORDER BY ABS(return_since_entry) DESC LIMIT 100`
-          )
+          const data = await mdQuery('ksei.whaleTiming')
           setWhaleData(data.map((d: any) => ({
             share_code: d.share_code, investor_name: d.investor_name,
             investor_type: d.investor_type || '—', local_foreign: d.local_foreign,
@@ -389,9 +369,7 @@ export default function InsiderPage() {
           })))
         }
         if (activeTab === 'stealth' && stealthData.length === 0) {
-          const data = await mdQuery(
-            `SELECT * FROM ksei.vw_stealth_accumulation ORDER BY ABS(CP_Flow_Miliar) DESC LIMIT 100`
-          )
+          const data = await mdQuery('ksei.stealthAccumulation')
           setStealthData(data.map((d: any) => ({
             Code: d.Code, Date: d.Date,
             Price: Number(d.Price || 0), Prev_Price: Number(d.Prev_Price || 0),
@@ -403,18 +381,8 @@ export default function InsiderPage() {
         }
         if (activeTab === 'topplayer' && topInvestors.length === 0) {
           const [inv, flow] = await Promise.all([
-            mdQuery(`SELECT * FROM ksei.vw_top_investors ORDER BY total_saham DESC LIMIT 50`),
-            mdQuery(`
-            SELECT Code, Date::VARCHAR AS Date, Price::DOUBLE AS Price, Total_Shares::BIGINT AS Total_Shares,
-                   Top_Buyer, ROUND((Top_Buyer_Val/1e9)::DOUBLE,3) AS Top_Buyer_Miliar,
-                   Top_Seller, ROUND((Top_Seller_Val/1e9)::DOUBLE,3) AS Top_Seller_Miliar,
-                   ROUND((Local_CP_Chg_Val/1e9)::DOUBLE,3) AS CP_Flow_Miliar,
-                   ROUND(((Foreign_CP_Chg_Val+Foreign_IB_Chg_Val+Foreign_PF_Chg_Val)/1e9)::DOUBLE,3) AS Foreign_Flow_Miliar
-            FROM ksei.monthly_snapshot
-            WHERE Date = (SELECT MAX(Date) FROM ksei.monthly_snapshot)
-              AND (ABS(Local_CP_Chg_Val) > 1e9 OR ABS(Foreign_CP_Chg_Val) > 1e9)
-            ORDER BY ABS(Local_CP_Chg_Val) DESC LIMIT 50
-          `),
+            mdQuery('ksei.topInvestors'),
+            mdQuery('ksei.monthlySnapshotLatest'),
           ])
           setTopInvestors(inv.map((d: any) => ({
             investor_name: d.investor_name, investor_type: d.investor_type || '—',
@@ -438,6 +406,7 @@ export default function InsiderPage() {
         setTabLoading(false)
       }
     })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedStock])
 
   // ─── Fetch Stock Detail ─────────────────────────────────────────────────────
@@ -447,28 +416,10 @@ export default function InsiderPage() {
       setLoading(true)
       try {
         const [currData, alertData, histData, metaData] = await Promise.all([
-          mdQuery(`
-            SELECT investor_name, investor_type, local_foreign, percentage, total_holding_shares
-            FROM ksei.ownership_1pct
-            WHERE share_code = $1 AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
-            ORDER BY percentage DESC
-          `, [selectedStock]),
-          mdQuery(`
-            SELECT * FROM ksei.vw_ksei_individual_changes WHERE share_code = $1 ORDER BY ABS(pct_point_change) DESC LIMIT 50
-          `, [selectedStock]),
-          mdQuery(`
-            SELECT date,
-              SUM(CASE WHEN local_foreign IN ('L','D') THEN percentage ELSE 0 END) AS local_pct,
-              SUM(CASE WHEN local_foreign = 'F' THEN percentage ELSE 0 END) AS foreign_pct,
-              COUNT(DISTINCT investor_name) AS investor_count
-            FROM ksei.ownership_1pct
-            WHERE share_code = $1
-            GROUP BY date ORDER BY date ASC LIMIT 12
-          `, [selectedStock]),
-          mdQuery(`
-            SELECT sector, free_float FROM ksei.vw_ownership_1pct_latest
-            WHERE share_code = $1 LIMIT 1
-          `, [selectedStock]),
+          mdQuery('ksei.ownershipByCode', [selectedStock]),
+          mdQuery('ksei.changesByCode', [selectedStock]),
+          mdQuery('ksei.ownershipHistoryByCode', [selectedStock]),
+          mdQuery('ksei.profileByCode', [selectedStock]),
         ])
 
         setCurrentMonthData(currData.map((d: any) => ({
@@ -505,7 +456,7 @@ export default function InsiderPage() {
         })))
 
         if (metaData.length > 0) {
-          setStockMeta({ sector: metaData[0].sector, free_float: Number(metaData[0].free_float || 0) })
+          setStockMeta({ sector: String(metaData[0].sector ?? ''), free_float: Number(metaData[0].free_float || 0) })
         }
 
       } catch (err: any) {
@@ -520,13 +471,7 @@ export default function InsiderPage() {
     setSelectedInvestor(investorName)
     setInvestorHoldingsLoading(true)
     try {
-      const data = await mdQuery(`
-        SELECT share_code, percentage, total_holding_shares
-        FROM ksei.ownership_1pct
-        WHERE investor_name = $1
-          AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
-        ORDER BY percentage DESC
-      `, [investorName])
+      const data = await mdQuery('ksei.holdingsByInvestor', [investorName])
       setInvestorHoldings(data.map((d: any) => ({
         share_code: d.share_code,
         percentage: Number(d.percentage || 0),
@@ -698,7 +643,7 @@ export default function InsiderPage() {
             Insider &amp; institutional ownership · whale tracking · stealth accumulation · monthly KSEI data
           </p>
         </div>
-        <button onClick={fetchTopStocks} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-white/[0.08] text-muted-foreground hover:text-white hover:border-red-400/30 transition-all">
+        <button onClick={fetchTopStocks} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-line-4 text-muted-foreground hover:text-white hover:border-red-400/30 transition-all">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
@@ -719,7 +664,7 @@ export default function InsiderPage() {
           <KpiCard
             icon={<Shield className="w-4 h-4 text-slate-400" />}
             label="Total Stocks" value={kpiData.total} sub="monitored"
-            color="border-white/[0.06]"
+            color="border-line-3"
           />
           <KpiCard
             icon={<Flame className="w-4 h-4 text-red-400" />}
@@ -770,7 +715,7 @@ export default function InsiderPage() {
         {selectedStock && (
           <button
             onClick={() => { setSelectedStock(null); setSearchStock('') }}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-muted-foreground hover:text-white transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-3 border border-line-3 text-xs text-muted-foreground hover:text-white transition-colors"
           >
             <X className="w-3 h-3" /> Clear
           </button>
@@ -785,7 +730,7 @@ export default function InsiderPage() {
             <div className="flex items-center gap-3">
               <span className="text-2xl font-black font-mono text-red-400">{selectedStock}</span>
               {stockMeta?.sector && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-muted-foreground border border-white/[0.08]">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-surface-4 text-muted-foreground border border-line-4">
                   {stockMeta.sector}
                 </span>
               )}
@@ -928,7 +873,7 @@ export default function InsiderPage() {
                 </div>
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-[9px] text-muted-foreground uppercase border-b border-white/[0.05]">
+                    <tr className="text-[9px] text-muted-foreground uppercase border-b border-line-2">
                       <th className="p-2 text-left">#</th>
                       <th className="p-2 text-left">Investor</th>
                       <th className="p-2 text-left hidden md:table-cell">Type</th>
@@ -939,7 +884,7 @@ export default function InsiderPage() {
                   </thead>
                   <tbody>
                     {displayedHolders.map((d, i) => (
-                      <tr key={i} className="tr-hover border-b border-white/[0.02]">
+                      <tr key={i} className="tr-hover border-b border-line-1">
                         <td className="p-2 text-muted-foreground text-[9px]">{i + 1}</td>
                         <td className="p-2 font-bold text-[10px] truncate max-w-[140px]">{d.investor_name}</td>
                         <td className="p-2 text-[10px] text-muted-foreground hidden md:table-cell">{d.investor_type}</td>
@@ -959,7 +904,7 @@ export default function InsiderPage() {
               {/* Changes Table */}
               {displayedChanges.length > 0 && (
                 <div className="glass rounded-2xl border border-border/30 overflow-hidden">
-                  <div className="p-4 border-b border-white/[0.05] flex items-center gap-2 flex-wrap justify-between">
+                  <div className="p-4 border-b border-line-2 flex items-center gap-2 flex-wrap justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-red-400" />
                       <h3 className="text-sm font-black">Ownership Changes ({displayedChanges.length})</h3>
@@ -981,7 +926,7 @@ export default function InsiderPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="text-[9px] text-muted-foreground uppercase border-b border-white/[0.05] bg-white/[0.01]">
+                        <tr className="text-[9px] text-muted-foreground uppercase border-b border-line-2 bg-surface-1">
                           <th className="p-2 text-left">Investor</th>
                           <th className="p-2 text-left hidden md:table-cell">Type</th>
                           <th className="p-2 text-right">Prev%</th>
@@ -995,7 +940,7 @@ export default function InsiderPage() {
                       <tbody>
                         {displayedChanges.map((c, i) => (
                           <tr key={i}
-                            className={`tr-hover border-b border-white/[0.02] ${c.alert_level === 'HIGH' ? 'bg-red-500/[0.03]' : ''}`}>
+                            className={`tr-hover border-b border-line-1 ${c.alert_level === 'HIGH' ? 'bg-red-500/[0.03]' : ''}`}>
                             <td className="p-2 font-bold text-[10px] truncate max-w-[130px]">{c.investor_name}</td>
                             <td className="p-2 text-[10px] text-muted-foreground hidden md:table-cell">{c.investor_type}</td>
                             <td className="p-2 text-right text-muted-foreground">{c.prev_pct.toFixed(2)}%</td>
@@ -1030,7 +975,7 @@ export default function InsiderPage() {
       {!selectedStock && (
         <>
           {/* Tab Bar */}
-          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] overflow-x-auto">
+          <div className="flex gap-1 p-1 rounded-xl bg-surface-2 border border-line-3 overflow-x-auto">
             {TABS.map(tab => (
               <button
                 key={tab.id}
@@ -1038,7 +983,7 @@ export default function InsiderPage() {
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-1 justify-center ${
                   activeTab === tab.id
                     ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                    : 'text-muted-foreground hover:text-white hover:bg-white/[0.04]'
+                    : 'text-muted-foreground hover:text-white hover:bg-surface-3'
                 }`}
               >
                 {tab.icon}
@@ -1046,7 +991,7 @@ export default function InsiderPage() {
                 {tab.hot && tab.count && tab.count > 0
                   ? <span className="text-[8px] px-1.5 rounded-full font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">{tab.count} 🔥</span>
                   : tab.count != null && tab.count > 0
-                    ? <span className={`text-[9px] px-1 rounded-sm font-black ${activeTab === tab.id ? 'bg-red-500/30' : 'bg-white/[0.08]'}`}>{tab.count}</span>
+                    ? <span className={`text-[9px] px-1 rounded-sm font-black ${activeTab === tab.id ? 'bg-red-500/30' : 'bg-surface-4'}`}>{tab.count}</span>
                     : null
                 }
               </button>
@@ -1064,7 +1009,7 @@ export default function InsiderPage() {
           {activeTab === 'screener' && !loading && (
             <div className="glass rounded-2xl overflow-hidden border border-border/30">
               {/* Filter bar */}
-              <div className="p-3 border-b border-white/[0.05] flex flex-wrap items-center gap-2">
+              <div className="p-3 border-b border-line-2 flex flex-wrap items-center gap-2">
                 <Filter className="w-3.5 h-3.5 text-muted-foreground" />
                 {(['all', 'buying', 'selling', 'high'] as FilterAction[]).map(f => (
                   <button key={f}
@@ -1074,8 +1019,8 @@ export default function InsiderPage() {
                         ? f === 'buying' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
                           : f === 'selling' ? 'bg-red-500/25 text-red-300 border border-red-500/40'
                           : f === 'high' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40'
-                          : 'bg-white/[0.08] text-white border border-white/[0.12]'
-                        : 'text-muted-foreground hover:text-white border border-transparent hover:border-white/10'
+                          : 'bg-surface-4 text-white border border-line-5'
+                        : 'text-muted-foreground hover:text-white border border-transparent hover:border-line-5'
                     }`}>
                     {f === 'all' ? `All (${topStocks.length})` : f === 'buying' ? `↑ Buying (${topStocks.filter(s => s.score > 0).length})`
                       : f === 'selling' ? `↓ Selling (${topStocks.filter(s => s.score < 0).length})`
@@ -1166,7 +1111,7 @@ export default function InsiderPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-white/[0.02] border-b border-white/[0.05] text-[9px] text-muted-foreground uppercase tracking-wider">
+                      <tr className="bg-surface-1 border-b border-line-2 text-[9px] text-muted-foreground uppercase tracking-wider">
                         <th className="p-2 text-left w-6">#</th>
                         <th className="p-2 text-left">Stock</th>
                         <th className="p-2 text-right cursor-pointer hover:text-white select-none" onClick={() => toggleSort('corp_change')}>
@@ -1188,7 +1133,7 @@ export default function InsiderPage() {
                       {filteredStocks.map((s, i) => (
                         <tr key={s.code}
                           onClick={() => { setSelectedStock(s.code); setSearchStock(s.code) }}
-                          className={`tr-hover border-b border-white/[0.02] cursor-pointer group ${selectedStock === s.code ? 'bg-gold-400/[0.07] border-l-2 border-l-gold-400' : ''}`}>
+                          className={`tr-hover border-b border-line-1 cursor-pointer group ${selectedStock === s.code ? 'bg-gold-400/[0.07] border-l-2 border-l-gold-400' : ''}`}>
                           <td className="p-2 text-muted-foreground text-[9px]">{i + 1}</td>
                           <td className="p-2">
                             <span className={`font-mono font-black transition-colors ${selectedStock === s.code ? 'text-gold-400' : 'group-hover:text-red-400'}`}>{s.code}</span>
@@ -1306,8 +1251,8 @@ export default function InsiderPage() {
                         ? f === 'BUYING'  ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
                           : f === 'SELLING' ? 'bg-red-500/25 text-red-300 border border-red-500/40'
                           : f === 'HIGH'    ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40'
-                          : 'bg-white/[0.08] text-white border border-white/[0.12]'
-                        : 'text-muted-foreground hover:text-white border border-transparent hover:border-white/10'
+                          : 'bg-surface-4 text-white border border-line-5'
+                        : 'text-muted-foreground hover:text-white border border-transparent hover:border-line-5'
                     }`}>
                     {f === 'all' ? `Semua (${activityData.length})`
                       : f === 'BUYING'  ? `↑ Buying (${activityData.filter(a=>a.action==='BUYING').length})`
@@ -1420,12 +1365,12 @@ export default function InsiderPage() {
                     value={whaleSearch}
                     onChange={e => setWhaleSearch(e.target.value)}
                     placeholder="Cari saham / investor..."
-                    className="w-full pl-8 pr-3 py-1.5 bg-white/[0.03] border border-white/10 rounded-lg text-xs focus:outline-none focus:border-red-500/30 uppercase"
+                    className="w-full pl-8 pr-3 py-1.5 bg-surface-2 border border-line-5 rounded-lg text-xs focus:outline-none focus:border-red-500/30 uppercase"
                   />
                 </div>
 
                 {/* Trend Filter */}
-                <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
+                <div className="flex items-center gap-1 bg-surface-3 rounded-lg p-0.5">
                   {([
                     { key: 'all', label: 'All' },
                     { key: 'accumulating', label: '↑ Accum' },
@@ -1449,7 +1394,7 @@ export default function InsiderPage() {
                 <select
                   value={whaleSortCol}
                   onChange={e => setWhaleSortCol(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-[10px] text-gray-300 focus:outline-none focus:border-red-500/30"
+                  className="bg-surface-3 border border-line-5 rounded-lg px-2.5 py-1 text-[10px] text-gray-300 focus:outline-none focus:border-red-500/30"
                 >
                   <option value="return_since_entry">Sort by Return</option>
                   <option value="latest_percentage">Sort by Size %</option>
@@ -1460,7 +1405,7 @@ export default function InsiderPage() {
                 {/* Sort Direction Toggle */}
                 <button
                   onClick={() => setWhaleSortDir(d => d === 'desc' ? 'asc' : 'desc')}
-                  className="px-2 py-1 rounded-lg border border-white/10 text-gray-400 hover:text-white transition-colors text-[10px] font-bold"
+                  className="px-2 py-1 rounded-lg border border-line-5 text-gray-400 hover:text-white transition-colors text-[10px] font-bold"
                 >
                   {whaleSortDir === 'desc' ? '↓ Desc' : '↑ Asc'}
                 </button>
@@ -1495,15 +1440,15 @@ export default function InsiderPage() {
                           </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="bg-white/[0.03] rounded-lg p-2">
+                          <div className="bg-surface-2 rounded-lg p-2">
                             <div className="text-[9px] text-muted-foreground">Entry Price</div>
                             <div className="text-xs font-black">{w.est_entry_price > 0 ? `Rp${w.est_entry_price.toLocaleString('id-ID')}` : '—'}</div>
                           </div>
-                          <div className="bg-white/[0.03] rounded-lg p-2">
+                          <div className="bg-surface-2 rounded-lg p-2">
                             <div className="text-[9px] text-muted-foreground">Current</div>
                             <div className="text-xs font-black">{w.current_price > 0 ? `Rp${w.current_price.toLocaleString('id-ID')}` : '—'}</div>
                           </div>
-                          <div className="bg-white/[0.03] rounded-lg p-2">
+                          <div className="bg-surface-2 rounded-lg p-2">
                             <div className="text-[9px] text-muted-foreground">Hold Days</div>
                             <div className="text-xs font-black">{w.holding_days}d</div>
                           </div>
@@ -1550,7 +1495,7 @@ export default function InsiderPage() {
                     value={stealthSearch}
                     onChange={e => setStealthSearch(e.target.value)}
                     placeholder="Cari saham..."
-                    className="w-full pl-8 pr-3 py-1.5 bg-white/[0.03] border border-white/10 rounded-lg text-xs focus:outline-none focus:border-red-500/30 uppercase"
+                    className="w-full pl-8 pr-3 py-1.5 bg-surface-2 border border-line-5 rounded-lg text-xs focus:outline-none focus:border-red-500/30 uppercase"
                   />
                 </div>
 
@@ -1558,7 +1503,7 @@ export default function InsiderPage() {
                 <select
                   value={stealthSortCol}
                   onChange={e => setStealthSortCol(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-[10px] text-gray-300 focus:outline-none focus:border-red-500/30"
+                  className="bg-surface-3 border border-line-5 rounded-lg px-2.5 py-1 text-[10px] text-gray-300 focus:outline-none focus:border-red-500/30"
                 >
                   <option value="CP_Flow_Miliar">Sort by Corp Flow</option>
                   <option value="Foreign_CP_Miliar">Sort by Foreign Flow</option>
@@ -1569,7 +1514,7 @@ export default function InsiderPage() {
                 {/* Sort Direction Toggle */}
                 <button
                   onClick={() => setStealthSortDir(d => d === 'desc' ? 'asc' : 'desc')}
-                  className="px-2 py-1 rounded-lg border border-white/10 text-gray-400 hover:text-white transition-colors text-[10px] font-bold"
+                  className="px-2 py-1 rounded-lg border border-line-5 text-gray-400 hover:text-white transition-colors text-[10px] font-bold"
                 >
                   {stealthSortDir === 'desc' ? '↓ Desc' : '↑ Asc'}
                 </button>
@@ -1582,7 +1527,7 @@ export default function InsiderPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-white/[0.02] border-b border-white/[0.05] text-[9px] text-muted-foreground uppercase tracking-wider">
+                        <tr className="bg-surface-1 border-b border-line-2 text-[9px] text-muted-foreground uppercase tracking-wider">
                           <th className="p-3 text-left">Code</th>
                           <th className="p-3 text-right">Price</th>
                           <th className="p-3 text-right">Price Chg%</th>
@@ -1595,7 +1540,7 @@ export default function InsiderPage() {
                         {filteredStealthData.map((s, i) => (
                           <tr key={i}
                             onClick={() => { setSelectedStock(s.Code); setSearchStock(s.Code) }}
-                            className="tr-hover border-b border-white/[0.02] cursor-pointer group">
+                            className="tr-hover border-b border-line-1 cursor-pointer group">
                             <td className="p-3 font-mono font-black group-hover:text-violet-400 transition-colors">{s.Code}</td>
                             <td className="p-3 text-right text-muted-foreground">
                               Rp{s.Price.toLocaleString('id-ID')}
@@ -1613,7 +1558,7 @@ export default function InsiderPage() {
                               <span className={`text-[9px] px-2 py-1 rounded-full font-bold border ${
                                 s.Signal.includes('STRONG') ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
                                   : s.Signal.includes('BUY') || s.Signal.includes('ACCUM') ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                  : 'bg-white/[0.05] text-muted-foreground border-white/10'
+                                  : 'bg-surface-3 text-muted-foreground border-line-5'
                               }`}>
                                 {s.Signal}
                               </span>
@@ -1635,7 +1580,7 @@ export default function InsiderPage() {
             <div className="space-y-4">
               {/* Top Investors */}
               <div className="glass rounded-2xl overflow-hidden border border-border/30">
-                <div className="p-3 border-b border-white/[0.05] flex items-center gap-2">
+                <div className="p-3 border-b border-line-2 flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-amber-400" />
                   <h3 className="text-sm font-black uppercase tracking-widest">Top Institutional Investors</h3>
                   <span className="text-[10px] text-muted-foreground ml-auto">{topInvestors.length} players</span>
@@ -1644,7 +1589,7 @@ export default function InsiderPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-white/[0.02] border-b border-white/[0.05] text-[9px] text-muted-foreground uppercase tracking-wider">
+                        <tr className="bg-surface-1 border-b border-line-2 text-[9px] text-muted-foreground uppercase tracking-wider">
                           <th className="p-2 text-left w-6">#</th>
                           <th className="p-2 text-left">Investor</th>
                           <th className="p-2 text-left hidden md:table-cell">Type</th>
@@ -1658,7 +1603,7 @@ export default function InsiderPage() {
                         {topInvestors.map((inv, i) => (
                           <tr key={i}
                             onClick={() => loadInvestorHoldings(inv.investor_name)}
-                            className={`tr-hover border-b border-white/[0.02] cursor-pointer ${i < 3 ? 'bg-amber-500/[0.02]' : ''}`}>
+                            className={`tr-hover border-b border-line-1 cursor-pointer ${i < 3 ? 'bg-amber-500/[0.02]' : ''}`}>
                             <td className="p-2 text-muted-foreground">
                               {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                             </td>
@@ -1682,7 +1627,7 @@ export default function InsiderPage() {
 
               {/* Top Flow */}
               <div className="glass rounded-2xl overflow-hidden border border-border/30">
-                <div className="p-3 border-b border-white/[0.05] flex items-center gap-2">
+                <div className="p-3 border-b border-line-2 flex items-center gap-2">
                   <Zap className="w-4 h-4 text-emerald-400" />
                   <h3 className="text-sm font-black uppercase tracking-widest">Stock Flow — Top Buyer & Seller</h3>
                   <span className="text-[10px] text-muted-foreground ml-auto">{topFlow.length} stocks</span>
@@ -1691,7 +1636,7 @@ export default function InsiderPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-white/[0.02] border-b border-white/[0.05] text-[9px] text-muted-foreground uppercase tracking-wider">
+                        <tr className="bg-surface-1 border-b border-line-2 text-[9px] text-muted-foreground uppercase tracking-wider">
                           <th className="p-2 text-left">Code</th>
                           <th className="p-2 text-right">Price</th>
                           <th className="p-2 text-left">Top Buyer</th>
@@ -1706,7 +1651,7 @@ export default function InsiderPage() {
                         {topFlow.map((f, i) => (
                           <tr key={i}
                             onClick={() => { setSelectedStock(f.Code); setSearchStock(f.Code) }}
-                            className="tr-hover border-b border-white/[0.02] cursor-pointer group">
+                            className="tr-hover border-b border-line-1 cursor-pointer group">
                             <td className="p-2 font-mono font-black group-hover:text-emerald-400 transition-colors">{f.Code}</td>
                             <td className="p-2 text-right text-muted-foreground">
                               {f.Price > 0 ? `Rp${f.Price.toLocaleString('id-ID')}` : '—'}
@@ -1775,9 +1720,9 @@ export default function InsiderPage() {
       {/* Side Panel/Drawer for Selected Investor Portfolio */}
       {selectedInvestor && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-[#0F172A] border-l border-white/[0.08] h-full flex flex-col shadow-2xl relative animate-slide-in">
+          <div className="w-full max-w-md bg-[#0F172A] border-l border-line-4 h-full flex flex-col shadow-2xl relative animate-slide-in">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-white/[0.05] flex items-center justify-between">
+            <div className="p-4 border-b border-line-2 flex items-center justify-between">
               <div className="min-w-0 pr-4">
                 <span className="text-[10px] text-red-400 font-black uppercase tracking-widest flex items-center gap-1.5 mb-1">
                   <Trophy className="w-3.5 h-3.5" /> Institutional Portfolio
@@ -1788,7 +1733,7 @@ export default function InsiderPage() {
               </div>
               <button
                 onClick={() => setSelectedInvestor(null)}
-                className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-colors"
+                className="p-1.5 rounded-lg border border-line-5 text-gray-400 hover:text-white hover:border-line-6 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1815,7 +1760,7 @@ export default function InsiderPage() {
                           setSearchStock(h.share_code);
                           setSelectedInvestor(null); // close drawer
                         }}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-red-500/5 hover:border-red-500/20 cursor-pointer group transition-all"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-surface-1 border border-line-1 hover:bg-red-500/5 hover:border-red-500/20 cursor-pointer group transition-all"
                       >
                         <div>
                           <span className="font-mono font-black text-white group-hover:text-red-400 transition-colors">
@@ -2071,7 +2016,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                   </tr>
                 ) : (
                   activeFunds.map((f: any, i: number) => (
-                    <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.02] tr-hover">
+                    <tr key={i} className="border-b border-line-1 hover:bg-surface-1 tr-hover">
                       <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
                         {f.investor_name}
                       </td>
@@ -2120,7 +2065,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                   </tr>
                 ) : (
                   etfs.map((f: any, i: number) => (
-                    <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.02] tr-hover">
+                    <tr key={i} className="border-b border-line-1 hover:bg-surface-1 tr-hover">
                       <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
                         {f.investor_name}
                       </td>
@@ -2145,12 +2090,12 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
 
       {/* Chart 1: Aliran Dana Bulanan (Miliar Rp) */}
       <div className="glass rounded-2xl p-5 border border-border/30 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.05] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-2 pb-3">
           <div className="flex items-center gap-2">
             <TrendingUp size={15} className="text-red-400" />
             <h3 className="text-[11px] font-black uppercase tracking-widest">Aliran Dana Bulanan (Miliar Rp)</h3>
           </div>
-          <div className="flex items-center gap-1.5 rounded-xl bg-white/[0.02] border border-white/[0.06] p-1">
+          <div className="flex items-center gap-1.5 rounded-xl bg-surface-1 border border-line-3 p-1">
             <button
               onClick={() => setChartMode('overview')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
@@ -2175,7 +2120,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
         </div>
 
         {chartMode === 'all' && (
-          <div className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.05] space-y-2">
+          <div className="p-3 rounded-xl bg-surface-1 border border-line-2 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[9px] text-muted-foreground uppercase font-black tracking-wider">Filter Tipe Investor</span>
               <div className="flex gap-2 text-[9px]">
@@ -2207,7 +2152,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                       border: border
                     }}
                     className={`px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1.5 transition-all ${
-                      isSelected ? textColor : 'text-muted-foreground/60 hover:text-foreground bg-white/[0.02]'
+                      isSelected ? textColor : 'text-muted-foreground/60 hover:text-foreground bg-surface-1'
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: TIPE_COLOR[b.label] || '#94a3b8' }} />
@@ -2315,7 +2260,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
 
       {/* Investor Composition Table */}
       <div className="glass rounded-2xl overflow-hidden border border-border/30">
-        <div className="px-5 py-3.5 border-b border-white/[0.05] flex items-center gap-2">
+        <div className="px-5 py-3.5 border-b border-line-2 flex items-center gap-2">
           <Users size={15} className="text-red-400" />
           <h3 className="text-[11px] font-black uppercase tracking-widest">Komposisi Investor — Bulan Terakhir vs Sebelumnya</h3>
         </div>
@@ -2332,7 +2277,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
             </thead>
             <tbody>
               {(composition || []).map((c: any, i: number) => (
-                <tr key={i} className="tr-hover border-b border-white/[0.02]">
+                <tr key={i} className="tr-hover border-b border-line-1">
                   <td className="px-4 py-2.5 font-bold text-foreground/85">{c.tipe}</td>
                   <td className="px-4 py-2.5 text-center">
                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full"

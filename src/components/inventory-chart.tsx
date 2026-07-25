@@ -98,7 +98,7 @@ export function InventoryChart({ price, brokers, height = 460 }: {
       <div ref={ref} className="w-full" style={{ height }} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[{ title: 'Net Akumulasi', rows: accum }, { title: 'Net Distribusi', rows: distrib }].map(g => (
-          <div key={g.title} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+          <div key={g.title} className="rounded-xl border border-line-3 bg-surface-1 p-3">
             <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/50 mb-2">{g.title}</p>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               {g.rows.length === 0 && <span className="text-[10px] text-muted-foreground/40">—</span>}

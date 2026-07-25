@@ -20,7 +20,7 @@ export function OwnershipWidget({ stockCode }: Props) {
   const { period } = useTerminalStore()
   const { data } = useStockOverview(stockCode, period)
 
-  const ownershipDetails = data?.ownershipDetails || []
+  const ownershipDetails = useMemo(() => data?.ownershipDetails || [], [data?.ownershipDetails])
   const whaleMovement = data?.whaleMovement || []
   const concentrationIndex = data?.concentrationIndex
   const institutionalChange = data?.institutionalChange || []
@@ -40,7 +40,7 @@ export function OwnershipWidget({ stockCode }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+      <div className="glass rounded-2xl p-5 border border-line-3">
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <PieChartIcon className="w-4 h-4 text-purple-400" />
           <h2 className="text-sm font-black uppercase tracking-widest">Ownership Structure</h2>
@@ -76,13 +76,13 @@ export function OwnershipWidget({ stockCode }: Props) {
             </div>
             <div className="flex-1 overflow-x-auto">
               <table className="w-full text-xs">
-                <thead><tr className="text-[9px] text-muted-foreground uppercase border-b border-white/[0.05]">
+                <thead><tr className="text-[9px] text-muted-foreground uppercase border-b border-line-2">
                   <th className="p-2 text-left">Investor</th><th className="p-2 text-left">Type</th>
                   <th className="p-2 text-center">L/F</th><th className="p-2 text-right">%</th><th className="p-2 text-right">Shares</th>
                 </tr></thead>
                 <tbody>
                   {ownershipDetails.map((d: any, i: number) => (
-                    <tr key={i} className="border-b border-white/[0.03] tr-hover">
+                    <tr key={i} className="border-b border-line-1 tr-hover">
                       <td className="p-2 font-bold text-[10px] text-foreground truncate max-w-[120px]">{d.investor_name}</td>
                       <td className="p-2 text-[10px] text-muted-foreground">{d.investor_type}</td>
                       <td className="p-2 text-center">
@@ -107,21 +107,21 @@ export function OwnershipWidget({ stockCode }: Props) {
       </div>
 
       {whaleMovement.length > 0 && (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-purple-400" />
             <h2 className="text-sm font-black uppercase tracking-widest">Whale Position Tracking</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead><tr className="text-[9px] text-muted-foreground uppercase border-b border-white/[0.05]">
+              <thead><tr className="text-[9px] text-muted-foreground uppercase border-b border-line-2">
                 <th className="p-2 text-left">Investor</th><th className="p-2 text-center">Type</th>
                 <th className="p-2 text-right">%</th><th className="p-2 text-right">Shares</th>
                 <th className="p-2 text-center">Trend</th><th className="p-2 text-center">Verdict</th>
               </tr></thead>
               <tbody>
                 {whaleMovement.map((w: any, i: number) => (
-                  <tr key={i} className="border-b border-white/[0.03] tr-hover">
+                  <tr key={i} className="border-b border-line-1 tr-hover">
                     <td className="p-2 font-bold text-[10px]">{w.investor_name}</td>
                     <td className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${w.local_foreign==='F'?'bg-blue-500/10 text-blue-400':'bg-emerald-500/10 text-emerald-400'}`}>{w.local_foreign==='F'?'FOREIGN':'LOCAL'}</span></td>
                     <td className="p-2 text-right font-black">{Number(w.latest_percentage).toFixed(2)}%</td>
@@ -137,7 +137,7 @@ export function OwnershipWidget({ stockCode }: Props) {
       )}
 
       {(concentrationIndex || institutionalChange.length > 0) && (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
             <Target className="w-4 h-4 text-purple-400" />
             <h2 className="text-sm font-black uppercase tracking-widest">Concentration & Institutional</h2>
@@ -153,13 +153,13 @@ export function OwnershipWidget({ stockCode }: Props) {
                     { l: 'Top 10 %',  v: `${Number(concentrationIndex.top10_pct)?.toFixed(1) || '--'}%`,    c: 'text-blue-400'   },
                     { l: 'Investors', v: concentrationIndex.total_investor_count || '--',                    c: 'text-cyan-400'   },
                   ].map((m, i) => (
-                    <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+                    <div key={i} className="p-3 rounded-xl bg-surface-2 border border-line-2 text-center">
                       <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
                       <p className={`text-sm font-black mt-1 ${m.c}`}>{m.v}</p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-center">
+                <div className="mt-2 px-3 py-2 rounded-lg bg-surface-2 border border-line-2 text-center">
                   <span className="text-[10px] font-bold">{concentrationIndex.concentration_label}</span>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export function OwnershipWidget({ stockCode }: Props) {
                 </div>
                 <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
                   {institutionalChange.slice(0, 15).map((item: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
+                    <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-surface-2 border border-line-1">
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] font-bold truncate">{item.investor_name}</p>
                         <p className="text-[8px] text-muted-foreground">{String(item.report_date).slice(0, 10)}</p>

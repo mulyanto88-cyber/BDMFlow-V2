@@ -16,7 +16,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
 
   const stockData = data?.stockData
   const foreignDivergence = data?.foreignDivergence
-  const foreignFlowTrend = data?.foreignFlowTrend || []
+  const foreignFlowTrend = useMemo(() => data?.foreignFlowTrend || [], [data?.foreignFlowTrend])
 
   const flow7d  = useMemo(() => foreignFlowTrend.slice(-7).reduce((s: number, d: any) => s + Number(d.net_foreign_value), 0), [foreignFlowTrend])
   const flow30d = useMemo(() => foreignFlowTrend.slice(-30).reduce((s: number, d: any) => s + Number(d.net_foreign_value), 0), [foreignFlowTrend])
@@ -24,7 +24,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+      <div className="glass rounded-2xl p-5 border border-line-3">
         <div className="flex items-center gap-2 mb-4">
           <Globe className="w-4 h-4 text-teal-400" />
           <h2 className="text-sm font-black uppercase tracking-widest">Net Foreign — Multi Periode</h2>
@@ -34,7 +34,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
             { l: '1D', v: Number(stockData?.net_foreign_value) || 0 },
             { l: '7D', v: flow7d }, { l: '30D', v: flow30d }, { l: '60D', v: flow60d },
           ].map(p => (
-            <div key={p.l} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+            <div key={p.l} className="p-3 rounded-xl bg-surface-2 border border-line-2 text-center">
               <p className="text-[9px] text-muted-foreground uppercase">{p.l}</p>
               <p className={`text-sm font-black mt-1 ${p.v>=0?'text-emerald-400':'text-red-400'}`}>{formatRupiah(p.v)}</p>
             </div>
@@ -43,7 +43,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
       </div>
 
       {foreignDivergence && (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h2 className="text-sm font-black uppercase tracking-widest">Divergensi Harga vs Foreign · 30D</h2>
             <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
@@ -56,7 +56,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
               { l:'Harga 30D', v:`${Number(foreignDivergence.price_chg_30d)>=0?'+':''}${Number(foreignDivergence.price_chg_30d||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_30d)>=0?'text-emerald-400':'text-red-400' },
               { l:'Harga 1D', v:`${Number(foreignDivergence.price_chg_pct)>=0?'+':''}${Number(foreignDivergence.price_chg_pct||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_pct)>=0?'text-emerald-400':'text-red-400' },
             ].map(m => (
-              <div key={m.l} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+              <div key={m.l} className="p-3 rounded-xl bg-surface-2 border border-line-2 text-center">
                 <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
                 <p className={`text-sm font-black mt-1 ${m.c}`}>{m.v}</p>
               </div>
@@ -69,7 +69,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
       )}
 
       {foreignFlowTrend.length > 0 ? (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
             <BarChartIcon className="w-4 h-4 text-teal-400" />
             <h2 className="text-sm font-black uppercase tracking-widest">Net Foreign Harian · 60 Hari</h2>
@@ -89,7 +89,7 @@ export function ForeignFlowWidget({ stockCode }: Props) {
           </div>
         </div>
       ) : (
-        <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-white/[0.06]">Belum ada data aliran foreign untuk saham ini.</div>
+        <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-line-3">Belum ada data aliran foreign untuk saham ini.</div>
       )}
 
       <div className="text-center">

@@ -59,6 +59,7 @@ export default function BrokerFlowPage() {
       }
     } catch(e:any) { setError(e.message) }
     finally { setLoading(false) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, days, catFilter])
 
   useEffect(() => { load() }, [load])
@@ -130,7 +131,7 @@ export default function BrokerFlowPage() {
                 'flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold rounded-xl transition-all duration-300 relative overflow-hidden',
                 tab === i
                   ? 'text-primary shadow-[0_2px_10px_-2px_rgba(231,183,51,0.2)]'
-                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-white/[0.04]',
+                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-surface-3',
               ].join(' ')}>
               {tab === i && <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none rounded-xl border border-primary/20" />}
               <span className="relative z-10 flex items-center gap-1.5">
@@ -168,7 +169,7 @@ export default function BrokerFlowPage() {
                 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all duration-150',
                 days === d
                   ? 'bg-primary/[0.12] text-primary border border-primary/20'
-                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.04] border border-transparent',
+                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-surface-3 border border-transparent',
               ].join(' ')}>
               {d}D
             </button>
@@ -191,11 +192,11 @@ export default function BrokerFlowPage() {
 
         {/* Tab 0: Per Saham */}
         {tab === 0 && (
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+          <div className="rounded-xl border border-line-3 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-border/50 text-muted-foreground">
+                  <tr className="bg-surface-1 border-b border-border/50 text-muted-foreground">
                   <th className="text-left px-3 py-3 font-medium">Saham</th>
                   <th className="text-right px-3 py-3"><SortBtn k="fg_net" label="🌏 Asing"/></th>
                   <th className="text-right px-3 py-3"><SortBtn k="inst_net" label="🏛️ Inst"/></th>
@@ -212,7 +213,7 @@ export default function BrokerFlowPage() {
                     {Array.from({length:8}).map((_,j)=><td key={j} className="px-3 py-3"><div className="h-3 bg-muted rounded"/></td>)}
                   </tr>
                 )) : sorted.map(r => (
-                  <tr key={r.stock_code} className="tr-hover border-b border-white/[0.03]">
+                  <tr key={r.stock_code} className="tr-hover border-b border-line-1">
                     <td className="px-3 py-2.5">
                       <Link href={`/stock/${r.stock_code}`} prefetch={false} className="font-mono font-semibold hover:text-primary transition-colors">{r.stock_code}</Link>
                       <div className="text-muted-foreground">{r.sector}</div>
@@ -247,11 +248,11 @@ export default function BrokerFlowPage() {
 
         {/* Tab 1: Per Broker */}
         {tab === 1 && (
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+          <div className="rounded-xl border border-line-3 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-border/50 text-muted-foreground">
+                  <tr className="bg-surface-1 border-b border-border/50 text-muted-foreground">
                   <th className="text-left px-3 py-3 font-medium">Broker</th>
                   <th className="text-left px-3 py-3 font-medium">Kategori</th>
                   <th className="text-right px-3 py-3"><SortBtn k="net_miliar" label="Net (M)"/></th>
@@ -268,7 +269,7 @@ export default function BrokerFlowPage() {
                   </tr>
                 )) : sorted.map(r => (
                   <>
-                    <tr key={r.broker_code} className="tr-hover border-b border-white/[0.03] cursor-pointer"
+                    <tr key={r.broker_code} className="tr-hover border-b border-line-1 cursor-pointer"
                       onClick={() => loadBrokerFaves(r.broker_code)}>
                       <td className="px-3 py-2.5">
                         <div className="font-mono font-semibold">{r.broker_code}</div>
@@ -289,13 +290,13 @@ export default function BrokerFlowPage() {
                       </td>
                     </tr>
                     {expandedBroker === r.broker_code && (
-                      <tr className="border-b border-white/[0.03] bg-white/[0.015]">
+                      <tr className="border-b border-line-1 bg-surface-1">
                         <td colSpan={7} className="px-4 py-3">
                           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/50 mb-2">Top saham — {r.broker_code}:</div>
                           <div className="flex flex-wrap gap-2">
                             {brokerFaves.map((f:any) => (
                               <Link key={f.stock_code} href={`/stock/${f.stock_code}`} prefetch={false}
-                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-primary/20 transition-all text-[11px]">
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-line-4 bg-surface-2 hover:bg-surface-4 hover:border-primary/20 transition-all text-[11px]">
                                 <span className="font-mono font-semibold">{f.stock_code}</span>
                                 <span className={netColor(f.net_miliar)}>{Number(f.net_miliar)>=0?'+':''}{Number(f.net_miliar).toFixed(1)} M</span>
                               </Link>
@@ -327,7 +328,7 @@ export default function BrokerFlowPage() {
           ))}
           </div>{/* end grid */}
           {/* Daily series table */}
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+          <div className="rounded-xl border border-line-3 overflow-hidden">
             <div className="overflow-x-auto max-h-64">
               <table className="w-full text-xs">
                 <thead className="sticky top-0">
@@ -346,7 +347,7 @@ export default function BrokerFlowPage() {
                       grouped[r.date][r.category] = Number(r.net_miliar)
                     })
                     return Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([dt,cats]) => (
-                      <tr key={dt} className="tr-hover border-b border-white/[0.03]">
+                      <tr key={dt} className="tr-hover border-b border-line-1">
                         <td className="px-3 py-2">{dt.slice(0,10)}</td>
                         <td className={`px-3 py-2 text-right ${netColor(cats['FOREIGN']||0)}`}>{(cats['FOREIGN']||0)>=0?'+':''}{(cats['FOREIGN']||0).toFixed(1)} M</td>
                         <td className={`px-3 py-2 text-right ${netColor(cats['LOCAL_INST']||0)}`}>{(cats['LOCAL_INST']||0)>=0?'+':''}{(cats['LOCAL_INST']||0).toFixed(1)} M</td>

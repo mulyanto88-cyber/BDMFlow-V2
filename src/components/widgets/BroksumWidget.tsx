@@ -19,7 +19,7 @@ export function BroksumWidget({ stockCode }: Props) {
   return (
     <div className="space-y-4">
       {brokerData.length > 0 && (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-4 h-4 text-blue-400" />
             <h2 className="text-sm font-black uppercase tracking-widest">Broker Dominan · Net 90 Hari</h2>
@@ -54,7 +54,7 @@ export function BroksumWidget({ stockCode }: Props) {
       )}
 
       {brokerConsistency.length > 0 ? (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
             <Eye className="w-4 h-4 text-purple-400" />
             <h2 className="text-sm font-black uppercase tracking-widest">Konsistensi Broker · 30 Hari</h2>
@@ -85,7 +85,7 @@ export function BroksumWidget({ stockCode }: Props) {
           </div>
         </div>
       ) : (!brokerData.length && (
-        <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-white/[0.06]">Belum ada data broker untuk saham ini.</div>
+        <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-line-3">Belum ada data broker untuk saham ini.</div>
       ))}
 
       <div className="text-center">

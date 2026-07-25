@@ -49,7 +49,7 @@ const PAGE_META: Record<string, { title: string; parent?: string }> = {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
-  const { user, loading } = useAuth()
+  const { user, loading, isPro, trialDaysLeft } = useAuth()
 
   const publicPage = isPublic(pathname)
   const freePage   = isFree(pathname)
@@ -142,22 +142,32 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <GlobalSearch />
 
-            {/* Notification bell — decorative for now */}
-            <button
-              className="hidden md:flex w-8 h-8 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.07] text-muted-foreground hover:text-foreground transition-all relative"
-              title="Notifikasi"
+            {/* Opens the radar. The old version was a dead button with a hardcoded
+                "unread" dot, which promised notifications that never existed. */}
+            <Link
+              href="/radar"
+              className="hidden md:flex w-8 h-8 items-center justify-center rounded-full border border-line-3 bg-surface-2 hover:bg-surface-4 text-muted-foreground hover:text-foreground transition-all"
+              title="Watchlist Radar"
+              aria-label="Buka Watchlist Radar"
             >
               <Bell size={14} />
-              {/* unread dot */}
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-[color:var(--header-bg)]" />
-            </button>
+            </Link>
 
             <ThemeToggle />
 
             {user ? (
-              <span className="px-2.5 py-1 rounded-md bg-primary/10 text-primary font-black text-[10px] tracking-widest border border-primary/20">
-                PRO
-              </span>
+              isPro ? (
+                <span className="px-2.5 py-1 rounded-md bg-primary/10 text-primary font-black text-[10px] tracking-widest border border-primary/20">
+                  PRO
+                </span>
+              ) : (
+                <Link
+                  href="/pricing"
+                  className="px-3 py-1.5 rounded-lg text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
+                >
+                  Upgrade ke Pro
+                </Link>
+              )
             ) : (
               <Link
                 href="/auth"
@@ -169,8 +179,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* ═══ Guest Banner (slim, tasteful) ═══ */}
-        {!user && (
+        {/* ═══ Plan Banner ═══ */}
+        {/* Guests see the no-signup preview; signed-in non-Pro users see the real
+            server-side trial countdown from their profile. */}
+        {!user ? (
           <div className="flex items-center justify-center gap-2 px-4 py-1.5 text-[10px] font-semibold border-b"
             style={{
               background: 'linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.06) 50%, transparent 100%)',
@@ -184,13 +196,31 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               Daftar gratis →
             </Link>
           </div>
+        ) : !isPro && (
+          <div className="flex items-center justify-center gap-2 px-4 py-1.5 text-[10px] font-semibold border-b"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.06) 50%, transparent 100%)',
+              borderColor: 'rgba(245,158,11,0.15)',
+            }}
+          >
+            <span className="w-1 h-1 rounded-full bg-amber-400/60 animate-pulse" />
+            <span className="text-amber-400/80">
+              {trialDaysLeft && trialDaysLeft > 0
+                ? `🎁 Trial Pro — ${trialDaysLeft} hari tersisa.`
+                : '⏳ Trial Pro sudah berakhir.'}
+            </span>
+            <span className="text-muted-foreground/30">·</span>
+            <Link href="/pricing" className="font-black text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
+              Upgrade ke Pro →
+            </Link>
+          </div>
         )}
 
         {/* ═══ Ticker Tape ═══ */}
         <TickerTape />
 
         {/* ═══ MAIN CONTENT ═══ */}
-        <main className="flex-1 w-full pb-20 md:pb-8">
+        <main id="main-content" className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-4 pb-20 md:pb-8">
           {children}
         </main>
       </div>

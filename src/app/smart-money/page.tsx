@@ -10,17 +10,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-// ─── API Helper ──────────────────────────────────────────────────────────────
-async function mdQuery(query: string, params?: any[]): Promise<any[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, params }),
-  })
-  const json = await res.json()
-  if (json.error) throw new Error(json.error)
-  return json.data || []
-}
+import { mdQuery } from '@/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface TacticalData {
@@ -144,12 +134,8 @@ export default function SmartMoneyMatrix() {
   // ─── Fetches ──────────────────────────────────────────────────────────────
   const fetchStrategic = useCallback(async () => {
     try {
-      const data = await mdQuery(`
-        SELECT * FROM ksei.vw_ksei_inst_positioning
-        ORDER BY mom_change_pct DESC
-        LIMIT 50
-      `)
-      setStrategicList(data as StrategicData[])
+      const data = await mdQuery('smartMoney.instPositioning')
+      setStrategicList(data as unknown as StrategicData[])
     } catch (err: any) {
       console.error('Strategic Error:', err)
     }
@@ -159,21 +145,8 @@ export default function SmartMoneyMatrix() {
     try {
       // Score repointed to validated composite v2 (normalized 0-100). The old
       // smart_money_score was weak (binary, AOV triple-counted, 1-day broker zero-sum).
-      const data = await mdQuery(`
-        SELECT s.stock_code, s.sector, s.close, s.change_percent, s.foreign_30d, s.broker_net,
-               s.whale_signal, s.big_player_anomaly, s.aov_ratio_ma20,
-               ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) AS smart_money_score,
-               CASE
-                 WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 70 THEN '🚀 STRONG BUY'
-                 WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 45 THEN '👀 WATCH'
-                 ELSE '➖ NEUTRAL'
-               END AS signal
-        FROM market.vw_smart_money_score s
-        LEFT JOIN market.tb_composite_v2 v2 ON v2.stock_code = s.stock_code
-        ORDER BY smart_money_score DESC, s.aov_ratio_ma20 DESC
-        LIMIT 50
-      `)
-      setSmartScoreList(data as SmartScoreData[])
+      const data = await mdQuery('smartMoney.scores')
+      setSmartScoreList(data as unknown as SmartScoreData[])
     } catch (err: any) {
       console.error('SmartScore Error:', err)
     }
@@ -183,20 +156,14 @@ export default function SmartMoneyMatrix() {
     setLoading(true)
     setError(null)
     try {
-      const data = await mdQuery(`
-        SELECT * FROM market.vw_tactical_momentum_smart_money
-        WHERE ABS(net_foreign_7d_miliar * 1e9) > CAST($1 AS DOUBLE)
-           OR ABS(broker_net_7d_miliar * 1e9)  > CAST($1 AS DOUBLE)
-        ORDER BY ABS(net_foreign_7d_miliar) DESC, ABS(broker_net_7d_miliar) DESC
-        LIMIT 50
-      `, [threshold * 1_000_000_000])
-      setTacticalList(data as TacticalData[])
+      const data = await mdQuery('smartMoney.tactical', [threshold * 1_000_000_000])
+      setTacticalList(data as unknown as TacticalData[])
     } catch (err: any) {
       setError(err.message || 'Failed to fetch data')
     } finally {
       setLoading(false)
     }
-  }, [threshold, foreignDays])
+  }, [threshold])
 
   useEffect(() => { fetchStrategic()  }, [fetchStrategic])
   useEffect(() => { fetchSmartScore() }, [fetchSmartScore])
@@ -262,11 +229,11 @@ export default function SmartMoneyMatrix() {
     try {
       // Promise.allSettled — jika 1 query gagal, query lain tetap jalan
       const [tacResult, strResult] = await Promise.allSettled([
-        mdQuery(`SELECT * FROM market.vw_tactical_momentum_smart_money WHERE stock_code = $1`, [code]),
-        mdQuery(`SELECT * FROM ksei.vw_ksei_inst_positioning WHERE stock_code = $1`, [code]),
+        mdQuery('smartMoney.tacticalByCode', [code]),
+        mdQuery('smartMoney.instPositioningByCode', [code]),
       ])
-      const tacData = tacResult.status === 'fulfilled' ? tacResult.value : []
-      const strData = strResult.status === 'fulfilled' ? strResult.value : []
+      const tacData = (tacResult.status === 'fulfilled' ? tacResult.value : []) as unknown as TacticalData[]
+      const strData = (strResult.status === 'fulfilled' ? strResult.value : []) as unknown as StrategicData[]
 
       if (tacData.length > 0 || strData.length > 0) {
         setSearchedStock({ code, tactical: tacData[0] || null, strategic: strData[0] || null })
@@ -353,7 +320,7 @@ export default function SmartMoneyMatrix() {
             <input
               type="text"
               placeholder="Enter ticker — e.g. BBCA"
-              className="w-full bg-white/5 border border-border/50 rounded-xl py-2.5 pl-4 pr-10 text-white font-mono uppercase text-sm focus:outline-none focus:border-gold-400/50 focus:ring-1 focus:ring-gold-400/30 transition-all"
+              className="w-full bg-surface-3 border border-border/50 rounded-xl py-2.5 pl-4 pr-10 text-white font-mono uppercase text-sm focus:outline-none focus:border-gold-400/50 focus:ring-1 focus:ring-gold-400/30 transition-all"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -365,7 +332,7 @@ export default function SmartMoneyMatrix() {
           </button>
           {searchedStock && (
             <button type="button" onClick={() => setSearchedStock(null)}
-              className="px-3 py-2 bg-white/[0.04] border border-white/10 text-muted-foreground rounded-xl text-sm hover:text-white transition-all">
+              className="px-3 py-2 bg-surface-3 border border-line-5 text-muted-foreground rounded-xl text-sm hover:text-white transition-all">
               ✕
             </button>
           )}
@@ -392,7 +359,7 @@ export default function SmartMoneyMatrix() {
                       <p className="font-mono font-bold text-sm">{formatRupiah(Number(searchedStock.tactical.close))}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/5">
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-line-2">
                     <div>
                       <p className="text-[9px] text-muted-foreground uppercase">Chg</p>
                       <p className={`text-sm font-bold ${Number(searchedStock.tactical.change_percent) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -412,7 +379,7 @@ export default function SmartMoneyMatrix() {
                       </p>
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-white/5">
+                  <div className="pt-2 border-t border-line-2">
                     <p className="text-[9px] text-muted-foreground uppercase mb-1">Broker Net 5D</p>
                     <p className={`text-sm font-bold ${Number(searchedStock.tactical.broker_net_7d_miliar) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {fmtMiliar(Number(searchedStock.tactical.broker_net_7d_miliar))}
@@ -441,7 +408,7 @@ export default function SmartMoneyMatrix() {
                       <p className="font-mono font-bold text-sm">{Number(searchedStock.strategic.total_inst_pct).toFixed(2)}%</p>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-white/5">
+                  <div className="pt-3 border-t border-line-2">
                     <div className="flex justify-between text-xs mb-2">
                       <span className="text-muted-foreground">Prev: {Number(searchedStock.strategic.prev_inst_pct).toFixed(2)}%</span>
                       <span className={`font-bold ${Number(searchedStock.strategic.mom_change_pct) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -495,7 +462,7 @@ export default function SmartMoneyMatrix() {
                 className={`px-3 py-1 rounded-lg font-bold transition-all ${
                   foreignDays === p.v
                     ? 'bg-gold-400/20 text-gold-400 border border-gold-400/30'
-                    : 'text-muted-foreground hover:text-white bg-white/[0.03] border border-white/[0.06]'
+                    : 'text-muted-foreground hover:text-white bg-surface-2 border border-line-3'
                 }`}>
                 {p.label}
               </button>
@@ -509,7 +476,7 @@ export default function SmartMoneyMatrix() {
                 className={`px-3 py-1 rounded-lg font-bold transition-all ${
                   threshold === t
                     ? 'bg-gold-400/20 text-gold-400 border border-gold-400/30'
-                    : 'text-muted-foreground hover:text-white bg-white/[0.03] border border-white/[0.06]'
+                    : 'text-muted-foreground hover:text-white bg-surface-2 border border-line-3'
                 }`}>
                 {t} M
               </button>
@@ -548,7 +515,7 @@ export default function SmartMoneyMatrix() {
           {activeTab === 'TACTICAL' && (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-white/[0.02] border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <thead className="bg-surface-1 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground">
                   <tr>
                     <th className="px-3 py-3 font-medium w-8">#</th>
                     <th className="px-4 py-3 font-medium">Stock</th>
@@ -636,7 +603,7 @@ export default function SmartMoneyMatrix() {
           {activeTab === 'STRATEGIC' && (
             <div>
               {strSignalDist.length > 0 && strategicList.length > 0 && (
-                <div className="px-5 py-3 border-b border-border/30 flex items-center gap-3 bg-white/[0.01]">
+                <div className="px-5 py-3 border-b border-border/30 flex items-center gap-3 bg-surface-1">
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Distribution:</span>
                   <div className="flex h-2 flex-1 max-w-[200px] rounded-full overflow-hidden gap-px">
                     {strSignalDist.map(([sig, cnt]) => (
@@ -651,7 +618,7 @@ export default function SmartMoneyMatrix() {
               )}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-white/[0.02] border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <thead className="bg-surface-1 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground">
                     <tr>
                       <th className="px-3 py-3 font-medium w-8">#</th>
                       <th className="px-4 py-3 font-medium">Stock</th>
@@ -713,7 +680,7 @@ export default function SmartMoneyMatrix() {
           {activeTab === 'SMART_SCORE' && (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-white/[0.02] border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <thead className="bg-surface-1 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground">
                   <tr>
                     <th className="px-3 py-3 font-medium w-8">#</th>
                     <th className="px-4 py-3 font-medium">Stock</th>

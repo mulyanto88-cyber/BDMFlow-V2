@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
           f.stock_code, f.fg_net, f.inst_net, f.retail_net, f.prime_net, f.total_net,
           f.fg_buyers, f.broker_count,
           s.close::DOUBLE AS close, ROUND(s.change_percent::DOUBLE,2) AS change_percent,
-          s.sector, s.group_name, s.signal, s.whale_signal::BOOLEAN
+          s.sector, s.group_name, s.signal, s.whale_signal::BOOLEAN AS whale_signal
         FROM flow f
         LEFT JOIN market.tb_stock_latest s ON f.stock_code = s.stock_code
         WHERE (ABS(f.fg_net) > 0.1 OR ABS(f.inst_net) > 0.1)

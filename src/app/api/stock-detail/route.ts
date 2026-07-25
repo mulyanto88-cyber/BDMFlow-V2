@@ -26,6 +26,41 @@ function buildVerdict(sc: any, fd: any, sd: any) {
   return { emoji: '⚪', headline: 'Netral', detail: `Belum ada sinyal big player signifikan (${String(flow || '').toLowerCase()}). ${fgn}.` }
 }
 
+// ── Unadjusted corporate action detector ────────────────────────────────────
+// On an ex-date the exchange restates `previous` to the post-action price, but the
+// prior row's `close` is left at the old scale. A large gap between the two is the
+// signature of a split/bonus/reverse that has NOT been back-adjusted — and every
+// return spanning that date is then fiction (this is how MLPT ranked BUY on a fake
+// -93% return while is_split_suspect reported false).
+//
+// Reads the history rows the route already fetched, so it costs no extra query.
+function detectUnadjustedAction(history: any[]) {
+  for (let i = history.length - 1; i > 0; i--) {
+    const prevClose = Number(history[i - 1]?.close)
+    const statedPrev = Number(history[i]?.previous)
+    if (!prevClose || !statedPrev) continue
+
+    const ratio = statedPrev / prevClose
+    if (Math.abs(ratio - 1) <= 0.4) continue   // ordinary day
+
+    // trading_date arrives as a JS Date from the pg driver — String() gives
+    // "Tue Jul 21 …" and toISOString() shifts a WIB date back one day (UTC).
+    // Format from local getters instead.
+    const raw = history[i].trading_date
+    const date = raw instanceof Date
+      ? `${raw.getFullYear()}-${String(raw.getMonth() + 1).padStart(2, '0')}-${String(raw.getDate()).padStart(2, '0')}`
+      : String(raw).slice(0, 10)
+    return {
+      date,
+      kind: ratio < 1 ? 'SPLIT_OR_BONUS' : 'REVERSE_SPLIT',
+      ratio: Number(ratio.toFixed(4)),
+      priceBefore: prevClose,
+      priceAfter: Number(history[i].close),
+    }
+  }
+  return null
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code   = (searchParams.get('code') || '').toUpperCase().trim().replace(/[^A-Z0-9]/g, '')
@@ -98,11 +133,11 @@ export async function GET(req: NextRequest) {
           ROUND(local_inst_net_7d::DOUBLE, 2)     AS local_inst_net_7d,
           ROUND(ksei_net_smart_miliar::DOUBLE, 2) AS ksei_net_smart_miliar,
           insider_conviction_score::INTEGER        AS insider_conviction_score,
-          insider_signal, whale_signal::BOOLEAN,
-          big_player_anomaly::BOOLEAN,
+          insider_signal, whale_signal::BOOLEAN AS whale_signal,
+          big_player_anomaly::BOOLEAN AS big_player_anomaly,
           ROUND(aov_ratio_ma20::DOUBLE, 2)         AS aov_ratio_ma20,
-          fresh_insider_buy::BOOLEAN, fresh_insider_sell::BOOLEAN,
-          is_split_suspect::BOOLEAN, is_reverse_suspect::BOOLEAN
+          fresh_insider_buy::BOOLEAN AS fresh_insider_buy, fresh_insider_sell::BOOLEAN AS fresh_insider_sell,
+          is_split_suspect::BOOLEAN AS is_split_suspect, is_reverse_suspect::BOOLEAN AS is_reverse_suspect
         FROM market.vw_stock_multi_signal
         WHERE stock_code = $1
         LIMIT 1
@@ -120,12 +155,12 @@ export async function GET(req: NextRequest) {
   // ── Latest stock info ─────────────────────────────────────────────────────
   if (action === 'latest') {
     const rows = await run(`
-      SELECT stock_code, trading_date::VARCHAR, close::DOUBLE, change_percent::DOUBLE,
-             previous::DOUBLE, high::DOUBLE, low::DOUBLE, open_price::DOUBLE,
-             volume::BIGINT, value::DOUBLE, net_foreign_value::DOUBLE,
-             vwma_20d::DOUBLE, aov_ratio_ma20::DOUBLE,
-             whale_signal::BOOLEAN, big_player_anomaly::BOOLEAN, signal,
-             sector, free_float::DOUBLE, group_name, tradeable_shares::BIGINT
+      SELECT stock_code, trading_date::VARCHAR AS trading_date, close::DOUBLE AS close, change_percent::DOUBLE AS change_percent,
+             previous::DOUBLE AS previous, high::DOUBLE AS high, low::DOUBLE AS low, open_price::DOUBLE AS open_price,
+             volume::BIGINT AS volume, value::DOUBLE AS value, net_foreign_value::DOUBLE AS net_foreign_value,
+             vwma_20d::DOUBLE AS vwma_20d, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
+             whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly, signal,
+             sector, free_float::DOUBLE AS free_float, group_name, tradeable_shares::BIGINT AS tradeable_shares
       FROM market.vw_stock_detail
       WHERE stock_code = $1
       ORDER BY trading_date DESC LIMIT 1
@@ -153,17 +188,17 @@ export async function GET(req: NextRequest) {
   if (action === 'insider_signal') {
     const [alerts, score] = await Promise.all([
       run(`
-        SELECT report_date::VARCHAR, share_code, investor_name, investor_type,
-               nationality, prev_percentage::DOUBLE, curr_percentage::DOUBLE,
-               pct_point_change::DOUBLE, share_change::BIGINT, action, alert_level
+        SELECT report_date::VARCHAR AS report_date, share_code, investor_name, investor_type,
+               nationality, prev_percentage::DOUBLE AS prev_percentage, curr_percentage::DOUBLE AS curr_percentage,
+               pct_point_change::DOUBLE AS pct_point_change, share_change::BIGINT AS share_change, action, alert_level
         FROM ksei.vw_ksei_individual_changes
         WHERE share_code = $1
         ORDER BY report_date DESC LIMIT 20
       `, [code]).catch(() => []),
       run(`
-        SELECT conviction_score::BIGINT, insider_signal, internal_buy::BIGINT,
-               internal_sell::BIGINT, fresh_internal_buy::BOOLEAN, fresh_internal_sell::BOOLEAN,
-               latest_tx::VARCHAR, total_tx::BIGINT
+        SELECT conviction_score::BIGINT AS conviction_score, insider_signal, internal_buy::BIGINT AS internal_buy,
+               internal_sell::BIGINT AS internal_sell, fresh_internal_buy::BOOLEAN AS fresh_internal_buy, fresh_internal_sell::BOOLEAN AS fresh_internal_sell,
+               latest_tx::VARCHAR AS latest_tx, total_tx::BIGINT AS total_tx
         FROM main.vw_insider_conviction_score
         WHERE stock_code = $1 LIMIT 1
       `, [code]).catch(() => []),
@@ -175,7 +210,7 @@ export async function GET(req: NextRequest) {
   if (action === 'ownership') {
     const rows = await run(`
       SELECT investor_name, investor_type, local_foreign, nationality,
-             percentage::DOUBLE, total_holding_shares::BIGINT, holdings_scripless::BIGINT
+             percentage::DOUBLE AS percentage, total_holding_shares::BIGINT AS total_holding_shares, holdings_scripless::BIGINT AS holdings_scripless
       FROM ksei.ownership_1pct
       WHERE share_code = $1
         AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
@@ -188,10 +223,10 @@ export async function GET(req: NextRequest) {
   if (action === 'whale_timing') {
     const rows = await run(`
       SELECT investor_name, investor_type, local_foreign,
-             first_seen_date::VARCHAR, latest_date::VARCHAR,
-             first_percentage::DOUBLE, latest_percentage::DOUBLE,
-             latest_shares::BIGINT, est_entry_price::DOUBLE, current_price::DOUBLE,
-             return_since_entry::DOUBLE, holding_days::INTEGER,
+             first_seen_date::VARCHAR AS first_seen_date, latest_date::VARCHAR AS latest_date,
+             first_percentage::DOUBLE AS first_percentage, latest_percentage::DOUBLE AS latest_percentage,
+             latest_shares::BIGINT AS latest_shares, est_entry_price::DOUBLE AS est_entry_price, current_price::DOUBLE AS current_price,
+             return_since_entry::DOUBLE AS return_since_entry, holding_days::INTEGER AS holding_days,
              position_trend, whale_verdict
       FROM ksei.whale_timing_snapshot
       WHERE share_code = $1
@@ -203,11 +238,11 @@ export async function GET(req: NextRequest) {
   // ── Volume spike history ──────────────────────────────────────────────────
   if (action === 'volume_spike') {
     const rows = await run(`
-      SELECT trading_date::VARCHAR, close::DOUBLE, volume::BIGINT,
-             ma20_volume::BIGINT,
+      SELECT trading_date::VARCHAR AS trading_date, close::DOUBLE AS close, volume::BIGINT AS volume,
+             ma20_volume::BIGINT AS ma20_volume,
              ROUND((volume::DOUBLE / NULLIF(ma20_volume,0)),2)::DOUBLE AS volume_ratio,
-             change_percent::DOUBLE, net_foreign_value::DOUBLE,
-             whale_signal::BOOLEAN, aov_ratio_ma20::DOUBLE,
+             change_percent::DOUBLE AS change_percent, net_foreign_value::DOUBLE AS net_foreign_value,
+             whale_signal::BOOLEAN AS whale_signal, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
              CASE
                WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent > 0 THEN '🚀 BREAKOUT'
                WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent < 0 THEN '🔻 BREAKDOWN'
@@ -257,7 +292,7 @@ export async function GET(req: NextRequest) {
         SELECT broker_code AS kode_broker, MAX(broker_name) AS nama_broker,
                SUM(value)::DOUBLE AS net_value
         FROM main.broker_activity
-        WHERE LEFT(stock_code, 4) = $1
+        WHERE stock_code = $1
           AND CAST(date AS DATE) >= (SELECT CAST(MAX(date) AS DATE) FROM main.broker_activity) - INTERVAL '90 days'
         GROUP BY broker_code
         ORDER BY ABS(SUM(value)) DESC
@@ -449,7 +484,7 @@ export async function GET(req: NextRequest) {
         broker_net AS (
           SELECT SUM(value)::DOUBLE AS broker_net_30d
           FROM main.broker_activity
-          WHERE LEFT(stock_code, 4) = $1
+          WHERE stock_code = $1
             AND date >= (SELECT CAST(MAX(date) AS DATE) FROM main.broker_activity) - 30
         )
         SELECT
@@ -498,7 +533,7 @@ export async function GET(req: NextRequest) {
             SUM(value)::DOUBLE AS net_val,
             SUM(ABS(value))::DOUBLE AS total_val
           FROM main.broker_activity
-          WHERE LEFT(stock_code, 4) = $1
+          WHERE stock_code = $1
             AND CAST(date AS DATE) >= (SELECT CAST(MAX(date) AS DATE) FROM main.broker_activity) - 30
           GROUP BY broker_code, CAST(date AS DATE)
         ),
@@ -545,7 +580,7 @@ export async function GET(req: NextRequest) {
           ROUND((volume::DOUBLE / NULLIF(ma20_volume,0)),2)::DOUBLE AS volume_ratio,
           change_percent::DOUBLE AS change_percent,
           net_foreign_value::DOUBLE AS net_foreign_value,
-          whale_signal::BOOLEAN,
+          whale_signal::BOOLEAN AS whale_signal,
           CASE
             WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent > 0 THEN 'BREAKOUT'
             WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent < 0 THEN 'BREAKDOWN'
@@ -586,24 +621,35 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: `Stock ${code} not found` }, { status: 404 })
     }
 
-    return NextResponse.json({
-      stockData: latestRows[0] ?? null,
-      smartMoneyIndex: smRows[0] ?? null,
-      historyData: histRows,
-      brokerData: brokerRows,
-      ownershipDetails: ownerRows,
-      whaleMovement: whaleRows,
-      foreignDivergence: foreignRows[0] ?? null,
-      foreignFlowTrend: flowTrendRows,
-      concentrationIndex: concRows[0] ?? null,
-      institutionalChange: instChangeRows,
-      stealthDivergence: stealthRows[0] ?? null,
-      brokerConsistency: brokerConsRows,
-      volumeSpikes: volSpikeRows,
-      whaleActivity: whaleActRows[0] ?? null,
-      scorecard: scoreRows[0] ?? null,
-      verdict: buildVerdict(scoreRows[0] ?? null, foreignRows[0] ?? null, stealthRows[0] ?? null),
-    })
+    return NextResponse.json(
+      {
+        stockData: latestRows[0] ?? null,
+        smartMoneyIndex: smRows[0] ?? null,
+        historyData: histRows,
+        brokerData: brokerRows,
+        ownershipDetails: ownerRows,
+        whaleMovement: whaleRows,
+        foreignDivergence: foreignRows[0] ?? null,
+        foreignFlowTrend: flowTrendRows,
+        concentrationIndex: concRows[0] ?? null,
+        institutionalChange: instChangeRows,
+        stealthDivergence: stealthRows[0] ?? null,
+        brokerConsistency: brokerConsRows,
+        volumeSpikes: volSpikeRows,
+        whaleActivity: whaleActRows[0] ?? null,
+        scorecard: scoreRows[0] ?? null,
+        verdict: buildVerdict(scoreRows[0] ?? null, foreignRows[0] ?? null, stealthRows[0] ?? null),
+        dataQuality: (() => {
+          const action = detectUnadjustedAction(histRows)
+          return action ? { unadjustedAction: action, returnsUnreliable: true } : null
+        })(),
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=300, s-maxage=900, stale-while-revalidate=1800',
+        },
+      }
+    )
   } catch (err: any) {
     const msg = err.message || String(err)
     console.error('[stock-detail]', { code, message: msg })

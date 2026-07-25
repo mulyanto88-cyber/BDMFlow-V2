@@ -171,7 +171,7 @@ const DIV_CONFIG: Record<string, { label: string; icon: string; bg: string; bord
   FOREIGN_BUY_LOCAL_SELL:{ label: 'Asing Akumulasi 🔵',   icon: '🔵', bg: 'bg-blue-500/10',    border: 'border-blue-500/30',   textCol: 'text-blue-400',    desc: 'Foreign masuk saat lokal distribusi — potensi re-rating oleh asing.' },
   LOCAL_BUY_FOREIGN_SELL:{ label: 'Bandar Lokal 🟢',       icon: '🟢', bg: 'bg-emerald-500/8',  border: 'border-emerald-400/20',textCol: 'text-emerald-300', desc: 'Broker lokal beli saat asing keluar — akumulasi domestik diam-diam.' },
   BOTH_SELL:            { label: 'Distribusi Masif 🔴',    icon: '🔴', bg: 'bg-red-500/10',     border: 'border-red-500/30',    textCol: 'text-red-400',     desc: 'Asing dan lokal sama-sama jual — hindari / waspadai.' },
-  NEUTRAL:              { label: 'Netral ⚪',               icon: '⚪', bg: 'bg-white/5',        border: 'border-white/10',      textCol: 'text-gray-400',    desc: 'Tidak ada divergence signifikan.' },
+  NEUTRAL:              { label: 'Netral ⚪',               icon: '⚪', bg: 'bg-surface-3',        border: 'border-line-5',      textCol: 'text-gray-400',    desc: 'Tidak ada divergence signifikan.' },
 };
 
 // ——————————————————————————————————————————————————————————————————————————————
@@ -233,7 +233,7 @@ const ChartTooltip = ({ active, payload, label }: any) => {
     <div className="glass p-3 text-[11px] shadow-2xl min-w-[200px]">
       <p className="text-foreground font-black mb-2">{label}</p>
       {d && d.open != null && (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 py-1 border-b border-white/10 mb-2">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 py-1 border-b border-line-5 mb-2">
           <div className="flex justify-between"><span className="text-muted-foreground">O</span><span className="font-mono">{fmtPrice(d.open)}</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">H</span><span className="font-mono">{fmtPrice(d.high)}</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">L</span><span className="font-mono">{fmtPrice(d.low)}</span></div>
@@ -510,6 +510,7 @@ export default function ForeignFlowPage() {
   useEffect(() => {
     if (activeTab === 'screener' && !screenerLoaded.current) loadScreener();
     if (activeTab === 'divergence' && !divLoaded.current)    loadDivergence();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // ─── Drill-down from screener → chart ────────────────────────────────────────
@@ -631,7 +632,7 @@ export default function ForeignFlowPage() {
 
   return (
     <div className="min-h-screen animate-fade-in">
-      <div className="relative border-b border-white/5 overflow-hidden">
+      <div className="relative border-b border-line-2 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-900/10 via-yellow-900/5 to-transparent pointer-events-none" />
         <div className="relative px-6 pt-6 pb-5 w-full">
           <div className="flex items-center gap-3 mb-1">
@@ -656,13 +657,13 @@ export default function ForeignFlowPage() {
             </div>
           </div>
 
-          <div className="flex gap-1 mt-4 border-b border-white/5 pb-0">
+          <div className="flex gap-1 mt-4 border-b border-line-2 pb-0">
             {tabs.map(t => (
               <button key={t.key} onClick={() => setActiveTab(t.key)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold rounded-t-xl border-b-2 transition-all ${
                   activeTab === t.key
                     ? 'text-gold-400 border-gold-400 bg-gold-400/10'
-                    : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/3'
+                    : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-surface-2'
                 }`}>
                 {t.icon} {t.label}
                 {t.key === 'screener' && screenerData.length > 0 && (
@@ -695,7 +696,7 @@ export default function ForeignFlowPage() {
                 <div key={i} className={`glass rounded-2xl border p-4 shadow-xl card-hover ${
                   kpi.color === 'blue'   ? 'border-blue-500/20' :
                   kpi.color === 'red'   ? 'border-red-500/20'  :
-                  kpi.color === 'gold'? 'border-gold-400/20': 'border-white/10'
+                  kpi.color === 'gold'? 'border-gold-400/20': 'border-line-5'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[9px] uppercase tracking-widest text-gray-500">{kpi.label}</span>
@@ -754,7 +755,7 @@ export default function ForeignFlowPage() {
                   <BarChart2 className="w-4 h-4 text-gold-400" />
                   <h2 className="text-sm font-black text-foreground">Sector Rotation — Foreign Flow</h2>
                 </div>
-                <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1 mb-4 w-max">
+                <div className="flex items-center gap-1 bg-surface-3 rounded-xl p-1 mb-4 w-max">
                   {PERIODS.map(p => (
                     <button key={p.key} onClick={() => setSectorPeriod(p.key)}
                       className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all ${
@@ -767,7 +768,7 @@ export default function ForeignFlowPage() {
                 {overviewLoading ? (
                   <div className="grid grid-cols-2 gap-2">{[0,1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 stagger">
                     {sectorData.map(s => {
                       const ratio = Math.abs(s.total_foreign_flow) / maxAbsSectorFlow;
                       const pos   = s.total_foreign_flow >= 0;
@@ -803,7 +804,7 @@ export default function ForeignFlowPage() {
                   <Zap className="w-4 h-4 text-gold-400" />
                   <h2 className="text-sm font-black text-foreground">Konglomerat — Foreign Flow</h2>
                 </div>
-                <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1 mb-4 w-max">
+                <div className="flex items-center gap-1 bg-surface-3 rounded-xl p-1 mb-4 w-max">
                   {PERIODS.map(p => (
                     <button key={p.key} onClick={() => setGroupPeriod(p.key)}
                       className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all ${
@@ -823,11 +824,11 @@ export default function ForeignFlowPage() {
                       const w = (Math.abs(g.total_foreign_30d) / maxG) * 100;
                       return (
                         <div key={g.group_name} onClick={() => setSelectedGroupDetails(g.group_name)}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/3 hover:bg-white/5 transition-colors cursor-pointer">
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 transition-colors cursor-pointer">
                           <div className="flex-1 min-w-0">
                             <p className="text-[10px] font-bold text-white truncate">{g.group_name}</p>
                             <div className="flex items-center gap-1 mt-0.5">
-                              <div className="h-1 rounded-full bg-white/5 flex-1 overflow-hidden">
+                              <div className="h-1 rounded-full bg-surface-3 flex-1 overflow-hidden">
                                 <div className="h-full rounded-full transition-all" style={{ width: `${w}%`, background: pos ? '#3b82f6' : '#ef4444' }} />
                               </div>
                             </div>
@@ -849,7 +850,7 @@ export default function ForeignFlowPage() {
           <>
             <div className="glass rounded-2xl border border-border/50 p-4 shadow-xl">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
+                <div className="flex items-center gap-1 bg-surface-3 rounded-xl p-1">
                   {PERIODS.map(p => (
                     <button key={p.key} onClick={() => { setSelectedPeriod(p.key); setSortCol(`f${p.key}`); }}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
@@ -862,14 +863,14 @@ export default function ForeignFlowPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
+                <div className="flex items-center gap-1 bg-surface-3 rounded-xl p-1">
                   {([['all','Semua'],['buy','Net Buy'],['sell','Net Sell']] as [Direction,string][]).map(([v, l]) => (
                     <button key={v} onClick={() => setFilterDirection(v)}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
                         filterDirection === v
                           ? v === 'buy'  ? 'bg-blue-500/25 text-blue-300 border border-blue-500/30'
                           : v === 'sell' ? 'bg-red-500/25 text-red-300 border border-red-500/30'
-                          :                'bg-white/10 text-white'
+                          :                'bg-surface-5 text-white'
                           : 'text-gray-500 hover:text-gray-300'
                       }`}>
                       {l}
@@ -878,7 +879,7 @@ export default function ForeignFlowPage() {
                 </div>
 
                 <select value={filterSector} onChange={e => setFilterSector(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-gray-300 focus:outline-none focus:border-gold-400/40">
+                  className="bg-surface-3 border border-line-5 rounded-xl px-3 py-2 text-[10px] text-gray-300 focus:outline-none focus:border-gold-400/40">
                   <option value="">Semua Sektor</option>
                   {sectorList.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -887,7 +888,7 @@ export default function ForeignFlowPage() {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-bold transition-all ${
                     filterWhaleOnly
                       ? 'bg-yellow-400/15 border-yellow-500/30 text-yellow-300'
-                      : 'border-white/10 text-gray-500 hover:text-gray-300'
+                      : 'border-line-5 text-gray-500 hover:text-gray-300'
                   }`}>
                   🐋 Whale Only
                 </button>
@@ -904,7 +905,7 @@ export default function ForeignFlowPage() {
             )}
 
             {screenerLoading && (
-              <div className="glass rounded-2xl border border-white/5 p-8 text-center">
+              <div className="glass rounded-2xl border border-line-2 p-8 text-center">
                 <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">Loading 120-day foreign flow data...</p>
                 <p className="text-gray-600 text-[10px] mt-1">Mungkin butuh 2-4 detik</p>
@@ -915,7 +916,7 @@ export default function ForeignFlowPage() {
               <div className="glass rounded-2xl border border-border/50 overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-[10px] min-w-[900px]">
-                    <thead className="bg-white/[0.02] border-b border-border/50 text-muted-foreground uppercase tracking-wider">
+                    <thead className="bg-surface-1 border-b border-border/50 text-muted-foreground uppercase tracking-wider">
                       <tr>
                         <th className="px-3 py-3 text-left w-8">#</th>
                         <th className="px-3 py-3 text-left">Saham</th>
@@ -931,7 +932,7 @@ export default function ForeignFlowPage() {
                         <th className="px-3 py-3 text-center">Signal</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-line-2">
                       {filteredScreener.map((r, i) => {
                         const activePeriodKey = `f${selectedPeriod}` as keyof ScreenerRow;
                         const activePeriodVal = r[activePeriodKey] as number;
@@ -987,7 +988,7 @@ export default function ForeignFlowPage() {
                                 <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${
                                   r.signal?.includes('BUY') ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                                   r.signal?.includes('SELL')? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                                  'bg-white/5 border-white/10 text-gray-400'
+                                  'bg-surface-3 border-line-5 text-gray-400'
                                 }`}>{r.signal}</span>
                               )}
                             </td>
@@ -1012,33 +1013,33 @@ export default function ForeignFlowPage() {
         {activeTab === 'chart' && (
           <>
             <div className="glass rounded-2xl border border-border/50 p-4 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative flex-1 max-w-md min-w-[240px]">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={chartInput}
                     onChange={e => setChartInput(e.target.value.toUpperCase())}
                     onKeyDown={e => e.key === 'Enter' && chartInput && (setSelectedStock(chartInput), loadChart(chartInput))}
-                    placeholder="Kode saham (e.g. BBCA)"
-                    className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gold-400/40"
+                    placeholder="Kode saham (e.g. BBCA, ADRO, INDF)"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface-3 border border-line-5 rounded-xl text-sm font-mono text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400/40 transition-colors"
                   />
                 </div>
                 <button
                   onClick={() => { if (chartInput) { setSelectedStock(chartInput); loadChart(chartInput); } }}
                   disabled={!chartInput || chartLoading}
-                  className="px-5 py-2.5 bg-gold-400/15 border border-gold-400/30 rounded-xl text-gold-400 font-bold text-sm hover:bg-gold-400/25 transition-colors disabled:opacity-40">
+                  className="px-5 py-2.5 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-400 font-bold text-sm hover:bg-amber-500/25 transition-colors disabled:opacity-40 shadow-sm">
                   {chartLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load Chart'}
                 </button>
 
                 {selectedStock && (
-                  <div className="flex items-center gap-2 ml-auto">
+                  <div className="flex items-center gap-2">
                     <Link href={`/stock/${selectedStock}`} prefetch={false}
                       className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[11px] font-bold hover:bg-emerald-500/20 transition-colors">
                       <ExternalLink className="w-3.5 h-3.5" /> Stock Detail
                     </Link>
                     <Link href={`/broker-tracker?code=${selectedStock}`} prefetch={false}
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-yellow-500/30 bg-yellow-400/10 text-yellow-300 text-[11px] font-bold hover:bg-yellow-400/20 transition-colors">
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-400/10 text-amber-300 text-[11px] font-bold hover:bg-amber-400/20 transition-colors">
                       <BarChart2 className="w-3.5 h-3.5" /> Broker Tracker
                     </Link>
                   </div>
@@ -1059,7 +1060,7 @@ export default function ForeignFlowPage() {
             )}
 
             {chartLoading && (
-              <div className="glass rounded-2xl border border-white/5 p-12 text-center">
+              <div className="glass rounded-2xl border border-line-2 p-12 text-center">
                 <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">Loading chart {selectedStock}...</p>
               </div>
@@ -1086,7 +1087,7 @@ export default function ForeignFlowPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
                       {PERIODS.map(p => (
                         <PeriodBadge key={p.key} label={`F.${p.label}`} value={(chartMetrics as any)[`f${p.key}`]} />
                       ))}
@@ -1117,7 +1118,7 @@ export default function ForeignFlowPage() {
                           <span className={`font-bold px-1.5 py-0.5 rounded border text-[9px] ${
                             chartMetrics.tactical_signal?.includes('BUY')  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                             chartMetrics.tactical_signal?.includes('SELL') ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                            'bg-white/5 border-white/10 text-gray-400'
+                            'bg-surface-3 border-line-5 text-gray-400'
                           }`}>{chartMetrics.tactical_signal}</span>
                         </div>
                       )}
@@ -1139,7 +1140,7 @@ export default function ForeignFlowPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
+                    <div className="flex items-center gap-1 bg-surface-3 rounded-xl p-1">
                       {([
                         { days: 120, label: '120D' },
                         { days: 180, label: '180D' },
@@ -1233,7 +1234,7 @@ export default function ForeignFlowPage() {
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-bold transition-all ${
                       divFilter === p
                         ? cfg ? `${cfg.bg} ${cfg.border} ${cfg.textCol}` : 'bg-gold-400/15 border-gold-400/30 text-gold-400'
-                        : 'border-white/10 text-gray-500 hover:text-gray-300 hover:border-white/20'
+                        : 'border-line-5 text-gray-500 hover:text-gray-300 hover:border-line-6'
                     }`}>
                     {cfg?.icon} {p === 'ALL' ? 'Semua' : cfg?.label} {count > 0 && <span className="opacity-60">({count})</span>}
                   </button>
@@ -1255,7 +1256,7 @@ export default function ForeignFlowPage() {
             )}
 
             {!divLoading && filteredDiv.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 stagger">
                 {filteredDiv.map(r => {
                   const cfg = DIV_CONFIG[r.divergence_pattern] ?? DIV_CONFIG.NEUTRAL;
                   return (
@@ -1305,7 +1306,7 @@ export default function ForeignFlowPage() {
                       </div>
 
                       {/* Desc */}
-                      <p className="text-[8px] text-gray-600 leading-relaxed border-t border-white/5 pt-2">{cfg.desc}</p>
+                      <p className="text-[8px] text-gray-600 leading-relaxed border-t border-line-2 pt-2">{cfg.desc}</p>
 
                       {/* Action buttons */}
                       <div className="flex gap-2 mt-3">
@@ -1337,14 +1338,14 @@ export default function ForeignFlowPage() {
       {/* ─── Sector Drilldown Dialog ────────────────────────────────────────────── */}
       {selectedSectorDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-[#0f172a] border border-line-5 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+            <div className="p-4 border-b border-line-2 flex items-center justify-between bg-surface-3">
               <div>
                 <h3 className="text-lg font-black text-white">{selectedSectorDetails}</h3>
                 <p className="text-[10px] text-gray-400">Detail Foreign Flow — {PERIODS.find(p => p.key === sectorPeriod)?.label}</p>
               </div>
-              <button onClick={() => setSelectedSectorDetails(null)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+              <button onClick={() => setSelectedSectorDetails(null)} className="p-2 hover:bg-surface-5 rounded-xl transition-colors">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
@@ -1363,7 +1364,7 @@ export default function ForeignFlowPage() {
                     const col = `f${sectorPeriod}` as keyof ScreenerRow;
                     const val = (r[col] as number) || 0;
                     return (
-                      <div key={r.stock_code} onClick={() => drillDown(r.stock_code)} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-all">
+                      <div key={r.stock_code} onClick={() => drillDown(r.stock_code)} className="flex items-center gap-3 p-3 rounded-xl bg-surface-3 hover:bg-surface-5 border border-line-2 cursor-pointer transition-all">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-black text-white">{r.stock_code}</span>
@@ -1393,14 +1394,14 @@ export default function ForeignFlowPage() {
       {/* ─── Group Drilldown Dialog ────────────────────────────────────────────── */}
       {selectedGroupDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-[#0f172a] border border-line-5 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+            <div className="p-4 border-b border-line-2 flex items-center justify-between bg-surface-3">
               <div>
                 <h3 className="text-lg font-black text-white">{selectedGroupDetails}</h3>
                 <p className="text-[10px] text-gray-400">Detail Foreign Flow — {PERIODS.find(p => p.key === groupPeriod)?.label}</p>
               </div>
-              <button onClick={() => setSelectedGroupDetails(null)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+              <button onClick={() => setSelectedGroupDetails(null)} className="p-2 hover:bg-surface-5 rounded-xl transition-colors">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
@@ -1419,7 +1420,7 @@ export default function ForeignFlowPage() {
                     const col = `f${groupPeriod}` as keyof ScreenerRow;
                     const val = (r[col] as number) || 0;
                     return (
-                      <div key={r.stock_code} onClick={() => drillDown(r.stock_code)} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-all">
+                      <div key={r.stock_code} onClick={() => drillDown(r.stock_code)} className="flex items-center gap-3 p-3 rounded-xl bg-surface-3 hover:bg-surface-5 border border-line-2 cursor-pointer transition-all">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-black text-white">{r.stock_code}</span>

@@ -14,6 +14,7 @@ import {
   ComposedChart, Area, Line,
 } from 'recharts'
 import { formatRupiah } from '@/lib/utils'
+import { mdQuery } from '@/lib/api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -99,19 +100,6 @@ interface GroupFlowDay {
   date: string
   net_foreign: number
   total_value: number
-}
-
-// ── API helper ────────────────────────────────────────────────────────────────
-
-async function mdQuery(query: string, params?: any[]): Promise<any[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, params }),
-  })
-  const json = await res.json()
-  if (json.error) throw new Error(json.error)
-  return json.data || []
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -405,11 +393,8 @@ function TabFlowMonitor({
     setExpandedStocks([])
     setExpandLoading(true)
     try {
-      const stocks = await mdQuery(
-        'SELECT * FROM market.vw_group_leader_laggard WHERE group_name = $1 ORDER BY relative_perf DESC',
-        [groupName]
-      )
-      setExpandedStocks(stocks)
+      const stocks = await mdQuery('groups.leaderLaggard', [groupName])
+      setExpandedStocks(stocks as any[])
     } catch (e) { console.error(e) }
     finally { setExpandLoading(false) }
   }, [expandedGroup])
@@ -446,7 +431,7 @@ function TabFlowMonitor({
                   </span>
                   <span className="font-mono font-bold text-blue-400">{fmtM(val)}</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
                   <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
                 </div>
               </button>
@@ -474,7 +459,7 @@ function TabFlowMonitor({
                   </span>
                    <span className="font-mono font-bold text-red-400">-{val.toFixed(1)} M</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
                   <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${pct}%` }} />
                 </div>
               </button>
@@ -547,8 +532,8 @@ function TabFlowMonitor({
                         isExpanded
                           ? 'bg-gold-400/[0.06] border-gold-400/20'
                           : i % 2 === 0
-                            ? 'hover:bg-white/[0.03]'
-                            : 'bg-white/[0.01] hover:bg-white/[0.03]'
+                            ? 'hover:bg-surface-2'
+                            : 'bg-surface-1 hover:bg-surface-2'
                       }`}
                     >
                       <td className="px-3 py-2.5 font-bold text-left" data-label="Grup">
@@ -837,53 +822,18 @@ function TabDeepDive({
     try {
       const [s, b, k, f] = await Promise.all([
         // stocks — vw_group_leader_laggard sudah unik per stock_code, tidak perlu DISTINCT
-        mdQuery('SELECT * FROM market.vw_group_leader_laggard WHERE group_name = $1 ORDER BY relative_perf DESC', [name]),
+        mdQuery('groups.leaderLaggard', [name]),
 
-        // FIX #2: Ganti DISTINCT ON (PostgreSQL-only) → ROW_NUMBER() yang DuckDB support
-        mdQuery(`
-          SELECT broker_code, broker_name, net_7d_miliar, net_30d_miliar,
-                 stocks_7d, buy_consensus_pct, broker_consensus, rotation_signal
-          FROM (
-            SELECT *,
-              ROW_NUMBER() OVER (PARTITION BY broker_code ORDER BY net_7d_miliar DESC) AS rn
-            FROM market.vw_group_broker_stance
-            WHERE group_name = $1
-          ) t
-          WHERE rn = 1
-          ORDER BY net_7d_miliar DESC
-        `, [name]),
+        mdQuery('groups.brokerStance', [name]),
 
-        mdQuery(`
-          SELECT TO_CHAR(Date,'Mon') AS bulan,
-            ROUND((SUM(Local_CP_Chg_Val)+SUM(Local_PF_Chg_Val)+SUM(Local_IB_Chg_Val))/1e9,2) AS local_smart,
-            ROUND((SUM(Foreign_CP_Chg_Val)+SUM(Foreign_PF_Chg_Val)+SUM(Foreign_IB_Chg_Val))/1e9,2) AS foreign_smart,
-            ROUND(SUM(Local_ID_Chg_Val)/1e9,2) AS retail
-          FROM ksei.monthly_snapshot ms
-          JOIN market.company_profile cp ON ms.Code = cp.stock_code
-          WHERE cp.group_name = $1
-            AND ms.Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot) - INTERVAL '90 days'
-          GROUP BY Date ORDER BY Date
-        `, [name]),
+        mdQuery('groups.kseiMonthly', [name]),
 
-        mdQuery(`
-          WITH ld AS (SELECT MAX(trading_date) AS max_date FROM market.daily_transactions)
-          SELECT
-            CAST(dt.trading_date AS VARCHAR) AS date,
-            SUM(dt.net_foreign_value)::BIGINT / 1e9 AS net_foreign,
-            SUM(dt.value)::BIGINT / 1e9 AS total_value
-          FROM market.daily_transactions dt
-          JOIN market.company_profile cp ON dt.stock_code = cp.stock_code
-          CROSS JOIN ld
-          WHERE cp.group_name = $1
-            AND dt.trading_date >= ld.max_date - INTERVAL '30 days'
-          GROUP BY dt.trading_date
-          ORDER BY dt.trading_date ASC
-        `, [name]),
+        mdQuery('groups.foreignFlow30d', [name]),
       ])
-      setStocks(s)
-      setBrokers(b)
-      setKsei3m(k)
-      setFlowDaily(f)
+      setStocks(s as any[])
+      setBrokers(b as any[])
+      setKsei3m(k as any[])
+      setFlowDaily(f as any[])
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
   }, [])
@@ -1157,7 +1107,7 @@ function TabDeepDive({
                       <span className="text-muted-foreground truncate">{label as string}</span>
                       <span className={`font-mono font-bold ${numCls(v)}`}>{fmtM(v)}</span>
                     </div>
-                    <div className="h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                    <div className="h-1 rounded-full bg-surface-3 overflow-hidden">
                       <div className={`h-full rounded-full ${v >= 0 ? 'bg-emerald-500/60' : 'bg-red-500/60'}`}
                         style={{ width: `${w}%` }} />
                     </div>
@@ -1186,109 +1136,7 @@ function TabCatchup({ groups }: { groups: GroupDaily[] }) {
     setLoading(true)
     setError(null)
     try {
-      const data = await mdQuery(`
-        WITH latest AS (
-          SELECT MAX(trading_date) AS max_date FROM market.daily_transactions
-        ),
-        stock_daily AS (
-          SELECT
-            d.stock_code,
-            d.close,
-            d.change_percent,
-            d.net_foreign_value,
-            d.whale_signal,
-            d.aov_ratio_ma20,
-            cp.group_name,
-            cp.sector,
-            cp.free_float
-          FROM market.daily_transactions d
-          JOIN market.company_profile cp ON d.stock_code = cp.stock_code
-          WHERE d.trading_date = (SELECT max_date FROM latest)
-            AND cp.group_name != 'Others'
-        ),
-        group_avg AS (
-          SELECT
-            group_name,
-            ROUND(AVG(change_percent), 2)  AS grp_avg_chg,
-            ROUND(AVG(aov_ratio_ma20), 2)  AS grp_avg_aov,
-            COUNT(*)                        AS grp_stocks
-          FROM stock_daily
-          GROUP BY group_name
-        ),
-        group_perf_20d AS (
-          SELECT
-            cp.group_name,
-            ROUND(AVG(d.change_percent), 2) AS perf_20d
-          FROM market.daily_transactions d
-          JOIN market.company_profile cp ON d.stock_code = cp.stock_code
-          WHERE d.trading_date >= (SELECT max_date FROM latest) - INTERVAL '30 days'
-            AND cp.group_name != 'Others'
-          GROUP BY cp.group_name
-        ),
-        ksei_sm AS (
-          SELECT
-            ms.Code,
-            ROUND((ms.Local_CP_Chg_Val + ms.Local_PF_Chg_Val + ms.Local_IB_Chg_Val
-                 + ms.Foreign_CP_Chg_Val + ms.Foreign_PF_Chg_Val + ms.Foreign_IB_Chg_Val)
-                 / 1e9, 2) AS ksei_smart_miliar
-          FROM ksei.monthly_snapshot ms
-          WHERE ms.Date = (SELECT MAX(Date) FROM ksei.monthly_snapshot)
-        ),
-        broker_net AS (
-          -- smart-broker net (FOREIGN + LOCAL_INST), non-zero-sum.
-          -- SUM(value) over ALL brokers ≈ 0 (zero-sum tape) — was meaningless.
-          SELECT
-            LEFT(ba.stock_code, 4) AS stock_code,
-            ROUND(SUM(ba.value) / 1e9, 2)
-              AS broker_net_miliar
-          FROM main.broker_activity ba
-          JOIN main.broker_classification bc ON bc.broker_code = ba.broker_code
-          WHERE ba.date >= (SELECT max_date FROM latest) - INTERVAL '7 days'
-            AND UPPER(bc.category) IN ('FOREIGN','LOCAL_INST')
-          GROUP BY LEFT(ba.stock_code, 4)
-        )
-        SELECT
-          s.stock_code,
-          s.sector,
-          s.close,
-          ROUND(s.change_percent, 2)              AS change_pct,
-          g.grp_avg_chg,
-          ROUND(s.change_percent - g.grp_avg_chg, 2) AS relative_perf,
-          s.whale_signal,
-          ROUND(s.net_foreign_value / 1e6, 2)     AS net_foreign_juta,
-          s.free_float,
-          s.group_name,
-          g.grp_stocks,
-          COALESCE(p.perf_20d, 0)                 AS group_perf_20d,
-          COALESCE(k.ksei_smart_miliar, 0)        AS ksei_smart_miliar,
-          COALESCE(b.broker_net_miliar, 0)        AS broker_net_miliar,
-          CASE
-            WHEN (COALESCE(k.ksei_smart_miliar, 0) > 0 AND COALESCE(b.broker_net_miliar, 0) > 0)
-              THEN 'HIGH'
-            WHEN (COALESCE(k.ksei_smart_miliar, 0) > 0 OR s.whale_signal
-                  OR COALESCE(b.broker_net_miliar, 0) > 0)
-              THEN 'MEDIUM'
-            ELSE 'LOW'
-          END AS catchup_conviction
-        FROM stock_daily s
-        JOIN group_avg        g ON s.group_name = g.group_name
-        JOIN group_perf_20d   p ON s.group_name = p.group_name
-        LEFT JOIN ksei_sm     k ON s.stock_code  = k.Code
-        LEFT JOIN broker_net  b ON s.stock_code  = b.stock_code
-        WHERE
-          (s.change_percent - g.grp_avg_chg) <= -$1
-          AND COALESCE(p.perf_20d, 0) > 0
-          AND (
-            COALESCE(k.ksei_smart_miliar, 0) > 0
-            OR s.whale_signal
-            OR COALESCE(b.broker_net_miliar, 0) > 0
-          )
-        ORDER BY
-          CASE WHEN (COALESCE(k.ksei_smart_miliar,0) > 0 AND COALESCE(b.broker_net_miliar,0) > 0)
-               THEN 0 ELSE 1 END,
-          (s.change_percent - g.grp_avg_chg) ASC
-        LIMIT 25
-      `, [gap])
+      const data = await mdQuery('groups.catchup', [gap])
       setCandidates(data)
     } catch (err: any) {
       setError(err.message ?? 'Query gagal')
@@ -1308,7 +1156,7 @@ function TabCatchup({ groups }: { groups: GroupDaily[] }) {
         <p className="text-xs text-muted-foreground">
           Gap threshold:
         </p>
-        <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+        <div className="flex gap-1 bg-surface-3 rounded-xl p-1">
           {[0.5, 1, 1.5, 2, 3].map(v => (
             <button key={v} onClick={() => setThreshold(v)}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
@@ -1358,7 +1206,7 @@ function TabCatchup({ groups }: { groups: GroupDaily[] }) {
                       </p>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground bg-white/[0.02] rounded-lg px-3 py-2">
+                  <p className="text-xs text-muted-foreground bg-surface-1 rounded-lg px-3 py-2">
                     <strong className="text-foreground">{c.stock_code}</strong> tertinggal{' '}
                     <strong className="text-amber-400">{Math.abs(n(c.relative_perf)).toFixed(1)}%</strong> dari grup{' '}
                     <strong className="text-foreground">{c.group_name}</strong> →
@@ -1437,52 +1285,7 @@ export default function GroupsPage() {
     try {
       // FIX #1: Hapus foreign_pf_miliar — kolom ini tidak ada di vw_group_phase_composite
       // Query yang menyertakannya menyebabkan error dan groups selalu kosong
-      const data = await mdQuery(`
-        SELECT
-          mp.group_name,
-          COALESCE(pc.total_stocks, 0)              AS total_stocks,
-          mp.perf_1d,
-          mp.perf_5d_avg,
-          mp.perf_20d_avg,
-          mp.perf_60d_avg,
-          mp.value_1d_miliar,
-          mp.avg_val_5d_miliar,
-          mp.avg_val_20d_miliar,
-          mp.foreign_net_1d_miliar,
-          mp.foreign_net_5d_miliar,
-          mp.foreign_net_20d_miliar,
-          mp.foreign_net_60d_miliar,
-          mp.whale_1d,
-          mp.anomaly_1d,
-          mp.momentum_state,
-          mp.foreign_flow_trend,
-          mp.rs_vs_market_1d,
-          COALESCE(pc.composite_score, 0)            AS composite_score,
-          COALESCE(pc.market_phase, 'SIDEWAYS')      AS market_phase,
-          COALESCE(pc.group_action_signal, 'WATCH')  AS group_action_signal,
-          COALESCE(pc.ksei_conviction_score, 0)      AS ksei_conviction_score,
-          COALESCE(pc.foreign_30d_miliar, 0)         AS foreign_30d_miliar,
-          COALESCE(pc.total_smart_miliar, 0)         AS total_smart_miliar,
-          COALESCE(pc.local_smart_miliar, 0)         AS local_smart_miliar,
-          COALESCE(pc.foreign_smart_miliar, 0)       AS foreign_smart_miliar,
-          COALESCE(pc.local_retail_miliar, 0)        AS local_retail_miliar,
-          COALESCE(pc.local_cp_miliar, 0)            AS local_cp_miliar,
-          COALESCE(pc.local_pf_miliar, 0)            AS local_pf_miliar,
-          COALESCE(pc.local_ib_miliar, 0)            AS local_ib_miliar,
-          COALESCE(pc.foreign_cp_miliar, 0)          AS foreign_cp_miliar,
-          COALESCE(pc.smart_money_trend, '')         AS smart_money_trend,
-          COALESCE(pc.divergence_signal, '')         AS divergence_signal,
-          COALESCE(pc.konsisten_3_bulan, FALSE)      AS konsisten_3_bulan,
-          COALESCE(pc.institution_alignment, '')     AS institution_alignment,
-          COALESCE(pc.broker_buy_pct, 0)             AS broker_buy_pct,
-          COALESCE(pc.broker_consensus, '')          AS broker_consensus,
-          COALESCE(pc.broker_net_7d_miliar, 0)       AS broker_net_7d_miliar,
-          COALESCE(pc.whale_count, 0)                AS whale_count,
-          COALESCE(pc.group_top_buyer, '')           AS group_top_buyer
-        FROM market.vw_group_multi_period_perf mp
-        LEFT JOIN market.vw_group_phase_composite pc ON mp.group_name = pc.group_name
-        ORDER BY mp.foreign_net_1d_miliar DESC
-      `)
+      const data = await mdQuery('groups.multiPeriodPerf') as unknown as GroupDaily[]
       setGroups(data)
       if (data.length > 0) {
         setSelectedGroup(prev => prev || data[0].group_name)

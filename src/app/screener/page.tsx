@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber } from '@/lib/utils'
 import { RefreshCw, X, AlertTriangle, SlidersHorizontal, Radar, ChevronLeft, ChevronRight, EyeOff, Zap, Filter, Clock, Flame, Globe, Building2 } from 'lucide-react'
 import Link from 'next/link'
+import { mdQuery } from '@/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StockRow {
@@ -52,7 +53,7 @@ const TIER_STYLE: Record<string, string> = {
   BUY:        'bg-green-500/15   text-green-400   border border-green-500/30',
   ACCUMULATE: 'bg-amber-500/15   text-amber-400   border border-amber-500/30',
   WATCH:      'bg-slate-500/15   text-slate-300   border border-slate-500/20',
-  NEUTRAL:    'bg-slate-500/10   text-muted-foreground border border-white/10',
+  NEUTRAL:    'bg-slate-500/10   text-muted-foreground border border-line-5',
 }
 const FLOW_LABEL: Record<string, string> = {
   MOMENTUM_UP:        '🚀 momentum',
@@ -100,18 +101,6 @@ function BrokerDir({ r }: { r: StockRow }) {
   )
 }
 
-// ─── DB helper ────────────────────────────────────────────────────────────────
-async function mdQuery(query: string): Promise<any[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-  })
-  const json = await res.json()
-  if (json.error) throw new Error(json.error)
-  return json.data || []
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ScreenerPage() {
   // Raw data from DB — fetched once, re-used across period changes
@@ -146,26 +135,7 @@ export default function ScreenerPage() {
     setLoading(true)
     setError(null)
     try {
-      const data = await mdQuery(`
-        SELECT
-          s.stock_code, s.sector, s.close, s.change_percent, s.smart_money_score,
-          s.whale_signal, s.big_player_anomaly, s.signal,
-          s.tier_v2, s.flow_context,
-          s.aov_max_1d,  s.aov_max_7d,  s.aov_max_14d,  s.aov_max_30d,  s.aov_max_90d,
-          s.spike_1d,    s.spike_7d,    s.spike_14d,    s.spike_30d,    s.spike_90d,
-          s.foreign_1d,  s.foreign_7d,  s.foreign_14d,  s.foreign_30d,  s.foreign_90d,
-          COALESCE(r.radar_score, 0)               AS radar_score,
-          COALESCE(r.foreign_broker_net_7d, 0)     AS foreign_broker_net_7d,
-          COALESCE(r.local_inst_net_7d, 0)         AS local_inst_net_7d,
-          COALESCE(r.ksei_net_smart_miliar, 0)     AS ksei_net_smart_miliar,
-          COALESCE(r.fresh_insider_buy, false)     AS fresh_insider_buy,
-          COALESCE(l.value, 0)                     AS daily_value,
-          COALESCE(l.vwma_20d, 0)                  AS vwma_20d
-        FROM market.vw_screener_allinone s
-        LEFT JOIN market.vw_watchlist_radar r ON s.stock_code = r.stock_code
-        LEFT JOIN market.vw_stock_latest    l ON s.stock_code = l.stock_code
-        WHERE r.warning_flag IS NULL
-      `)
+      const data = await mdQuery('screener.allInOne')
       setRawData(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch data')
@@ -305,7 +275,7 @@ export default function ScreenerPage() {
               <div className="absolute right-0 top-full mt-2 glass rounded-xl border border-gold-400/20 shadow-2xl z-50 min-w-[200px] overflow-hidden">
                 {PRESETS.map(p => (
                   <button key={p.id} onClick={() => applyPreset(p)}
-                    className="w-full px-4 py-3 text-left text-xs hover:bg-gold-400/10 flex items-center gap-3 border-b border-white/[0.05] last:border-0">
+                    className="w-full px-4 py-3 text-left text-xs hover:bg-gold-400/10 flex items-center gap-3 border-b border-line-2 last:border-0">
                     <p.icon className="w-4 h-4 text-gold-400 flex-shrink-0" />
                     <span className="font-semibold">{p.name}</span>
                   </button>
@@ -335,7 +305,7 @@ export default function ScreenerPage() {
       {/* ── PERIOD + QUICK TOGGLES ────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Period picker */}
-        <div className="flex items-center gap-1 bg-white/[0.03] rounded-lg p-0.5 border border-white/[0.06]">
+        <div className="flex items-center gap-1 bg-surface-2 rounded-lg p-0.5 border border-line-3">
           <Clock className="w-3.5 h-3.5 text-muted-foreground ml-2" />
           {PERIOD_OPTIONS.map(opt => (
             <button key={opt.days} onClick={() => setPeriod(opt.days)}
@@ -347,11 +317,11 @@ export default function ScreenerPage() {
 
         {/* Active Today toggle */}
         <button onClick={() => setOnlyActiveToday(v => !v)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${onlyActiveToday ? 'bg-orange-500/20 border-orange-500/40 text-orange-400' : 'glass border-white/[0.06] text-muted-foreground hover:text-white'}`}>
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${onlyActiveToday ? 'bg-orange-500/20 border-orange-500/40 text-orange-400' : 'glass border-line-3 text-muted-foreground hover:text-white'}`}>
           <Flame className="w-3 h-3" />
           Active Today
           {activeToday > 0 && (
-            <span className={`px-1.5 rounded-full ${onlyActiveToday ? 'bg-orange-500/40' : 'bg-white/10'}`}>{activeToday}</span>
+            <span className={`px-1.5 rounded-full ${onlyActiveToday ? 'bg-orange-500/40' : 'bg-surface-5'}`}>{activeToday}</span>
           )}
         </button>
 
@@ -359,7 +329,7 @@ export default function ScreenerPage() {
         <div className="flex gap-2 overflow-x-auto pb-0.5">
           {PRESETS.map(p => (
             <button key={p.id} onClick={() => applyPreset(p)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/[0.06] text-[10px] font-semibold hover:border-gold-400/30 transition-all">
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-line-3 text-[10px] font-semibold hover:border-gold-400/30 transition-all">
               <p.icon className="w-3 h-3 text-gold-400" />
               {p.name.replace(/^\S+\s/, '')}
             </button>
@@ -380,7 +350,7 @@ export default function ScreenerPage() {
             <div>
               <label className="text-[11px] text-muted-foreground uppercase mb-2 block">Signal</label>
               <select value={filterSignal} onChange={e => setFilterSignal(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs focus:border-gold-400/30 focus:outline-none">
+                className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2 text-xs focus:border-gold-400/30 focus:outline-none">
                 <option value="ALL">Semua</option>
                 <option value="🚀 STRONG BUY">🚀 Strong Buy</option>
                 <option value="👀 WATCH">👀 Watch</option>
@@ -390,14 +360,14 @@ export default function ScreenerPage() {
             <div>
               <label className="text-[11px] text-muted-foreground uppercase mb-2 block">Sektor</label>
               <select value={filterSector} onChange={e => setFilterSector(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs focus:border-gold-400/30 focus:outline-none">
+                className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2 text-xs focus:border-gold-400/30 focus:outline-none">
                 {sectors.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
               <label className="text-[11px] text-muted-foreground uppercase mb-2 block">Flag</label>
               <select value={filterFlag} onChange={e => setFilterFlag(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs focus:border-gold-400/30 focus:outline-none">
+                className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2 text-xs focus:border-gold-400/30 focus:outline-none">
                 <option value="ALL">Semua</option>
                 <option value="WHALE">🐋 Whale</option>
                 <option value="BIG_PLAYER">⚡ Big Player</option>
@@ -469,11 +439,11 @@ export default function ScreenerPage() {
             <p className="text-[10px] text-muted-foreground/40">Dir: F=Asing · I=Institusi Lokal · K=KSEI Smart</p>
           </div>
 
-          <div className="glass rounded-2xl overflow-hidden border border-white/[0.06]">
+          <div className="glass rounded-2xl overflow-hidden border border-line-3">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-white/[0.05] text-[9px] text-muted-foreground uppercase tracking-wider">
+                  <tr className="bg-surface-1 border-b border-line-2 text-[9px] text-muted-foreground uppercase tracking-wider">
                     <th className="p-2 text-left w-6">#</th>
                     <th className="p-2 text-left sticky left-0 bg-card/95 backdrop-blur-sm z-10 cursor-pointer hover:text-foreground"
                       onClick={() => toggleSort('stock_code')}>Kode<SortArrow col="stock_code" /></th>
@@ -497,7 +467,7 @@ export default function ScreenerPage() {
                 </thead>
                 <tbody>
                   {paginatedData.map((r, i) => (
-                    <tr key={r.stock_code} className="tr-hover border-b border-white/[0.02] group hover:bg-gold-400/[0.03] transition-all">
+                    <tr key={r.stock_code} className="tr-hover border-b border-line-1 group hover:bg-gold-400/[0.03] transition-all">
 
                       {/* # */}
                       <td className="p-2 text-[10px] text-muted-foreground">{(page - 1) * pageSize + i + 1}</td>
@@ -605,7 +575,7 @@ export default function ScreenerPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="p-4 border-t border-white/[0.05] flex items-center justify-between">
+              <div className="p-4 border-t border-line-2 flex items-center justify-between">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl glass border border-border/30 text-xs font-bold disabled:opacity-50">
                   <ChevronLeft className="w-4 h-4" /> Prev

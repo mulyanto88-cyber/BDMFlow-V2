@@ -22,19 +22,19 @@ export function InsiderWidget({ stockCode }: Props) {
             {l:'Internal Buy',     v: insiderScore.internal_buy,     c: 'text-emerald-400'},
             {l:'Internal Sell',    v: insiderScore.internal_sell,    c: 'text-red-400'},
           ].map(k => (
-            <div key={k.l} className="glass rounded-xl p-3 border border-white/[0.06] text-center metric-card">
+            <div key={k.l} className="glass rounded-xl p-3 border border-line-3 text-center metric-card">
               <div className={`text-2xl font-black ${k.c}`}>{k.v}</div>
               <div className="text-xs text-muted-foreground mt-1">{k.l}</div>
             </div>
           ))}
         </div>
       )}
-      <div className="glass rounded-2xl border border-white/[0.06] overflow-hidden">
-        <div className="px-3 py-2.5 border-b border-white/[0.05] bg-white/[0.02] text-xs font-bold text-gold-400">Transaksi Insider (Komisaris/Direksi/Pengendali)</div>
+      <div className="glass rounded-2xl border border-line-3 overflow-hidden">
+        <div className="px-3 py-2.5 border-b border-line-2 bg-surface-1 text-xs font-bold text-gold-400">Transaksi Insider (Komisaris/Direksi/Pengendali)</div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-white/[0.05] text-[9px] text-muted-foreground uppercase tracking-wider">
+              <tr className="border-b border-line-2 text-[9px] text-muted-foreground uppercase tracking-wider">
                 <th className="text-left px-3 py-2">Tanggal</th>
                 <th className="text-left px-3 py-2">Nama</th>
                 <th className="text-left px-3 py-2">Role</th>
@@ -47,7 +47,7 @@ export function InsiderWidget({ stockCode }: Props) {
               {insiderFeed.length === 0 ? (
                 <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">Belum ada data insider untuk saham ini</td></tr>
               ) : insiderFeed.map((ins: any, i:number) => (
-                <tr key={i} className="border-b border-white/[0.03] tr-hover transition-colors">
+                <tr key={i} className="border-b border-line-1 tr-hover transition-colors">
                   <td className="px-3 py-2 text-muted-foreground">{String(ins.transaction_date||'').slice(0,10)}</td>
                   <td className="px-3 py-2 truncate max-w-[140px] font-medium">{ins.insider_name}</td>
                   <td className="px-3 py-2 text-muted-foreground">{ins.insider_type}</td>

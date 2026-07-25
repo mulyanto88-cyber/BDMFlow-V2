@@ -236,7 +236,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
         'flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-bold rounded-xl transition-all duration-300 relative overflow-hidden',
         active
           ? 'text-primary shadow-[0_2px_10px_-2px_rgba(231,183,51,0.2)]'
-          : 'text-muted-foreground/60 hover:text-foreground hover:bg-white/[0.04]',
+          : 'text-muted-foreground/60 hover:text-foreground hover:bg-surface-3',
       ].join(' ')}
     >
       {active && (
@@ -266,24 +266,24 @@ function StockDetailDialog({ stock, history, loading, onClose }: { stock: string
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="w-full max-w-4xl max-h-[85vh] bg-[#0A1228] rounded-[16px] border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden"
+        className="w-full max-w-4xl max-h-[85vh] bg-[#0A1228] rounded-[16px] border border-line-4 shadow-2xl flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/[0.05] bg-white/[0.02]">
+        <div className="flex items-center justify-between p-4 border-b border-line-2 bg-surface-1">
           <div className="flex items-center gap-4">
             <h2 className="text-[20px] font-black text-foreground">{stock}</h2>
-            <div className="h-4 w-px bg-white/[0.1]"></div>
+            <div className="h-4 w-px bg-surface-5"></div>
             <p className="text-[11px] text-muted-foreground/60 font-mono tracking-widest uppercase">All-time Insider History</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href={`/stock/${stock}`} prefetch={false} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[11px] font-bold transition-colors">
+            <Link href={`/stock/${stock}`} prefetch={false} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-3 hover:bg-surface-4 text-[11px] font-bold transition-colors">
               <BarChart2 size={12} className="text-primary" /> Stock Dashboard
             </Link>
-            <Link href={`/broker-tracker?code=${stock}`} prefetch={false} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[11px] font-bold transition-colors">
+            <Link href={`/broker-tracker?code=${stock}`} prefetch={false} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-3 hover:bg-surface-4 text-[11px] font-bold transition-colors">
               <Activity size={12} className="text-purple-400" /> Broker Summary
             </Link>
-            <div className="h-4 w-px bg-white/[0.1] mx-1"></div>
-            <button onClick={onClose} className="p-1.5 text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.05] rounded-md transition-colors">
+            <div className="h-4 w-px bg-surface-5 mx-1"></div>
+            <button onClick={onClose} className="p-1.5 text-muted-foreground/50 hover:text-foreground hover:bg-surface-3 rounded-md transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -301,7 +301,7 @@ function StockDetailDialog({ stock, history, loading, onClose }: { stock: string
           ) : (
             <table className="w-full text-[11px]">
               <thead>
-                <tr className="border-b border-white/[0.05]">
+                <tr className="border-b border-line-2">
                   {['Tanggal','Insider','Tipe','Aksi','Δ%','% Curr','Saham','Est. Value'].map(h => (
                     <th key={h} className="text-left px-3 py-2 text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40 font-bold whitespace-nowrap">
                       {h}
@@ -311,7 +311,7 @@ function StockDetailDialog({ stock, history, loading, onClose }: { stock: string
               </thead>
               <tbody>
                 {history.map((row, i) => (
-                  <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                  <tr key={i} className="border-b border-line-1 hover:bg-surface-1 transition-colors">
                     <td className="px-3 py-2.5 font-mono text-muted-foreground/60">{row.transaction_date}</td>
                     <td className="px-3 py-2.5 max-w-[160px]">
                       <p className="font-semibold text-foreground/80 truncate">{row.insider_name}</p>
@@ -529,14 +529,14 @@ export default function InsiderPage() {
                   'text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all duration-150',
                   days === d
                     ? 'bg-primary/[0.12] text-primary border border-primary/20'
-                    : 'text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.04] border border-transparent',
+                    : 'text-muted-foreground/50 hover:text-foreground hover:bg-surface-3 border border-transparent',
                 ].join(' ')}
               >{d}D</button>
             ))}
             <button
               onClick={load}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.07] text-muted-foreground hover:text-foreground text-[11px] font-semibold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line-3 bg-surface-2 hover:bg-surface-4 text-muted-foreground hover:text-foreground text-[11px] font-semibold transition-all"
             >
               <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
               {loading ? 'Loading…' : 'Refresh'}
@@ -608,7 +608,7 @@ export default function InsiderPage() {
             </TabBtn>
           </div>
 
-          <div className="h-6 w-px bg-white/10 hidden xl:block" />
+          <div className="h-6 w-px bg-surface-5 hidden xl:block" />
 
           {/* Action filter */}
           <div className="flex gap-1">
@@ -621,8 +621,8 @@ export default function InsiderPage() {
                   actionFilter === v
                     ? v === 'BUY'  ? 'bg-emerald-500/[0.15] text-emerald-400 border-emerald-500/25'
                     : v === 'SELL' ? 'bg-red-500/[0.15] text-red-400 border-red-500/25'
-                    : 'bg-white/[0.08] text-foreground border-white/[0.12]'
-                    : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
+                    : 'bg-surface-4 text-foreground border-line-5'
+                    : 'text-muted-foreground/50 border-transparent hover:border-line-4 hover:text-foreground',
                 ].join(' ')}
               >{v || 'ALL'}</button>
             ))}
@@ -638,13 +638,13 @@ export default function InsiderPage() {
                   'text-[10.5px] font-bold px-2.5 py-1 rounded-lg border transition-all duration-150',
                   insiderFilter === v
                     ? 'bg-primary/[0.1] text-primary border-primary/20'
-                    : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
+                    : 'text-muted-foreground/50 border-transparent hover:border-line-4 hover:text-foreground',
                 ].join(' ')}
               >{l}</button>
             ))}
           </div>
 
-          <div className="h-6 w-px bg-white/10 hidden xl:block" />
+          <div className="h-6 w-px bg-surface-5 hidden xl:block" />
 
           {/* Source filter */}
           <div className="flex gap-1">
@@ -657,14 +657,14 @@ export default function InsiderPage() {
                   sourceFilter === v
                     ? v === 'IDX'  ? 'bg-blue-500/[0.15] text-blue-400 border-blue-500/25'
                     : v === 'KSEI' ? 'bg-purple-500/[0.15] text-purple-400 border-purple-500/25'
-                    : 'bg-white/[0.08] text-foreground border-white/[0.12]'
-                    : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
+                    : 'bg-surface-4 text-foreground border-line-5'
+                    : 'text-muted-foreground/50 border-transparent hover:border-line-4 hover:text-foreground',
                 ].join(' ')}
               >{v || 'ALL'}</button>
             ))}
           </div>
 
-          <div className="h-6 w-px bg-white/10 hidden xl:block" />
+          <div className="h-6 w-px bg-surface-5 hidden xl:block" />
 
           {/* Ownership % band — pakai pct_current; memanfaatkan granularitas <5% dari feed Stockbit */}
           <div className="flex gap-1" title="Filter ukuran kepemilikan saat ini">
@@ -676,7 +676,7 @@ export default function InsiderPage() {
                   'text-[10.5px] font-bold px-2.5 py-1 rounded-lg border transition-all duration-150',
                   pctBand === v
                     ? 'bg-primary/[0.1] text-primary border-primary/20'
-                    : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
+                    : 'text-muted-foreground/50 border-transparent hover:border-line-4 hover:text-foreground',
                 ].join(' ')}
               >{l}</button>
             ))}
@@ -690,7 +690,7 @@ export default function InsiderPage() {
               'flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-lg border transition-all duration-150',
               realOnly
                 ? 'bg-emerald-500/[0.15] text-emerald-400 border-emerald-500/25'
-                : 'text-muted-foreground/50 border-transparent hover:border-white/[0.08] hover:text-foreground',
+                : 'text-muted-foreground/50 border-transparent hover:border-line-4 hover:text-foreground',
             ].join(' ')}
           >
             <Shield size={11} />
@@ -705,7 +705,7 @@ export default function InsiderPage() {
                 value={searchQ}
                 onChange={e => setSearchQ(e.target.value)}
                 placeholder="Cari kode / nama…"
-                className="pl-7 pr-3 py-1.5 text-[11px] bg-white/[0.04] border border-white/[0.07] rounded-lg outline-none focus:border-primary/40 text-foreground placeholder:text-muted-foreground/30 w-[160px]"
+                className="pl-7 pr-3 py-1.5 text-[11px] bg-surface-3 border border-line-3 rounded-lg outline-none focus:border-primary/40 text-foreground placeholder:text-muted-foreground/30 w-[160px]"
               />
               {searchQ && (
                 <button onClick={() => setSearchQ('')} className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -797,7 +797,7 @@ export default function InsiderPage() {
                     {/* Sector + signal */}
                     <div className="flex items-center gap-2">
                       {row.sector && (
-                        <span className="text-[8.5px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-muted-foreground/50">
+                        <span className="text-[8.5px] px-2 py-0.5 rounded-md bg-surface-3 border border-line-3 text-muted-foreground/50">
                           {row.sector}
                         </span>
                       )}
@@ -833,10 +833,10 @@ export default function InsiderPage() {
                 <Activity size={32} /><p className="text-[13px]">Tidak ada transaksi ditemukan</p>
               </div>
             ) : (
-              <div className="rounded-[14px] overflow-hidden border border-white/[0.06]">
+              <div className="rounded-[14px] overflow-hidden border border-line-3">
                 <table className="w-full text-[11px]">
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-border/50">
+                    <tr className="bg-surface-1 border-b border-border/50">
                       {['Tanggal','Kode','Insider','Tipe','Aksi','Δ%','% Prev → Curr','Saham','Broker','Est. Value','Source'].map(h => (
                         <th key={h} className="text-left px-3 py-2.5 text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40 font-bold whitespace-nowrap">
                           {h}
@@ -848,7 +848,7 @@ export default function InsiderPage() {
                     {filteredFeed.map((row, i) => (
                       <tr
                         key={`${row.stock_code}-${row.transaction_date}-${i}`}
-                        className="tr-hover border-b border-white/[0.03]"
+                        className="tr-hover border-b border-line-1"
                       >
                         <td className="px-3 py-2 font-mono text-muted-foreground/50 whitespace-nowrap">{row.transaction_date}</td>
                         <td className="px-3 py-2">
@@ -882,7 +882,7 @@ export default function InsiderPage() {
                         </td>
                         <td className="px-3 py-2 font-mono text-muted-foreground/50">{fmtShares(Math.abs(row.shares_change))}</td>
                         <td className="px-3 py-2">
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono text-muted-foreground/50">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-3 border border-line-3 font-mono text-muted-foreground/50">
                             {row.broker_code || row.broker_group || '–'}
                           </span>
                         </td>
@@ -919,10 +919,10 @@ export default function InsiderPage() {
                 <Loader2 size={18} className="animate-spin" /><span className="text-[12px]">Memuat screener…</span>
               </div>
             ) : (
-              <div className="rounded-[14px] overflow-hidden border border-white/[0.06]">
+              <div className="rounded-[14px] overflow-hidden border border-line-3">
                 <table className="w-full text-[11px]">
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-border/50">
+                    <tr className="bg-surface-1 border-b border-border/50">
                       {[
                         ['stock_code',       'Kode'],
                         ['sector',           'Sektor'],
@@ -955,7 +955,7 @@ export default function InsiderPage() {
                       return (
                         <tr
                           key={row.stock_code}
-                          className="tr-hover border-b border-white/[0.03]"
+                          className="tr-hover border-b border-line-1"
                         >
                           <td className="px-3 py-2.5">
                             <button onClick={() => setSelectedStock(row.stock_code)} className="font-black text-foreground hover:text-primary transition-colors text-left">
@@ -968,7 +968,7 @@ export default function InsiderPage() {
                           <td className="px-3 py-2.5 text-muted-foreground/50">{row.sector ?? '–'}</td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
-                              <div className="relative w-16 h-1.5 rounded-full bg-white/[0.08]">
+                              <div className="relative w-16 h-1.5 rounded-full bg-surface-4">
                                 <div
                                   className="absolute left-0 top-0 h-full rounded-full transition-all"
                                   style={{ width: `${pct}%`, background: color }}
@@ -1081,7 +1081,7 @@ export default function InsiderPage() {
                               c.derived_type === 'PENGENDALI' ? 'bg-purple-500/15 text-purple-400 border-purple-500/25'
                               : c.derived_type === 'DIREKSI' ? 'bg-blue-500/15 text-blue-400 border-blue-500/25'
                               : c.derived_type === 'KOMISARIS' ? 'bg-sky-500/15 text-sky-400 border-sky-500/25'
-                              : 'bg-white/[0.05] text-muted-foreground/70 border-white/10'
+                              : 'bg-surface-3 text-muted-foreground/70 border-line-5'
                             }`}>
                               {c.derived_type}
                             </span>
@@ -1096,7 +1096,7 @@ export default function InsiderPage() {
 
                       {/* Stats grid */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
-                        <div className="text-center p-2 rounded-lg bg-white/[0.04]">
+                        <div className="text-center p-2 rounded-lg bg-surface-3">
                           <p className="text-[8px] text-muted-foreground/45 uppercase">Saham</p>
                           <p className="text-[14px] font-black text-foreground">{c.stock_count}</p>
                         </div>
@@ -1108,7 +1108,7 @@ export default function InsiderPage() {
                           <p className="text-[8px] text-muted-foreground/45 uppercase">Sell</p>
                           <p className="text-[14px] font-black text-red-400">{c.sell_count}</p>
                         </div>
-                        <div className="text-center p-2 rounded-lg bg-white/[0.04]">
+                        <div className="text-center p-2 rounded-lg bg-surface-3">
                           <p className="text-[8px] text-muted-foreground/45 uppercase">Span</p>
                           <p className="text-[14px] font-black text-foreground">{c.span_days}d</p>
                         </div>
@@ -1118,7 +1118,7 @@ export default function InsiderPage() {
                       <div className="flex flex-wrap gap-1 mb-2">
                         {c.stocks.split(', ').map((s, j) => (
                           <button key={j} onClick={() => setSelectedStock(s)}
-                            className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-white/[0.05] hover:bg-primary/15 hover:text-primary border border-white/10 transition-all">
+                            className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-surface-3 hover:bg-primary/15 hover:text-primary border border-line-5 transition-all">
                             {s}
                           </button>
                         ))}
@@ -1231,7 +1231,7 @@ export default function InsiderPage() {
                           <span className="text-muted-foreground/40">Conviction Score</span>
                           <span className="font-black font-mono" style={{ color }}>{fmt(row.conviction_score, 0)}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-white/[0.06]">
+                        <div className="h-1.5 rounded-full bg-surface-4">
                           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
                         </div>
                       </div>
@@ -1254,7 +1254,7 @@ export default function InsiderPage() {
                       </div>
 
                       {/* Footer */}
-                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-white/[0.05]">
+                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-line-2">
                         <p className="text-[9px] text-muted-foreground/35 font-mono">{row.latest_tx}</p>
                         {row.current_price > 0 && (
                           <p className={`text-[10px] font-bold font-mono ${(row.price_change_pct ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>

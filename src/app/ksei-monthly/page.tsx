@@ -209,7 +209,7 @@ export default function KseiMonthlyPage() {
               className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold rounded-t-xl border-b-2 transition-all ${
                 tab === t.id
                   ? 'text-gold-400 border-gold-400 bg-gold-400/10'
-                  : 'text-muted-foreground/60 border-transparent hover:text-muted-foreground hover:bg-white/[0.03]'
+                  : 'text-muted-foreground/60 border-transparent hover:text-muted-foreground hover:bg-surface-2'
               }`}>
               <Icon size={13} /> {t.label}
             </button>
@@ -616,7 +616,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                   </tr>
                 ) : (
                   activeFunds.map((f: any, i: number) => (
-                    <tr key={i} className="border-b border-border/15 hover:bg-white/[0.02] tr-hover">
+                    <tr key={i} className="border-b border-border/15 hover:bg-surface-1 tr-hover">
                       <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
                         {f.investor_name}
                       </td>
@@ -665,7 +665,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                   </tr>
                 ) : (
                   etfs.map((f: any, i: number) => (
-                    <tr key={i} className="border-b border-border/15 hover:bg-white/[0.02] tr-hover">
+                    <tr key={i} className="border-b border-border/15 hover:bg-surface-1 tr-hover">
                       <td className="px-2 py-2 font-semibold text-foreground/80 truncate max-w-[180px]" title={f.investor_name}>
                         {f.investor_name}
                       </td>
@@ -752,7 +752,7 @@ function DeepDiveContent({ code, data }: { code: string; data: any }) {
                       border: border
                     }}
                     className={`px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1.5 transition-all ${
-                      isSelected ? textColor : 'text-muted-foreground/60 hover:text-foreground bg-white/[0.02]'
+                      isSelected ? textColor : 'text-muted-foreground/60 hover:text-foreground bg-surface-1'
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: TIPE_COLOR[b.label] || '#94a3b8' }} />
@@ -1033,7 +1033,7 @@ function FlowsTab() {
               <tbody>
                 {buckets.map(b => (
                   <tr key={b.key} onClick={() => loadDetail(b.key, curMonth)}
-                    className={`border-b border-border/15 cursor-pointer transition-colors ${sel === b.key ? 'bg-gold-400/[0.12]' : 'hover:bg-white/[0.03]'}`}>
+                    className={`border-b border-border/15 cursor-pointer transition-colors ${sel === b.key ? 'bg-gold-400/[0.12]' : 'hover:bg-surface-2'}`}>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2.5">
                         <span className="w-1 h-7 rounded-full shrink-0" style={{ background: b.side === 'Foreign' ? '#3b82f6' : '#22c55e' }} />
@@ -1113,7 +1113,7 @@ function FlowDetail({ meta, value, month, detail, loading }: {
         <table className="w-full text-xs">
           <tbody>
             {data.map((r, i) => (
-              <tr key={i} className="border-b border-border/15 hover:bg-white/[0.03] transition-colors">
+              <tr key={i} className="border-b border-border/15 hover:bg-surface-2 transition-colors">
                 <td className="px-3 py-2 text-muted-foreground/35 font-mono text-[10px] w-5">{i + 1}</td>
                 <td className="px-1 py-2">
                   <Link href={`/stock/${r.stock_code}`} prefetch={false}

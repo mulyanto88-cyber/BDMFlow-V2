@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Star, Trash2, Plus, Bell, Lock, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { mdQuery } from '@/lib/api'
 
 interface WatchlistItem {
   id: string; stock_code: string; alert_score: number | null
@@ -36,6 +37,7 @@ export default function WatchlistPage() {
       if (session?.user) loadProfile(session.user.id)
     })
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadProfile(userId: string) {
@@ -55,21 +57,11 @@ export default function WatchlistPage() {
 
       // Enrich with current market data
       if (list.length > 0) {
-        const codes = list.map(i => i.stock_code).join(',')
-        const mkt = await fetch(`/api/motherduck`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: `
-            SELECT stock_code, close::DOUBLE AS close,
-              ROUND(change_percent::DOUBLE,2) AS change_percent,
-              composite_signal, radar_score::INTEGER AS radar_score
-            FROM market.vw_watchlist_radar
-            WHERE stock_code IN (${list.map(i => `'${i.stock_code}'`).join(',')})
-          ` })
-        }).then(r => r.json()).catch(() => ({ data: [] }))
+        const rows = await mdQuery('watchlist.radarByCodes', [list.map(i => i.stock_code)])
+          .catch(() => [] as Record<string, any>[])
 
         const mktMap: Record<string,any> = {}
-        for (const row of (mkt.data ?? [])) mktMap[row.stock_code] = row
+        for (const row of rows as Record<string, any>[]) mktMap[row.stock_code as string] = row
         setItems(list.map(i => ({ ...i, ...mktMap[i.stock_code] })))
       } else {
         setItems([])
@@ -156,10 +148,10 @@ export default function WatchlistPage() {
         <div className="flex gap-2 flex-wrap">
           <input type="text" placeholder="Kode saham (contoh: BBRI)" value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())}
             onKeyDown={e => e.key === 'Enter' && addStock()}
-            className="flex-1 min-w-[120px] px-3 py-2.5 rounded-xl bg-white/5 border border-border/50 text-sm focus:outline-none focus:border-gold-400/50 uppercase transition-colors" />
+            className="flex-1 min-w-[120px] px-3 py-2.5 rounded-xl bg-surface-3 border border-border/50 text-sm focus:outline-none focus:border-gold-400/50 uppercase transition-colors" />
           <input type="number" placeholder="Alert score (opsional)" value={newScore} onChange={e => setNewScore(e.target.value)}
             min={0} max={100}
-            className="w-44 px-3 py-2.5 rounded-xl bg-white/5 border border-border/50 text-sm focus:outline-none focus:border-gold-400/50 transition-colors" />
+            className="w-44 px-3 py-2.5 rounded-xl bg-surface-3 border border-border/50 text-sm focus:outline-none focus:border-gold-400/50 transition-colors" />
           <button onClick={addStock} disabled={adding || !newCode || items.length >= limit}
             className="px-5 py-2.5 rounded-xl bg-gold-400/15 border border-gold-400/30 text-gold-400 text-sm font-semibold hover:bg-gold-400/25 disabled:opacity-40 transition-colors">
             {adding ? 'Menambah...' : 'Tambah'}
@@ -193,7 +185,7 @@ export default function WatchlistPage() {
         <div className="glass rounded-2xl border border-border/50 overflow-hidden shadow-xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/[0.06] text-xs text-muted-foreground uppercase tracking-wider">
+              <tr className="bg-surface-1 border-b border-line-3 text-xs text-muted-foreground uppercase tracking-wider">
                 <th className="text-left px-4 py-3">Saham</th>
                 <th className="text-right px-3 py-3">Harga</th>
                 <th className="text-center px-3 py-3 hidden md:table-cell">Radar Score</th>
@@ -202,7 +194,7 @@ export default function WatchlistPage() {
                 <th className="px-3 py-3 w-20" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-line-1">
               {items.map(item => (
                 <tr key={item.id} className="tr-hover transition-colors">
                   <td className="px-4 py-3">

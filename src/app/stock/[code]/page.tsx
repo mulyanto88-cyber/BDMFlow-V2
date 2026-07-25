@@ -79,7 +79,7 @@ export default function StockDetailPage() {
           const Icon = t.icon
           return (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs border transition-all whitespace-nowrap font-bold ${activeTab === t.id ? 'bg-gold-400/20 text-gold-400 border-gold-400/40' : 'glass border-white/[0.06] text-muted-foreground hover:text-foreground hover:border-white/[0.12]'}`}>
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs border transition-all whitespace-nowrap font-bold ${activeTab === t.id ? 'bg-gold-400/20 text-gold-400 border-gold-400/40' : 'glass border-line-3 text-muted-foreground hover:text-foreground hover:border-line-5'}`}>
               <Icon size={13} />{t.label}
             </button>
           )

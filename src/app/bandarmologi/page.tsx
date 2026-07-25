@@ -32,7 +32,7 @@ export default function BandarmologiPage() {
 
   if (error) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center glass rounded-2xl p-12 border border-white/5">
+      <div className="text-center glass rounded-2xl p-12 border border-line-2">
         <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-4" />
         <p className="text-muted-foreground font-bold text-lg">Bandarmologi data unavailable</p>
         <p className="text-xs text-muted-foreground/60 mt-2 mb-4">{error}</p>
@@ -103,22 +103,22 @@ export default function BandarmologiPage() {
           <MetricCard label="Composite Coverage" value="959" sub="All stocks scored" />
         </div>
 
-        <div className="glass rounded-2xl p-5 border border-white/5">
+        <div className="glass rounded-2xl p-5 border border-line-2">
           <div className="flex items-center gap-2 mb-3"><Star size={18} className="text-amber-400" /><h2 className="text-lg font-bold">Broker Score Tracker</h2></div>
           <p className="text-xs text-muted-foreground mb-3">Top stocks ranked by broker score — measures institutional broker positioning strength across all sources.</p>
-          <DataTable data={prime} columns={primeColumns} pageSize={15} emptyText="No data. Run Phase A views in MotherDuck." />
+          <DataTable data={prime} columns={primeColumns} pageSize={15} virtualize emptyText="No data. Run Phase A views in MotherDuck." />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="glass rounded-2xl p-5 border border-white/5">
+          <div className="glass rounded-2xl p-5 border border-line-2">
             <div className="flex items-center gap-2 mb-3"><Users size={18} className="text-blue-400" /><h2 className="text-lg font-bold">Foreign Score Leaders</h2></div>
             <p className="text-xs text-muted-foreground mb-3">Stocks with strongest foreign flow signals — ranked by foreign_score component.</p>
-            <DataTable data={convergence} columns={convColumns} pageSize={12} emptyText="No data" />
+            <DataTable data={convergence} columns={convColumns} pageSize={12} virtualize emptyText="No data" />
           </div>
-          <div className="glass rounded-2xl p-5 border border-white/5">
+          <div className="glass rounded-2xl p-5 border border-line-2">
             <div className="flex items-center gap-2 mb-3"><TrendingUp size={18} className="text-amber-400" /><h2 className="text-lg font-bold">Bandar Leaderboard</h2></div>
             <p className="text-xs text-muted-foreground mb-3">Ranked by broker score — combines foreign, institutional, and whale positioning signals.</p>
-            <DataTable data={leaderboard} columns={leaderColumns} pageSize={10} emptyText="No data" />
+            <DataTable data={leaderboard} columns={leaderColumns} pageSize={10} virtualize emptyText="No data" />
           </div>
         </div>
       </div>

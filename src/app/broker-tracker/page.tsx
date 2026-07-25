@@ -303,7 +303,7 @@ const TACTICAL_SIGNAL_CONFIG: Record<string, {
   STRONG_BUY:    { label: 'Strong Buy 🚀',    color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/40', icon: '🚀', priority: 0 },
   MOMENTUM_BUY:  { label: 'Momentum Buy ⚡',  color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: '⚡', priority: 1 },
   BUY:           { label: 'Buy Signal 📈',    color: 'text-emerald-400', bg: 'bg-emerald-500/8',  border: 'border-emerald-500/20', icon: '📈', priority: 2 },
-  NEUTRAL:       { label: 'Neutral ⚪',       color: 'text-gray-400',    bg: 'bg-white/5',        border: 'border-white/10',       icon: '⚪', priority: 3 },
+  NEUTRAL:       { label: 'Neutral ⚪',       color: 'text-gray-400',    bg: 'bg-surface-3',        border: 'border-line-5',       icon: '⚪', priority: 3 },
   SELL:          { label: 'Sell Signal 📉',   color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/20',     icon: '📉', priority: 4 },
   MOMENTUM_SELL: { label: 'Momentum Sell ⚡', color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     icon: '🔻', priority: 5 },
   STRONG_SELL:   { label: 'Strong Sell 🔴',   color: 'text-red-300',     bg: 'bg-red-500/15',     border: 'border-red-500/40',     icon: '🔴', priority: 6 },
@@ -351,8 +351,8 @@ const DIVERGENCE_CONFIG = {
   NEUTRAL: {
     label: 'Netral',
     color: 'text-gray-400',
-    bg: 'bg-white/5',
-    border: 'border-white/10',
+    bg: 'bg-surface-3',
+    border: 'border-line-5',
     icon: '⚪',
     desc: 'Tidak ada divergence signifikan pada periode ini.',
   },
@@ -361,10 +361,10 @@ const DIVERGENCE_CONFIG = {
 const STANCE_CFG = {
   REVERSAL_BUY:       { label:'Reversal Buy 🔄',      bg:'bg-emerald-500/15', border:'border-emerald-500/30', text:'text-emerald-400', icon:<RefreshCw className="w-3 h-3"/> },
   NEW_ENTRANT:        { label:'New Entrant 🆕',        bg:'bg-blue-500/15',    border:'border-blue-500/30',    text:'text-blue-400',    icon:<UserPlus className="w-3 h-3"/> },
-  CONTINUATION_BUY:   { label:'Continuation ➡️',      bg:'bg-white/5',        border:'border-white/10',       text:'text-gray-300',    icon:<ArrowUpRight className="w-3 h-3"/> },
+  CONTINUATION_BUY:   { label:'Continuation ➡️',      bg:'bg-surface-3',        border:'border-line-5',       text:'text-gray-300',    icon:<ArrowUpRight className="w-3 h-3"/> },
   REVERSAL_SELL:      { label:'Reversal Sell 🔄',      bg:'bg-red-500/15',     border:'border-red-500/30',     text:'text-red-400',     icon:<RefreshCw className="w-3 h-3"/> },
-  CONTINUATION_SELL:  { label:'Exit ➡️',               bg:'bg-white/5',        border:'border-white/10',       text:'text-gray-500',    icon:<ArrowDownRight className="w-3 h-3"/> },
-  NEUTRAL:            { label:'Neutral',               bg:'bg-white/5',        border:'border-white/5',        text:'text-gray-600',    icon:<Minus className="w-3 h-3"/> },
+  CONTINUATION_SELL:  { label:'Exit ➡️',               bg:'bg-surface-3',        border:'border-line-5',       text:'text-gray-500',    icon:<ArrowDownRight className="w-3 h-3"/> },
+  NEUTRAL:            { label:'Neutral',               bg:'bg-surface-3',        border:'border-line-2',        text:'text-gray-600',    icon:<Minus className="w-3 h-3"/> },
 };
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
@@ -388,7 +388,7 @@ const BrokerBarTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const val = payload[0]?.value ?? 0;
   return (
-    <div className="bg-[#111827] border border-white/10 rounded-xl p-3 text-[11px] shadow-2xl">
+    <div className="bg-[#111827] border border-line-5 rounded-xl p-3 text-[11px] shadow-2xl">
       <p className="text-white font-black mb-1">{label}</p>
       <p className={`font-mono font-bold ${val >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
         {val >= 0 ? '+' : ''}{fmt(val)}
@@ -400,7 +400,7 @@ const BrokerBarTooltip = ({ active, payload, label }: any) => {
 const BreadthTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#111827] border border-white/10 rounded-xl p-3 text-[11px] shadow-2xl min-w-[160px]">
+    <div className="bg-[#111827] border border-line-5 rounded-xl p-3 text-[11px] shadow-2xl min-w-[160px]">
       <p className="text-white font-black mb-1">{label}</p>
       {payload.map((e: any, i: number) => (
         <div key={i} className="flex justify-between gap-4">
@@ -637,7 +637,7 @@ function TacticalSignalBanner({ data, loading }: { data: TacticalSignalData | nu
     : null;
 
   return (
-    <div className={`rounded-2xl border p-4 ${tactCfg?.bg ?? 'bg-card'} ${tactCfg?.border ?? 'border-white/5'} shadow-lg`}>
+    <div className={`rounded-2xl border p-4 ${tactCfg?.bg ?? 'bg-card'} ${tactCfg?.border ?? 'border-line-2'} shadow-lg`}>
       <div className="flex flex-wrap items-center gap-3 justify-between">
         {/* Tactical Signal */}
         <div className="flex items-center gap-3 flex-1 min-w-[200px]">
@@ -706,10 +706,10 @@ const WHALE_VERDICT_CONFIG: Record<string, { color: string; bg: string; border: 
 function WhaleTimingPanel({ data, loading }: { data: WhaleTimingRow[]; loading: boolean }) {
   if (loading) {
     return (
-      <div className="bg-card rounded-2xl border border-white/5 p-4 animate-pulse">
-        <div className="h-4 w-48 bg-white/10 rounded mb-4" />
+      <div className="bg-card rounded-2xl border border-line-2 p-4 animate-pulse">
+        <div className="h-4 w-48 bg-surface-5 rounded mb-4" />
         <div className="space-y-2">
-          {[1,2,3].map(i => <div key={i} className="h-14 bg-white/5 rounded-xl" />)}
+          {[1,2,3].map(i => <div key={i} className="h-14 bg-surface-3 rounded-xl" />)}
         </div>
       </div>
     );
@@ -720,7 +720,7 @@ function WhaleTimingPanel({ data, loading }: { data: WhaleTimingRow[]; loading: 
   const accumulators = data.filter(w => w.whale_verdict === 'ACCUMULATING');
 
   return (
-    <div className="bg-card rounded-2xl border border-white/5 p-4 shadow-xl">
+    <div className="bg-card rounded-2xl border border-line-2 p-4 shadow-xl">
       <div className="flex items-center gap-2 mb-1">
         <span className="text-base">🐋</span>
         <span className="text-xs font-black text-white uppercase tracking-wider">KSEI Whale Timing</span>
@@ -744,7 +744,7 @@ function WhaleTimingPanel({ data, loading }: { data: WhaleTimingRow[]; loading: 
 
       <div className="space-y-2 max-h-[340px] overflow-y-auto">
         {data.map((w, i) => {
-          const verdictCfg = WHALE_VERDICT_CONFIG[w.whale_verdict] ?? { color: 'text-gray-400', bg: 'bg-white/5', border: 'border-white/10' };
+          const verdictCfg = WHALE_VERDICT_CONFIG[w.whale_verdict] ?? { color: 'text-gray-400', bg: 'bg-surface-3', border: 'border-line-5' };
           const returnPositive = (w.return_since_entry ?? 0) >= 0;
           const isPctChange = w.first_percentage !== w.latest_percentage;
           return (
@@ -756,7 +756,7 @@ function WhaleTimingPanel({ data, loading }: { data: WhaleTimingRow[]; loading: 
                     <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold border ${verdictCfg.bg} ${verdictCfg.color} ${verdictCfg.border}`}>
                       {w.whale_verdict}
                     </span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-gray-500 border border-white/10">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-3 text-gray-500 border border-line-5">
                       {w.local_foreign === 'LOCAL' ? '🇮🇩' : '🌐'} {w.investor_type}
                     </span>
                   </div>
@@ -807,12 +807,12 @@ function WhaleTimingPanel({ data, loading }: { data: WhaleTimingRow[]; loading: 
 const ALERT_LEVEL_CFG: Record<string, { color: string; bg: string; border: string }> = {
   HIGH:   { color: 'text-red-300',    bg: 'bg-red-500/15',    border: 'border-red-500/30'    },
   MEDIUM: { color: 'text-yellow-300', bg: 'bg-yellow-500/15', border: 'border-yellow-500/30' },
-  LOW:    { color: 'text-gray-400',   bg: 'bg-white/5',       border: 'border-white/10'      },
+  LOW:    { color: 'text-gray-400',   bg: 'bg-surface-3',       border: 'border-line-5'      },
 };
 
 function InsiderSignalCard({ data, loading }: { data: InsiderSignalData | null; loading: boolean }) {
   if (loading) return (
-    <div className="bg-card rounded-2xl border border-white/5 p-4 animate-pulse h-32" />
+    <div className="bg-card rounded-2xl border border-line-2 p-4 animate-pulse h-32" />
   );
   if (!data || (data.alerts.length === 0 && !data.score)) return null;
 
@@ -820,7 +820,7 @@ function InsiderSignalCard({ data, loading }: { data: InsiderSignalData | null; 
   const highAlerts = data.alerts.filter(a => a.alert_level === 'HIGH');
 
   return (
-    <div className="bg-card rounded-2xl border border-white/5 p-4 shadow-xl">
+    <div className="bg-card rounded-2xl border border-line-2 p-4 shadow-xl">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-sm">🔍</span>
         <span className="text-xs font-black text-white uppercase tracking-wider">KSEI Insider Signal</span>
@@ -917,7 +917,7 @@ function ScreenerVolumeSpike({ row }: { row: ScreenerRow }) {
     STRONG_SPIKE: 'text-orange-400 bg-orange-500/15 border-orange-500/30',
     SPIKE:        'text-yellow-400 bg-yellow-500/15 border-yellow-500/30',
   };
-  const cls = colors[spike] ?? 'text-gray-400 bg-white/5 border-white/10';
+  const cls = colors[spike] ?? 'text-gray-400 bg-surface-3 border-line-5';
   return (
     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${cls}`}>
       {spike.replace('_', ' ')}
@@ -960,10 +960,10 @@ const BrokerProfileDrawer = ({
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
       <div
-        className="w-full max-w-md bg-background border-l border-white/10 h-full overflow-y-auto shadow-2xl"
+        className="w-full max-w-md bg-background border-l border-line-5 h-full overflow-y-auto shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-white/5 px-5 py-4 flex items-center gap-3 z-10">
+        <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-line-2 px-5 py-4 flex items-center gap-3 z-10">
           <div className="p-2 bg-yellow-400/10 rounded-xl">
             <Users className="w-4 h-4 text-yellow-400" />
           </div>
@@ -971,7 +971,7 @@ const BrokerProfileDrawer = ({
             <h2 className="text-sm font-black text-white">{brokerCode}</h2>
             <p className="text-[10px] text-gray-500">Broker Profile</p>
           </div>
-          <button onClick={onClose} className="ml-auto p-2 rounded-lg hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="ml-auto p-2 rounded-lg hover:bg-surface-3 transition-colors">
             <X className="w-4 h-4 text-gray-400" />
           </button>
         </div>
@@ -996,7 +996,7 @@ const BrokerProfileDrawer = ({
                   { label: 'Buy Ratio',     value: `${safeFixed(sum.buy_ratio_pct)}%`,
                     color: (sum.buy_ratio_pct ?? 0) >= 55 ? 'text-emerald-400' : 'text-red-400' },
                 ].map((s, i) => (
-                  <div key={i} className="bg-card rounded-xl p-3 border border-white/5">
+                  <div key={i} className="bg-card rounded-xl p-3 border border-line-2">
                     <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
                     <p className={`text-sm font-black ${s.color ?? 'text-white'}`}>{s.value}</p>
                   </div>
@@ -1004,27 +1004,27 @@ const BrokerProfileDrawer = ({
               </div>
 
               {sum.broker_name && (
-                <div className="bg-card rounded-xl p-3 border border-white/5">
+                <div className="bg-card rounded-xl p-3 border border-line-2">
                   <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Nama Broker</p>
                   <p className="text-xs text-gray-300">{sum.broker_name}</p>
                 </div>
               )}
 
               {profile?.favorites && profile.favorites.length > 0 && (
-                <div className="bg-card rounded-2xl border border-white/5 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
+                <div className="bg-card rounded-2xl border border-line-2 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-line-2 flex items-center gap-2">
                     <Star className="w-3.5 h-3.5 text-yellow-400" />
                     <span className="text-[10px] uppercase tracking-widest font-black text-yellow-400">
                       Top Saham
                     </span>
                   </div>
-                  <div className="divide-y divide-white/5">
+                  <div className="divide-y divide-line-2">
                     {profile.favorites.map((f, i) => {
                       const floatPnl = currentPrice && f.avg_buy_price
                         ? ((currentPrice - f.avg_buy_price) / f.avg_buy_price) * 100
                         : null;
                       return (
-                        <div key={i} className="px-4 py-3 flex items-center gap-3 hover:bg-white/[0.02]">
+                        <div key={i} className="px-4 py-3 flex items-center gap-3 hover:bg-surface-1">
                           <span className="text-[10px] text-gray-600 w-4 font-mono">{i + 1}</span>
                           <span className="text-sm font-black text-white w-12 shrink-0">{f.stock_code}</span>
                           <div className="flex-1 min-w-0">
@@ -1220,7 +1220,7 @@ function ConcentrationPanel({ buyers }: { buyers: TrackerRow[] }) {
   }
 
   return (
-    <div className="bg-card rounded-2xl border border-white/5 p-4 shadow-xl">
+    <div className="bg-card rounded-2xl border border-line-2 p-4 shadow-xl">
       <div className="flex items-center gap-2 mb-4">
         <Shield className="w-4 h-4 text-blue-400" />
         <span className="text-xs font-black text-white uppercase tracking-wider">Broker Concentration</span>
@@ -1277,7 +1277,7 @@ function StanceHistoryCard({ data, loading }: { data: StanceRow[]; loading: bool
   const newEntrants = sorted.filter(r => r.stance_type === 'NEW_ENTRANT');
 
   return (
-    <div className="bg-card rounded-2xl border border-white/5 p-4 shadow-xl">
+    <div className="bg-card rounded-2xl border border-line-2 p-4 shadow-xl">
       <div className="flex items-center gap-2 mb-2">
         <RefreshCw className="w-4 h-4 text-purple-400" />
         <span className="text-xs font-black text-white uppercase tracking-wider">Broker Stance History</span>
@@ -1459,10 +1459,10 @@ const BandarActionPanel = ({
 
   return (
     <div className={`bg-card rounded-2xl border ${
-      isAccumulate ? 'border-yellow-500/30 shadow-yellow-500/5' : 'border-white/5'
+      isAccumulate ? 'border-yellow-500/30 shadow-yellow-500/5' : 'border-line-2'
     } p-4 shadow-xl space-y-4 transition-all duration-300`}>
       <div className="flex items-center gap-2">
-        <div className={`p-1.5 rounded-lg ${isAccumulate ? 'bg-yellow-400/10' : 'bg-white/5'}`}>
+        <div className={`p-1.5 rounded-lg ${isAccumulate ? 'bg-yellow-400/10' : 'bg-surface-3'}`}>
           <Zap className={`w-4 h-4 ${isAccumulate ? 'text-yellow-400' : 'text-gray-400'}`} />
         </div>
         <div>
@@ -1472,7 +1472,7 @@ const BandarActionPanel = ({
         <div className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black border ${
           isAccumulate
             ? 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20'
-            : 'bg-white/5 text-gray-400 border-white/10'
+            : 'bg-surface-3 text-gray-400 border-line-5'
         }`}>
           Score: {confluenceScore}/5
         </div>
@@ -1548,7 +1548,7 @@ const BandarActionPanel = ({
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Confluence Checklist</p>
         <div className="space-y-2">
           {items.map((item, index) => (
-            <div key={index} className="flex items-start gap-2.5 text-[10px] py-1 border-b border-white/[0.03] last:border-0">
+            <div key={index} className="flex items-start gap-2.5 text-[10px] py-1 border-b border-line-1 last:border-0">
               <span className="mt-0.5 shrink-0 font-bold">
                 {item.pass ? (
                   <span className="text-emerald-400 font-bold">✓</span>
@@ -1572,7 +1572,7 @@ const BandarActionPanel = ({
       <div className={`rounded-xl p-3 border ${
         isAccumulate
           ? 'bg-yellow-400/5 border-yellow-400/20'
-          : 'bg-white/5 border-white/10'
+          : 'bg-surface-3 border-line-5'
       }`}>
         <div className="flex items-center gap-1.5 mb-2">
           <span className="text-xs">🎯</span>
@@ -1672,18 +1672,18 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
           { label: '🔄 Reset',      action: () => { setFilterMinNet(0.5); setFilterMaxSellPct(100); setFilterSmScore(0); } },
         ].map(p => (
           <button key={p.label} onClick={p.action}
-            className="text-[10px] font-bold px-3 py-1.5 rounded-lg border border-border/50 bg-white/[0.03] hover:bg-white/[0.08] hover:border-gold-400/30 text-muted-foreground hover:text-foreground transition-all">
+            className="text-[10px] font-bold px-3 py-1.5 rounded-lg border border-border/50 bg-surface-2 hover:bg-surface-4 hover:border-gold-400/30 text-muted-foreground hover:text-foreground transition-all">
             {p.label}
           </button>
         ))}
-        <span className="w-px h-4 bg-white/10 mx-0.5" />
+        <span className="w-px h-4 bg-surface-5 mx-0.5" />
         {([
           { key: 'whale',   label: '🐋 Whale' },
           { key: 'conc',    label: '💎 Konsentrasi ≥50%' },
           { key: 'foreign', label: '🌐 Net Asing > 0' },
         ] as const).map(t => (
           <button key={t.key} onClick={() => setVf(v => ({ ...v, [t.key]: !v[t.key] }))}
-            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${vf[t.key] ? 'bg-gold-400/15 text-gold-400 border-gold-400/40' : 'border-border/50 bg-white/[0.03] text-muted-foreground hover:text-foreground hover:border-gold-400/30'}`}>
+            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${vf[t.key] ? 'bg-gold-400/15 text-gold-400 border-gold-400/40' : 'border-border/50 bg-surface-2 text-muted-foreground hover:text-foreground hover:border-gold-400/30'}`}>
             {t.label}
           </button>
         ))}
@@ -1700,7 +1700,7 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
             Top {rows.length} Accumulation Candidates
           </span>
           <span className="ml-auto" />
-          <button onClick={exportCSV} className="text-[10px] px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-gray-400 hover:text-gold-400 hover:border-gold-400/30 transition-all flex items-center gap-1">
+          <button onClick={exportCSV} className="text-[10px] px-3 py-1.5 rounded-lg border border-line-5 bg-surface-3 text-gray-400 hover:text-gold-400 hover:border-gold-400/30 transition-all flex items-center gap-1">
             <Download size={14} /> CSV
           </button>
         </div>
@@ -1739,7 +1739,7 @@ function ScreenerResults({ data, screenerSortCol, screenerSortDir, toggleScreene
                 <th className="px-4 py-3 text-right">Price</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-line-1">
               {rows.map((r, i) => {
                 const smColor = (r.smart_money_score ?? 0) >= 4 ? 'text-emerald-400'
                   : (r.smart_money_score ?? 0) >= 2 ? 'text-yellow-400' : 'text-gray-500';
@@ -1862,7 +1862,7 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
           <div className="flex-1">
             <h2 className="text-sm font-black text-foreground">Market Broker Intelligence</h2>
             <p className="text-[11px] text-muted-foreground/65 mt-1 leading-relaxed">
-              Tab ini menjawab: <strong className="text-foreground/80">"Broker mana yang smart money?"</strong>
+              Tab ini menjawab: <strong className="text-foreground/80">&ldquo;Broker mana yang smart money?&rdquo;</strong>
               Gunakan untuk memfilter noise — fokus hanya ke broker yang histori beli-nya konsisten menghasilkan return positif.
             </p>
             <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -1891,13 +1891,13 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
         </div>
       )}
       {latestBreadth && (
-        <div className="bg-card rounded-2xl border border-white/5 p-4 shadow-xl">
+        <div className="bg-card rounded-2xl border border-line-2 p-4 shadow-xl">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-4 h-4 text-yellow-400" />
             <span className="text-xs font-black text-white uppercase tracking-wider">Market-Wide Broker Breadth</span>
             <span className="text-[10px] text-gray-500 ml-auto">{latestBreadth.date}</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 stagger">
             {[
               { label: 'Active Brokers', value: latestBreadth.broker_count?.toLocaleString(), color: 'text-white' },
               { label: 'Stocks Traded',  value: latestBreadth.stock_count?.toLocaleString(),  color: 'text-white' },
@@ -1939,9 +1939,9 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
               {icon}
               <span className={`text-[10px] uppercase tracking-widest font-black ${color === 'emerald' ? 'text-emerald-400' : 'text-red-400'}`}>{title}</span>
             </div>
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-line-2">
               {data.map((r, i) => (
-                <div key={r.broker_code} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.02]">
+                <div key={r.broker_code} className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-1">
                   <span className="text-[10px] text-gray-600 w-4 font-mono">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-black text-white">{r.broker_code}</p>
@@ -1977,9 +1977,9 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
                   <th className="px-4 py-2.5 text-right">All-Time Net</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-line-2">
                 {consistency.map((r, i) => (
-                  <tr key={r.broker_code} className="hover:bg-white/[0.02]">
+                  <tr key={r.broker_code} className="hover:bg-surface-1">
                     <td className="px-4 py-2.5 text-gray-600 font-mono">{i + 1}</td>
                     <td className="px-4 py-2.5">
                       <p className="font-black text-white">{r.broker_code}</p>
@@ -2029,9 +2029,9 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
                   <th className="px-4 py-2.5 text-right">Total Net Flow</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-line-2">
                 {brokerAlpha.map((r, i) => (
-                  <tr key={r.broker_code} className="hover:bg-white/[0.02]">
+                  <tr key={r.broker_code} className="hover:bg-surface-1">
                     <td className="px-4 py-2.5 text-gray-600 font-mono">{i + 1}</td>
                     <td className="px-4 py-2.5">
                       <p className="font-black text-white">{r.broker_code}</p>
@@ -2096,21 +2096,21 @@ function BrokerStalkingTab({ data }: { data: BrokerStalkerRow[] }) {
     <div className="space-y-4 animate-fade-in">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-card p-4 rounded-xl border border-white/5">
+        <div className="bg-card p-4 rounded-xl border border-line-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1"># Saham</p>
           <p className="text-xl font-black text-white">{totalStocks}</p>
         </div>
-        <div className="bg-card p-4 rounded-xl border border-white/5">
+        <div className="bg-card p-4 rounded-xl border border-line-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Total Net</p>
           <p className={`text-xl font-black ${totalNet >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {totalNet >= 0 ? '+' : ''}{fmt(totalNet)}
           </p>
         </div>
-        <div className="bg-card p-4 rounded-xl border border-white/5">
+        <div className="bg-card p-4 rounded-xl border border-line-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Top Emiten</p>
           <p className="text-xl font-black text-yellow-400">{topEmiten}</p>
         </div>
-        <div className="bg-card p-4 rounded-xl border border-white/5">
+        <div className="bg-card p-4 rounded-xl border border-line-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Konsentrasi (Top 3)</p>
           <p className="text-xl font-black text-white">{concentration.toFixed(1)}%</p>
         </div>
@@ -2142,9 +2142,9 @@ function BrokerStalkingTab({ data }: { data: BrokerStalkerRow[] }) {
                   <th className="px-3 py-2.5 text-right">B.AVG</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-line-2">
                 {filteredNetBuy.map(r => (
-                  <tr key={r.stock_code} className="hover:bg-white/[0.03]">
+                  <tr key={r.stock_code} className="hover:bg-surface-2">
                     <td className="px-3 py-2 font-black text-white">{r.stock_code}</td>
                     <td className="px-3 py-2 text-right font-bold text-emerald-400 font-mono">{fmt(r.net_val)}</td>
                     <td className="px-3 py-2 text-right text-gray-400 font-mono hidden xl:table-cell">{fmt(r.buy_val)}</td>
@@ -2187,9 +2187,9 @@ function BrokerStalkingTab({ data }: { data: BrokerStalkerRow[] }) {
                   <th className="px-3 py-2.5 text-right">S.AVG</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-line-2">
                 {filteredNetSell.map(r => (
-                  <tr key={r.stock_code} className="hover:bg-white/[0.03]">
+                  <tr key={r.stock_code} className="hover:bg-surface-2">
                     <td className="px-3 py-2 font-black text-white">{r.stock_code}</td>
                     <td className="px-3 py-2 text-right font-bold text-red-400 font-mono">{fmt(Math.abs(r.net_val))}</td>
                     <td className="px-3 py-2 text-right text-gray-400 font-mono hidden xl:table-cell">{fmt(r.buy_val)}</td>
@@ -2426,7 +2426,7 @@ export default function BrokerTrackerPage() {
     setStanceLoading(false);
   }, []);
 
-  useEffect(() => { loadBrokerIntel(); }, []);
+  useEffect(() => { loadBrokerIntel(); /* eslint-disable-line react-hooks/exhaustive-deps */ }, []);
 
   // ── Inventory tab — candle + per-broker cumulative net for the current code ──
   const loadInventory = useCallback(() => {
@@ -2650,7 +2650,7 @@ export default function BrokerTrackerPage() {
                 <th className="px-3 py-2.5 text-right">BAL</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-line-2">
               {slice.map((r, i) => {
                 const netColor = r.net_val > 0 ? 'text-emerald-400' : 'text-red-400';
                 const avgPx    = isBuy ? r.buy_avg_price  : r.sell_avg_price;
@@ -2658,7 +2658,7 @@ export default function BrokerTrackerPage() {
                 const pnl      = r.floating_pnl;
                 const streak   = r.buy_consistency_pct;
                 return (
-                  <tr key={r.broker_code} className="hover:bg-white/[0.03] transition-colors group">
+                  <tr key={r.broker_code} className="hover:bg-surface-2 transition-colors group">
                     <td className="px-3 py-2.5 text-gray-600 font-mono text-[10px]">{i + 1}</td>
                     <td className="px-3 py-2.5">
                       <button
@@ -2769,7 +2769,7 @@ export default function BrokerTrackerPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl w-full md:w-auto">
+        <div className="flex gap-1.5 bg-surface-3 p-1 rounded-xl w-full md:w-auto">
           {([
             { id: 'tracker', label: 'Tracker', icon: <Eye className="w-3 h-3" />, count: trackerData.length },
             { id: 'screener', label: 'Screener', icon: <Target className="w-3 h-3" />, count: screenerData.length },
@@ -2781,8 +2781,8 @@ export default function BrokerTrackerPage() {
               onClick={() => { setActiveTab(tab.id); setError(null); }}
               className={`relative flex-1 md:flex-none flex items-center gap-1.5 px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-white/[0.08] text-gold-400 shadow-lg shadow-gold-400/5'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                  ? 'bg-surface-4 text-gold-400 shadow-lg shadow-gold-400/5'
+                  : 'text-gray-400 hover:text-white hover:bg-surface-3'
               }`}
             >
               <span className={activeTab === tab.id ? 'opacity-100' : 'opacity-50'}>{tab.icon}</span>
@@ -2791,7 +2791,7 @@ export default function BrokerTrackerPage() {
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black ${
                   activeTab === tab.id
                     ? 'bg-gold-400/15 text-gold-400'
-                    : 'bg-white/[0.06] text-gray-500'
+                    : 'bg-surface-4 text-gray-500'
                 }`}>
                   {tab.count > 99 ? '99+' : tab.count}
                 </span>
@@ -2824,14 +2824,14 @@ export default function BrokerTrackerPage() {
                     {activeTab === 'stalking' ? (
                       <input value={stalkerBrokers} onChange={e => setStalkerBrokers(e.target.value.toUpperCase())}
                         onKeyDown={e => e.key === 'Enter' && loadStalkerData()}
-                        className="w-40 bg-background border border-white/5 rounded-lg pl-8 pr-3 py-2
+                        className="w-40 bg-background border border-line-2 rounded-lg pl-8 pr-3 py-2
                                    text-sm font-black text-yellow-400 focus:ring-1 focus:ring-yellow-400
                                    outline-none placeholder:text-gray-600"
                         placeholder="AK, LG, BK" />
                     ) : (
                       <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
                         onKeyDown={e => e.key === 'Enter' && loadData()}
-                        className="w-28 bg-background border border-white/5 rounded-lg pl-8 pr-3 py-2
+                        className="w-28 bg-background border border-line-2 rounded-lg pl-8 pr-3 py-2
                                    text-sm font-black text-yellow-400 focus:ring-1 focus:ring-yellow-400
                                    outline-none placeholder:text-gray-600"
                         placeholder="BBCA" maxLength={10} />
@@ -2839,8 +2839,8 @@ export default function BrokerTrackerPage() {
                   </div>
                   {activeTab === 'tracker' && code.trim().length >= 2 && (
                     <Link href={`/stock/${code.trim().toUpperCase()}`} prefetch={false}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10
-                                 bg-white/[0.04] text-[10px] font-bold text-gray-400 hover:text-gold-400
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-line-5
+                                 bg-surface-3 text-[10px] font-bold text-gray-400 hover:text-gold-400
                                  hover:border-gold-400/30 transition-all whitespace-nowrap group">
                       <BarChart3 className="w-3.5 h-3.5 group-hover:text-gold-400" />
                       Stock Chart
@@ -2855,7 +2855,7 @@ export default function BrokerTrackerPage() {
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">Sektor</label>
                   <select value={filterSector} onChange={e => setFilterSector(e.target.value)}
-                    className="bg-background border border-white/10 rounded-lg px-3 py-2 text-[11px]
+                    className="bg-background border border-line-5 rounded-lg px-3 py-2 text-[11px]
                                text-gray-300 outline-none focus:border-yellow-400/40 [color-scheme:dark] min-w-[140px]">
                     <option value="">Semua Sektor</option>
                     {sectorList.map(s => <option key={s} value={s}>{s}</option>)}
@@ -2891,7 +2891,7 @@ export default function BrokerTrackerPage() {
                   </div>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <div className={`w-8 h-4 rounded-full transition-colors ${filterWhaleOnly ? 'bg-yellow-400' : 'bg-white/10'}`}
+                  <div className={`w-8 h-4 rounded-full transition-colors ${filterWhaleOnly ? 'bg-yellow-400' : 'bg-surface-5'}`}
                     onClick={() => setFilterWhaleOnly(v => !v)}>
                     <div className={`w-3 h-3 bg-white rounded-full mt-0.5 transition-transform ${filterWhaleOnly ? 'translate-x-4' : 'translate-x-0.5'}`} />
                   </div>
@@ -2919,13 +2919,13 @@ export default function BrokerTrackerPage() {
                 <div className="flex items-center gap-2">
                   <input type="date" value={startDate}
                     onChange={e => { setStartDate(e.target.value); setActivePreset('custom'); }}
-                    className="bg-background border border-white/10 rounded-lg px-3 py-1.5 text-[11px]
+                    className="bg-background border border-line-5 rounded-lg px-3 py-1.5 text-[11px]
                                text-gray-300 outline-none cursor-pointer [color-scheme:dark]
                                focus:border-yellow-400/40 focus:ring-1 focus:ring-yellow-400/20" />
                   <span className="text-gray-600 text-xs select-none">→</span>
                   <input type="date" value={endDate}
                     onChange={e => { setEndDate(e.target.value); setActivePreset('custom'); }}
-                    className="bg-background border border-white/10 rounded-lg px-3 py-1.5 text-[11px]
+                    className="bg-background border border-line-5 rounded-lg px-3 py-1.5 text-[11px]
                                text-gray-300 outline-none cursor-pointer [color-scheme:dark]
                                focus:border-yellow-400/40 focus:ring-1 focus:ring-yellow-400/20" />
                 </div>
@@ -3085,7 +3085,7 @@ export default function BrokerTrackerPage() {
           </p>
           <div className="mt-4 flex flex-wrap gap-2 justify-center text-[10px] text-muted-foreground/40">
             {['Net Akumulasi ≥ 500 Jt', 'Sell Pressure ≤ 85%', 'Broker Count ≥ 3'].map(t => (
-              <span key={t} className="px-2.5 py-1 rounded-full border border-border/30 bg-white/[0.02]">{t}</span>
+              <span key={t} className="px-2.5 py-1 rounded-full border border-border/30 bg-surface-1">{t}</span>
             ))}
           </div>
         </div>
@@ -3143,7 +3143,7 @@ export default function BrokerTrackerPage() {
               <input type="date" value={invEnd} min={invStart} onChange={e => setInvEnd(e.target.value)}
                 className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gold-400/50" />
             </div>
-            <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-surface-3 rounded-lg p-1">
               <span className="text-[9px] text-muted-foreground/50 px-1 uppercase tracking-wider">Top</span>
               {[3, 5, 8].map(n => (
                 <button key={n} onClick={() => setInvTopN(n)}

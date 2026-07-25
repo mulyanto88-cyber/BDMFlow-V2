@@ -16,7 +16,7 @@ export function TechnicalsWidget({ stockCode }: Props) {
   const whaleActivity = data?.whaleActivity
 
   if (!volumeSpikes.length && !whaleActivity) return (
-    <div className="glass rounded-2xl p-10 text-center border border-white/[0.06]">
+    <div className="glass rounded-2xl p-10 text-center border border-line-3">
       <BarChartIcon className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-40" />
       <p className="text-sm text-muted-foreground">Data teknikal tidak tersedia untuk saham ini.</p>
     </div>
@@ -25,7 +25,7 @@ export function TechnicalsWidget({ stockCode }: Props) {
   return (
     <div className="space-y-4">
       {(volumeSpikes.length > 0 || whaleActivity) && (
-        <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+        <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-4 h-4 text-orange-400" />
             <h2 className="text-sm font-black uppercase tracking-widest">Volume & Whale Activity</h2>
@@ -43,7 +43,7 @@ export function TechnicalsWidget({ stockCode }: Props) {
                     { l: 'Total Foreign', v: formatRupiah(Number(whaleActivity.total_foreign)),         c: whaleActivity.total_foreign>=0?'text-emerald-400':'text-red-400', sub: '' },
                     { l: 'Avg Price',     v: formatRupiah(Number(whaleActivity.avg_price)),             c: 'text-purple-400', sub: `AOV: ${Number(whaleActivity.avg_aov_ratio).toFixed(2)}x` },
                   ].map((m, i) => (
-                    <div key={i} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+                    <div key={i} className="p-3 rounded-xl bg-surface-2 border border-line-2 text-center">
                       <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
                       <p className={`text-sm font-black mt-1 ${m.c}`}>{m.v}</p>
                       {m.sub && <p className="text-[8px] text-muted-foreground mt-0.5">{m.sub}</p>}
@@ -64,7 +64,7 @@ export function TechnicalsWidget({ stockCode }: Props) {
                   {volumeSpikes.map((s: any, i: number) => {
                     const isBull = Number(s.change_percent) >= 0
                     return (
-                      <div key={i} className={`flex items-center justify-between p-2.5 rounded-lg border ${s.spike_type==='BREAKOUT'?'bg-emerald-500/[0.05] border-emerald-500/[0.12]':s.spike_type==='BREAKDOWN'?'bg-red-500/[0.05] border-red-500/[0.12]':s.spike_type==='HIGH_VOLUME'?'bg-orange-500/[0.05] border-orange-500/[0.12]':'bg-white/[0.02] border-white/[0.06]'}`}>
+                      <div key={i} className={`flex items-center justify-between p-2.5 rounded-lg border ${s.spike_type==='BREAKOUT'?'bg-emerald-500/[0.05] border-emerald-500/[0.12]':s.spike_type==='BREAKDOWN'?'bg-red-500/[0.05] border-red-500/[0.12]':s.spike_type==='HIGH_VOLUME'?'bg-orange-500/[0.05] border-orange-500/[0.12]':'bg-surface-1 border-line-3'}`}>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] text-muted-foreground font-mono">{String(s.trading_date).slice(0,10)}</span>

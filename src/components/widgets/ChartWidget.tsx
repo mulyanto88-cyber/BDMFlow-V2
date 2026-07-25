@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Maximize2, Minimize2, Loader2, AlertTriangle } from 'lucide-react'
 import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
@@ -21,7 +21,7 @@ export function ChartWidget({ stockCode: propCode }: ChartWidgetProps) {
   const code = propCode || activeTicker
 
   const { data, isLoading, error } = useStockOverview(code, period)
-  const historyData = data?.historyData || []
+  const historyData = useMemo(() => data?.historyData || [], [data?.historyData]);
 
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartWrapRef = useRef<HTMLDivElement>(null)
@@ -178,12 +178,12 @@ export function ChartWidget({ stockCode: propCode }: ChartWidgetProps) {
     return () => { window.removeEventListener('resize', handleResize); chart.remove() }
   }, [historyData, chartReady, isFullscreen])
 
-  if (!code) return <div className="glass rounded-2xl p-5 text-center text-muted-foreground border border-white/[0.06]">Pilih saham untuk melihat Chart</div>
+  if (!code) return <div className="glass rounded-2xl p-5 text-center text-muted-foreground border border-line-3">Pilih saham untuk melihat Chart</div>
 
   return (
-    <div ref={chartWrapRef} className={`glass rounded-2xl p-4 border border-white/[0.06] relative group ${isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-background flex flex-col' : ''}`}>
+    <div ref={chartWrapRef} className={`glass rounded-2xl p-4 border border-line-3 relative group ${isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-background flex flex-col' : ''}`}>
       <div className="relative z-10 flex items-center justify-between mb-3 flex-wrap gap-2">
-        <div className="flex items-center gap-1 bg-white/[0.03] rounded-lg p-0.5 border border-white/[0.06]">
+        <div className="flex items-center gap-1 bg-surface-2 rounded-lg p-0.5 border border-line-3">
           {PERIOD_OPTIONS.map(opt => (
             <button key={opt.days} onClick={() => setPeriod(opt.days)}
               className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${period === opt.days ? 'bg-gold-400/20 text-gold-400' : 'text-muted-foreground hover:text-foreground'}`}>
@@ -191,7 +191,7 @@ export function ChartWidget({ stockCode: propCode }: ChartWidgetProps) {
             </button>
           ))}
         </div>
-        <button onClick={toggleFullscreen} className="p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-muted-foreground hover:text-gold-400 transition-colors">
+        <button onClick={toggleFullscreen} className="p-1.5 rounded-lg bg-surface-2 border border-line-3 text-muted-foreground hover:text-gold-400 transition-colors">
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
       </div>

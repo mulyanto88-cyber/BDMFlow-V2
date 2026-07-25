@@ -87,7 +87,7 @@ export default function ActionCenter() {
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
       {/* Signal list */}
       {expanded && (
-        <div className="glass rounded-2xl border border-white/[0.08] shadow-2xl w-80 max-h-[60vh] overflow-y-auto p-3 space-y-2 animate-scale-in">
+        <div className="glass rounded-2xl border border-line-4 shadow-2xl w-80 max-h-[60vh] overflow-y-auto p-3 space-y-2 animate-scale-in">
           <div className="flex items-center justify-between px-1 mb-1">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -122,7 +122,7 @@ export default function ActionCenter() {
       {/* Toggle button */}
       <button
         onClick={() => { setExpanded(!expanded); setHasNew(false) }}
-        className={`relative flex items-center gap-2 px-3.5 py-2.5 rounded-full border border-white/[0.1] bg-black/80 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${
+        className={`relative flex items-center gap-2 px-3.5 py-2.5 rounded-full border border-line-5 bg-black/80 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${
           hasNew ? 'ring-2 ring-emerald-400/50 animate-glow-pulse' : ''
         }`}
       >

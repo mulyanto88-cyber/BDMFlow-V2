@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Activity } from 'lucide-react'
 import { formatRupiah } from '@/lib/utils'
+import { mdQuery } from '@/lib/api'
 
 type SectorData = {
   sector: string
@@ -19,15 +20,8 @@ const WINDOW_OPTIONS = [
 ]
 
 async function fetchSectorRotation(window: number): Promise<SectorData[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `SELECT * FROM market.vw_sector_analytics ORDER BY momentum_score DESC`,
-    }),
-  })
-  const json = await res.json()
-  return (json.data || []).map((d: any) => ({
+  const data = await mdQuery('sector.analytics')
+  return data.map((d: any) => ({
     sector: d.sector,
     stock_count: Number(d.stock_count),
     avg_change_pct: Number(d.avg_change_pct),
@@ -53,7 +47,7 @@ export default function SectorRotationWidget() {
   useEffect(() => { fetchSectors(window) }, [window, fetchSectors])
 
   return (
-    <div className="glass rounded-2xl p-5 border border-white/[0.06]">
+    <div className="glass rounded-2xl p-5 border border-line-3">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-purple-400" />
@@ -61,10 +55,10 @@ export default function SectorRotationWidget() {
           <span className="text-[9px] text-muted-foreground/40 hidden sm:inline">· {window}D momentum</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-white/[0.04] rounded-lg p-0.5 border border-white/[0.06]">
+          <div className="flex bg-surface-3 rounded-lg p-0.5 border border-line-3">
             {WINDOW_OPTIONS.map((opt) => (
               <button key={opt.value} onClick={() => setWindow(opt.value)}
-                className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${window === opt.value ? 'bg-gold-400/20 text-gold-400 shadow-sm' : 'text-muted-foreground hover:text-white hover:bg-white/[0.04]'}`}>
+                className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${window === opt.value ? 'bg-gold-400/20 text-gold-400 shadow-sm' : 'text-muted-foreground hover:text-white hover:bg-surface-3'}`}>
                 {opt.label}
               </button>
             ))}
@@ -74,7 +68,7 @@ export default function SectorRotationWidget() {
       </div>
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-          {[...Array(6)].map((_, i) => <div key={i} className="rounded-xl p-4 bg-white/[0.02] border border-white/5 animate-pulse h-24" />)}
+          {[...Array(6)].map((_, i) => <div key={i} className="rounded-xl p-4 bg-surface-1 border border-line-2 animate-pulse h-24" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -89,20 +83,20 @@ export default function SectorRotationWidget() {
                 className={`relative rounded-xl p-4 border transition-all duration-300 group cursor-pointer ${
                   isInflow ? 'bg-emerald-500/5 border-emerald-500/30 hover:bg-emerald-500/10'
                   : isOutflow ? 'bg-red-500/5 border-red-500/30 hover:bg-red-500/10'
-                  : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'
+                  : 'bg-surface-1 border-line-2 hover:bg-surface-3'
                 }`}>
                 <p className="text-[10px] font-black text-foreground/80 truncate uppercase tracking-wider">{sec.sector}</p>
                 <p className={`text-xl font-black ${priceUp ? 'text-emerald-400' : priceDown ? 'text-red-400' : 'text-muted-foreground'}`}>
                   {priceUp ? '+' : ''}{Number(sec.avg_change_pct).toFixed(2)}%
                 </p>
-                <div className="mt-2 pt-2 border-t border-white/[0.04] flex items-center justify-between">
+                <div className="mt-2 pt-2 border-t border-line-1 flex items-center justify-between">
                   <span className="text-[9px] font-bold text-muted-foreground/60">{sec.stock_count} stk</span>
                   <span className={`text-[9px] font-black ${isInflow ? 'text-emerald-400' : isOutflow ? 'text-red-400' : 'text-muted-foreground'}`}>
                     {formatRupiah(sec.total_net_foreign)}
                   </span>
                 </div>
                 <div className={`mt-2 px-2 py-0.5 rounded-full text-[8px] font-black text-center uppercase tracking-wider ${
-                  isInflow ? 'bg-emerald-500/20 text-emerald-300' : isOutflow ? 'bg-red-500/20 text-red-300' : 'bg-white/5 text-muted-foreground'
+                  isInflow ? 'bg-emerald-500/20 text-emerald-300' : isOutflow ? 'bg-red-500/20 text-red-300' : 'bg-surface-3 text-muted-foreground'
                 }`}>{sec.momentum?.replace(/_/g, ' ') || 'NEUTRAL'}</div>
               </Link>
             )

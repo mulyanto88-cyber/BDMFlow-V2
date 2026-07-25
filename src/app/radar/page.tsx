@@ -509,7 +509,7 @@ export default function RadarPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-white/[0.06] bg-white/[0.02]">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-line-3 bg-surface-1">
               <span className="text-xs text-muted-foreground">
                 {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} dari {filtered.length}
               </span>

@@ -12,12 +12,12 @@ export function KSEIIntelWidget({ stockCode }: Props) {
   if (isLoading) return <div className="h-48 shimmer rounded-xl" />
 
   if (kseiTrend.length === 0) return (
-    <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-white/[0.06]">Belum ada data KSEI untuk saham ini.</div>
+    <div className="glass rounded-2xl p-12 text-center text-muted-foreground/50 text-sm border border-line-3">Belum ada data KSEI untuk saham ini.</div>
   )
 
   return (
     <div className="space-y-4">
-      <div className="glass rounded-2xl border border-white/[0.06] p-4">
+      <div className="glass rounded-2xl border border-line-3 p-4">
         <div className="text-sm font-bold mb-3">Net Smart Money Bulanan (CP+PF+IB) — 12 bulan</div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={kseiTrend} margin={{top:4,bottom:4,left:0,right:0}}>
@@ -33,7 +33,7 @@ export function KSEIIntelWidget({ stockCode }: Props) {
         </ResponsiveContainer>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="glass rounded-2xl border border-white/[0.06] p-4">
+        <div className="glass rounded-2xl border border-line-3 p-4">
           <div className="text-sm font-bold mb-3">Breakdown Institusi Bulan Terakhir</div>
           {kseiTrend.slice(-1).map((d: any) => (
             <div key={d.month} className="space-y-2">
@@ -44,7 +44,7 @@ export function KSEIIntelWidget({ stockCode }: Props) {
                 {l:'Retail (ID)',         v: d.retail},
                 {l:'Foreign Smart',       v: d.foreign_smart},
               ].map(item => (
-                <div key={item.l} className="flex items-center justify-between text-xs py-1 border-b border-white/[0.04] last:border-0">
+                <div key={item.l} className="flex items-center justify-between text-xs py-1 border-b border-line-1 last:border-0">
                   <span className="text-muted-foreground">{item.l}</span>
                   <span className={`font-bold ${Number(item.v)>=0?'text-emerald-400':'text-red-400'}`}>
                     {Number(item.v)>=0?'+':''}{Number(item.v||0).toFixed(2)} M
@@ -54,7 +54,7 @@ export function KSEIIntelWidget({ stockCode }: Props) {
             </div>
           ))}
         </div>
-        <div className="glass rounded-2xl border border-white/[0.06] p-4">
+        <div className="glass rounded-2xl border border-line-3 p-4">
           <div className="text-sm font-bold mb-3">Trend Retail vs Smart 3 Bulan</div>
           <ResponsiveContainer width="100%" height={160}>
             <LineChart data={kseiTrend.slice(-6)} margin={{top:4,bottom:4,left:0,right:0}}>

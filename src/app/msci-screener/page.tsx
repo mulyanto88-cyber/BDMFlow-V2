@@ -82,7 +82,7 @@ const STATUS_UI: Record<MsciStatus, { label: string; badgeCls: string; rowCls: s
   AT_RISK:      { label: 'At Risk',      badgeCls: 'bg-red-500/10     text-red-300     border-red-500/30',     rowCls: 'bg-red-500/[0.025]',    dotCls: 'bg-red-400' },
   CANDIDATE:    { label: 'Candidate',    badgeCls: 'bg-blue-500/10    text-blue-300    border-blue-500/30',    rowCls: 'bg-blue-500/[0.025]',   dotCls: 'bg-blue-400' },
   NEARLY:       { label: 'Nearly',       badgeCls: 'bg-amber-500/10   text-amber-300   border-amber-500/30',   rowCls: 'bg-amber-500/[0.02]',   dotCls: 'bg-amber-400' },
-  NOT_ELIGIBLE: { label: 'Not Eligible', badgeCls: 'bg-white/5        text-gray-500    border-white/10',       rowCls: '',                      dotCls: 'bg-gray-600' },
+  NOT_ELIGIBLE: { label: 'Not Eligible', badgeCls: 'bg-surface-3        text-gray-500    border-line-5',       rowCls: '',                      dotCls: 'bg-gray-600' },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -367,7 +367,7 @@ export default function MSCIScreenerPage() {
     <div className="min-h-screen animate-fade-in">
 
       {/* Header */}
-      <div className="relative border-b border-white/5">
+      <div className="relative border-b border-line-2">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-900/10 via-yellow-900/5 to-transparent pointer-events-none" />
         <div className="relative px-6 py-5 max-w-[1600px] mx-auto flex items-center gap-3">
           <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
@@ -401,7 +401,7 @@ export default function MSCIScreenerPage() {
                 <Calculator className="w-4 h-4 text-gold-400" />
                 <span className="text-sm font-black">Parameter Simulasi MSCI</span>
               </div>
-              <div className="flex bg-white/5 p-1 rounded-xl">
+              <div className="flex bg-surface-3 p-1 rounded-xl">
                 {(['STANDARD', 'SMALLCAP'] as Category[]).map(c => (
                   <button key={c} onClick={() => setCategory(c)}
                     className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
@@ -413,26 +413,26 @@ export default function MSCIScreenerPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {/* Kurs */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Kurs USD/IDR</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <span className="text-[10px] text-gray-500">Rp</span>
                   <input type="number" value={exchangeRate} onChange={e => setExchangeRate(Number(e.target.value))}
                     className="bg-transparent w-full text-white text-xs font-mono font-bold focus:outline-none" />
                 </div>
               </div>
               {/* As-Of Date */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Tanggal As-Of</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <input type="date" value={asOfDate} onChange={e => setAsOfDate(e.target.value)}
                     className="bg-transparent w-full text-white text-[11px] font-mono font-bold focus:outline-none [&::-webkit-calendar-picker-indicator]:invert" />
                 </div>
               </div>
               {/* Full MC */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Min Full MC</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <span className="text-[10px] text-gray-500">$</span>
                   <input type="number" value={fullMcMin} onChange={e => setFullMcMin(Number(e.target.value))}
                     className="bg-transparent w-full text-white text-xs font-mono font-bold focus:outline-none" />
@@ -440,9 +440,9 @@ export default function MSCIScreenerPage() {
                 </div>
               </div>
               {/* Float MC */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Min Float MC</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <span className="text-[10px] text-gray-500">$</span>
                   <input type="number" value={floatMcMin} onChange={e => setFloatMcMin(Number(e.target.value))}
                     className="bg-transparent w-full text-white text-xs font-mono font-bold focus:outline-none" />
@@ -450,34 +450,34 @@ export default function MSCIScreenerPage() {
                 </div>
               </div>
               {/* FIF */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Min FIF</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <input type="number" value={fifMin} onChange={e => setFifMin(Number(e.target.value))}
                     className="bg-transparent w-full text-white text-xs font-mono font-bold focus:outline-none" />
                   <span className="text-[10px] text-gray-500">%</span>
                 </div>
               </div>
               {/* 3M ATVR */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Min 3M ATVR</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <input type="number" value={atvr3mMin} onChange={e => setAtvr3mMin(Number(e.target.value))}
                     className="bg-transparent w-full text-white text-xs font-mono font-bold focus:outline-none" />
                   <span className="text-[10px] text-gray-500">%</span>
                 </div>
               </div>
               {/* 12M ATVR */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="bg-surface-3 border border-line-5 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gray-500 mb-1.5 font-bold">Min 12M ATVR</label>
-                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-white/5">
+                <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-line-2">
                   <input type="number" value={atvr12mMin} onChange={e => setAtvr12mMin(Number(e.target.value))}
                     className="bg-transparent w-full text-white text-xs font-mono font-bold focus:outline-none" />
                   <span className="text-[10px] text-gray-500">%</span>
                 </div>
               </div>
               {/* 3M FOT */}
-              <div className="bg-white/5 border border-gold-400/20 rounded-xl p-3">
+              <div className="bg-surface-3 border border-gold-400/20 rounded-xl p-3">
                 <label className="block text-[9px] uppercase tracking-wider text-gold-400/70 mb-1.5 font-bold">Min 3M FOT ✦ NEW</label>
                 <div className="flex items-center gap-1.5 bg-background rounded-lg px-2.5 py-1.5 border border-gold-400/20">
                   <input type="number" value={fot3mMin} onChange={e => setFot3mMin(Number(e.target.value))}
@@ -487,7 +487,7 @@ export default function MSCIScreenerPage() {
               </div>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-3 text-[9px] text-gray-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+            <div className="mt-3 flex flex-wrap gap-3 text-[9px] text-gray-400 bg-surface-3 px-4 py-2 rounded-xl border border-line-2">
               <span className="flex items-center gap-1.5"><Info className="w-3.5 h-3.5 text-gold-400" /> FIF &lt; {fifMin}% → Float MC dikali <strong>1.8×</strong></span>
               <span className="flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5 text-yellow-500" /> HSC: Top holders KSEI ≥ 85%</span>
               <span className="flex items-center gap-1.5"><Info className="w-3.5 h-3.5 text-blue-400" /> FOT = Hari diperdagangkan ÷ Total hari bursa 3 bulan</span>
@@ -528,7 +528,7 @@ export default function MSCIScreenerPage() {
                   </div>
                   <Target className="w-7 h-7 text-blue-500/40" />
                 </button>
-                <div className="col-span-2 glass rounded-xl border border-white/5 p-4 flex items-center justify-between">
+                <div className="col-span-2 glass rounded-xl border border-line-2 p-4 flex items-center justify-between">
                   <div>
                     <p className="text-[9px] text-emerald-400/80 uppercase font-bold tracking-wider">✓ Current Members</p>
                     <p className="text-2xl font-black text-emerald-400 font-mono mt-1">{counts.current}</p>
@@ -541,9 +541,9 @@ export default function MSCIScreenerPage() {
         </div>
 
         {/* ── Constituent Upload Panel ── */}
-        <div className="glass rounded-2xl border border-white/5 overflow-hidden">
+        <div className="glass rounded-2xl border border-line-2 overflow-hidden">
           <button onClick={() => setShowConstPanel(p => !p)}
-            className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+            className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-surface-1 transition-colors">
             <div className="flex items-center gap-2.5">
               <div className="w-6 h-6 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center">
                 <Upload className="w-3.5 h-3.5 text-gold-400" />
@@ -561,7 +561,7 @@ export default function MSCIScreenerPage() {
                   </span>
                 )}
                 {stdList.length === 0 && scList.length === 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/5 text-gray-500 border border-white/10">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-surface-3 text-gray-500 border border-line-5">
                     Upload CSV MSCI → deteksi saham Potential IN/OUT
                   </span>
                 )}
@@ -571,14 +571,14 @@ export default function MSCIScreenerPage() {
           </button>
 
           {showConstPanel && (
-            <div className="px-5 pb-5 pt-4 border-t border-white/5 space-y-4">
+            <div className="px-5 pb-5 pt-4 border-t border-line-2 space-y-4">
 
               {/* Smart Upload Banner */}
               <div className="bg-gradient-to-r from-amber-900/10 to-yellow-900/5 border border-gold-400/20 rounded-xl p-4 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-black text-gold-400 mb-0.5">⚡ Smart Upload — 1 File untuk Standard & Small Cap</p>
-                  <p className="text-[10px] text-gray-500">Jika CSV punya kolom <code className="bg-white/10 px-1 rounded text-gold-400">Category</code>, sistem otomatis pisah Standard dan Small Cap dalam satu kali upload.</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Format: <code className="bg-white/10 px-1 rounded text-gray-400">Code, Name, Category</code> — Category berisi kata "Standard" atau "Small".</p>
+                  <p className="text-[10px] text-gray-500">Jika CSV punya kolom <code className="bg-surface-5 px-1 rounded text-gold-400">Category</code>, sistem otomatis pisah Standard dan Small Cap dalam satu kali upload.</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Format: <code className="bg-surface-5 px-1 rounded text-gray-400">Code, Name, Category</code> — Category berisi kata &ldquo;Standard&rdquo; atau &ldquo;Small&rdquo;.</p>
                 </div>
                 <button onClick={() => smartRef.current?.click()}
                   className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-black border bg-gold-400/15 text-gold-400 border-gold-400/30 hover:bg-gold-400/25 transition-colors whitespace-nowrap">
@@ -596,7 +596,7 @@ export default function MSCIScreenerPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Standard */}
-              <div className="bg-white/5 border border-gold-400/20 rounded-xl p-4">
+              <div className="bg-surface-3 border border-gold-400/20 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-gold-400">MSCI Indonesia Standard Index</p>
                   <div className="flex gap-2">
@@ -606,7 +606,7 @@ export default function MSCIScreenerPage() {
                     </button>
                     {stdList.length > 0 && (
                       <button onClick={() => clearList('std')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border bg-white/5 text-gray-400 border-white/10 hover:text-red-400 hover:border-red-500/30 transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border bg-surface-3 text-gray-400 border-line-5 hover:text-red-400 hover:border-red-500/30 transition-colors">
                         <Trash2 className="w-3 h-3" /> Reset
                       </button>
                     )}
@@ -623,7 +623,7 @@ export default function MSCIScreenerPage() {
               </div>
 
               {/* Small Cap */}
-              <div className="bg-white/5 border border-gold-400/20 rounded-xl p-4">
+              <div className="bg-surface-3 border border-gold-400/20 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-gold-400">MSCI Indonesia Small Cap Index</p>
                   <div className="flex gap-2">
@@ -633,7 +633,7 @@ export default function MSCIScreenerPage() {
                     </button>
                     {scList.length > 0 && (
                       <button onClick={() => clearList('sc')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border bg-white/5 text-gray-400 border-white/10 hover:text-red-400 hover:border-red-500/30 transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border bg-surface-3 text-gray-400 border-line-5 hover:text-red-400 hover:border-red-500/30 transition-colors">
                         <Trash2 className="w-3 h-3" /> Reset
                       </button>
                     )}
@@ -654,14 +654,14 @@ export default function MSCIScreenerPage() {
         </div>
 
         {/* ── Table ── */}
-        <div className="glass rounded-2xl border border-white/5 shadow-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5 flex flex-wrap gap-3 items-center justify-between bg-white/[0.02]">
+        <div className="glass rounded-2xl border border-line-2 shadow-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-line-2 flex flex-wrap gap-3 items-center justify-between bg-surface-1">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="text" placeholder="Cari saham..." value={search}
                   onChange={e => setSearch(e.target.value.toUpperCase())}
-                  className="pl-9 pr-4 py-2 bg-white/5 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-gold-400/50 w-48" />
+                  className="pl-9 pr-4 py-2 bg-surface-3 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-gold-400/50 w-48" />
               </div>
 
               {hasConst && (
@@ -672,11 +672,11 @@ export default function MSCIScreenerPage() {
                     { key: 'CANDIDATE',    label: '🎯 Candidate',  cls: 'border-blue-500/40    bg-blue-500/10    text-blue-300'    },
                     { key: 'NEARLY',       label: '◐ Hampir',     cls: 'border-amber-500/40   bg-amber-500/10   text-amber-300'   },
                     { key: 'CURRENT',      label: '✓ Current',    cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
-                    { key: 'NOT_ELIGIBLE', label: 'Not Eligible', cls: 'border-white/20        bg-white/5        text-gray-400'    },
+                    { key: 'NOT_ELIGIBLE', label: 'Not Eligible', cls: 'border-line-6        bg-surface-3        text-gray-400'    },
                   ] as const).map(({ key, label, cls }) => (
                     <button key={key} onClick={() => setStatusFilter(key as StatusFilter)}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
-                        statusFilter === key ? cls : 'border-white/10 bg-white/5 text-gray-600 hover:text-gray-400'
+                        statusFilter === key ? cls : 'border-line-5 bg-surface-3 text-gray-600 hover:text-gray-400'
                       }`}>{label}</button>
                   ))}
                 </div>
@@ -686,7 +686,7 @@ export default function MSCIScreenerPage() {
             <label className="flex items-center gap-2 cursor-pointer group">
               <input type="checkbox" checked={onlyPassed} onChange={e => setOnlyPassed(e.target.checked)} className="hidden" />
               <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
-                onlyPassed ? 'bg-gold-400 border-gold-400' : 'bg-background border-white/20 group-hover:border-white/40'
+                onlyPassed ? 'bg-gold-400 border-gold-400' : 'bg-background border-line-6 group-hover:border-line-6'
               }`}>
                 {onlyPassed && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
               </div>
@@ -695,7 +695,7 @@ export default function MSCIScreenerPage() {
             <label className="flex items-center gap-2 cursor-pointer group" title="Hampir eligible — kandidat yang berpotensi 'didorong' agar masuk MSCI">
               <input type="checkbox" checked={onlyNearly} onChange={e => setOnlyNearly(e.target.checked)} className="hidden" />
               <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
-                onlyNearly ? 'bg-amber-500 border-amber-500' : 'bg-background border-white/20 group-hover:border-white/40'
+                onlyNearly ? 'bg-amber-500 border-amber-500' : 'bg-background border-line-6 group-hover:border-line-6'
               }`}>
                 {onlyNearly && <Target className="w-3.5 h-3.5 text-black" />}
               </div>
@@ -704,7 +704,7 @@ export default function MSCIScreenerPage() {
             <label className="flex items-center gap-2 cursor-pointer group">
               <input type="checkbox" checked={excludeHsc} onChange={e => setExcludeHsc(e.target.checked)} className="hidden" />
               <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
-                excludeHsc ? 'bg-yellow-500 border-yellow-500' : 'bg-background border-white/20 group-hover:border-white/40'
+                excludeHsc ? 'bg-yellow-500 border-yellow-500' : 'bg-background border-line-6 group-hover:border-line-6'
               }`}>
                 {excludeHsc && <XCircle className="w-3.5 h-3.5 text-black" />}
               </div>
@@ -733,7 +733,7 @@ export default function MSCIScreenerPage() {
               </div>
             ) : (
               <table className="w-full text-left border-collapse mobile-pin" style={{ minWidth: hasConst ? 1500 : 1300 }}>
-                <thead className="bg-background border-b border-white/5 sticky top-0 z-10">
+                <thead className="bg-background border-b border-line-2 sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-3 text-[10px] uppercase tracking-widest text-gray-500 w-10">#</th>
                     {[{col:'stock_code',label:'Saham',align:'left'},{col:'full_mc_usd',label:'Full Market Cap',align:'right'},{col:'float_mc_usd',label:'Float Market Cap',align:'right'},{col:'free_float',label:'Free Float / FIF',align:'right'},{col:'atvr_3m',label:'3M ATVR',align:'right'},{col:'atvr_12m',label:'12M ATVR',align:'right'},{col:'fot_3m',label:'3M FOT',align:'right'}].map(({col, label, align}) => (
@@ -751,11 +751,11 @@ export default function MSCIScreenerPage() {
                     <th className="px-4 py-3 text-[10px] uppercase tracking-widest text-gray-500 text-center">Kriteria</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.04]">
+                <tbody className="divide-y divide-line-1">
                   {displayed.map((row, i) => {
                     const sc = STATUS_UI[row.msci_status];
                     return (
-                      <tr key={row.stock_code} className={`hover:bg-white/[0.025] transition-colors ${sc.rowCls}`}>
+                      <tr key={row.stock_code} className={`hover:bg-surface-1 transition-colors ${sc.rowCls}`}>
                         <td className="px-4 py-3 text-xs text-gray-600 font-mono">{i + 1}</td>
                         <td className="px-4 py-3">
                           <Link href={`/stock/${row.stock_code}`} prefetch={false} className="hover:opacity-75 transition-opacity">
@@ -825,7 +825,7 @@ export default function MSCIScreenerPage() {
                               <Target className="w-3.5 h-3.5" /> NEARLY{row.liquidity_ok ? ` · +${row.push_upside_pct.toFixed(0)}%` : ''}
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/5 bg-white/5 text-gray-600 text-[10px] font-bold">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line-2 bg-surface-3 text-gray-600 text-[10px] font-bold">
                               FAILED
                             </div>
                           )}

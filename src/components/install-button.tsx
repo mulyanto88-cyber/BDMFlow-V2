@@ -116,7 +116,7 @@ export default function InstallButton() {
         {iosHelp && (
           <div
             ref={panelRef}
-            className="absolute right-0 top-full mt-2 w-64 p-3.5 rounded-2xl border border-white/[0.08] bg-black/90 backdrop-blur-2xl shadow-2xl z-50 animate-scale-in"
+            className="absolute right-0 top-full mt-2 w-64 p-3.5 rounded-2xl border border-line-4 bg-black/90 backdrop-blur-2xl shadow-2xl z-50 animate-scale-in"
             style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)' }}
           >
             <div className="flex items-center justify-between mb-2.5">

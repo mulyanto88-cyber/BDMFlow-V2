@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
         FROM broker_activity ba
         LEFT JOIN broker_classification bc ON bc.broker_code = ba.broker_code
         WHERE ${dateFilter.clause}
-          AND LEFT(ba.stock_code,4) = $${ci}
+          AND ba.stock_code = $${ci}
         GROUP BY ba.broker_code, bc.category, bc.is_prime
         ORDER BY net_val DESC`, p),
         run(`
@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
           ::DOUBLE                                                            AS daily_avg_price
         FROM broker_activity
         WHERE ${dateFilter.clause}
-          AND LEFT(stock_code,4) = $${ci}
+          AND stock_code = $${ci}
         GROUP BY date
         ORDER BY date ASC`, p),
         run(`
@@ -168,7 +168,7 @@ export async function GET(req: NextRequest) {
           WITH daily AS (
             SELECT CAST(date AS DATE) AS d, broker_code, MAX(broker_name) AS broker_name, SUM(lot)::DOUBLE AS net_lot
             FROM broker_activity
-            WHERE LEFT(stock_code,4) = $1 AND ${brokerWhere}
+            WHERE stock_code = $1 AND ${brokerWhere}
             GROUP BY CAST(date AS DATE), broker_code
           ),
           totals AS (
@@ -223,7 +223,7 @@ export async function GET(req: NextRequest) {
         FROM broker_activity ba
         LEFT JOIN broker_classification bc ON bc.broker_code = ba.broker_code
         WHERE ${dateFilter.clause}
-          AND LEFT(ba.stock_code,4) = $${paramIdx}
+          AND ba.stock_code = $${paramIdx}
         GROUP BY ba.broker_code, bc.category, bc.is_prime
         ORDER BY net_val DESC`
 
@@ -246,7 +246,7 @@ export async function GET(req: NextRequest) {
           ::DOUBLE                                                            AS daily_avg_price
         FROM broker_activity
         WHERE ${dateFilter.clause}
-          AND LEFT(stock_code,4) = $${paramIdx}
+          AND stock_code = $${paramIdx}
         GROUP BY date
         ORDER BY date ASC`
 
@@ -306,7 +306,7 @@ export async function GET(req: NextRequest) {
         WITH daily AS (
           SELECT broker_code, CAST(date AS DATE) AS d, SUM(value) AS net_val
           FROM broker_activity
-          WHERE ${dateFilter.clause} AND LEFT(stock_code,4) = $${paramIdx}
+          WHERE ${dateFilter.clause} AND stock_code = $${paramIdx}
           GROUP BY broker_code, CAST(date AS DATE)
         )
         SELECT
@@ -328,22 +328,22 @@ export async function GET(req: NextRequest) {
         SELECT
           broker_code, MAX(broker_name) AS broker_name,
           COUNT(DISTINCT CAST(date AS DATE))    AS active_days,
-          COUNT(DISTINCT LEFT(stock_code,4))    AS total_stocks,
+          COUNT(DISTINCT stock_code)            AS total_stocks,
           SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS total_buy_value,
           ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS total_sell_value,
           SUM(value)::DOUBLE AS net_value,
           ROUND(SUM(CASE WHEN value>0 THEN value ELSE 0 END)*100.0/NULLIF(SUM(ABS(value)),0),1)::DOUBLE AS buy_ratio_pct
-        FROM broker_activity WHERE broker_code = $${paramIdx} GROUP BY broker_code`
+        FROM broker_activity WHERE broker_code = $${paramIdx} AND LENGTH(stock_code) = 4 GROUP BY broker_code`
       const favQuery = `
         SELECT
-          LEFT(stock_code,4) AS stock_code,
+          stock_code,
           SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS buy_value,
           ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS sell_value,
           SUM(value)::DOUBLE AS net_value,
           COUNT(*)::BIGINT   AS total_transactions,
           (SUM(CASE WHEN value>0 THEN value ELSE 0 END)/NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::DOUBLE AS avg_buy_price
-        FROM broker_activity WHERE broker_code = $${paramIdx}
-        GROUP BY LEFT(stock_code,4)
+        FROM broker_activity WHERE broker_code = $${paramIdx} AND LENGTH(stock_code) = 4
+        GROUP BY stock_code
         ORDER BY ABS(SUM(value)) DESC LIMIT 10`
       const [summaryData, favData] = await Promise.all([safeRun(summaryQuery, queryParams), safeRun(favQuery, queryParams)])
       return NextResponse.json({ summary: summaryData, favorites: favData })
@@ -362,7 +362,7 @@ export async function GET(req: NextRequest) {
           FROM broker_activity ba
           JOIN broker_classification bc ON bc.broker_code = ba.broker_code
           WHERE ${dateFilter.clause}
-            AND LEFT(ba.stock_code,4) = $${paramIdx}
+            AND ba.stock_code = $${paramIdx}
             AND LOWER(bc.category) <> 'foreign'
         ),
         foreign_broker_agg AS (
@@ -373,7 +373,7 @@ export async function GET(req: NextRequest) {
           FROM broker_activity ba
           JOIN broker_classification bc ON bc.broker_code = ba.broker_code
           WHERE ${dateFilter.clause}
-            AND LEFT(ba.stock_code,4) = $${paramIdx}
+            AND ba.stock_code = $${paramIdx}
             AND LOWER(bc.category) = 'foreign'
         ),
         foreign_flow_agg AS (
@@ -388,12 +388,12 @@ export async function GET(req: NextRequest) {
         inst_broker_agg AS (
           SELECT SUM(ba.value)::DOUBLE AS inst_net
           FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
-          WHERE ${dateFilter.clause} AND LEFT(ba.stock_code,4) = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_INST'
+          WHERE ${dateFilter.clause} AND ba.stock_code = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_INST'
         ),
         retail_broker_agg AS (
           SELECT SUM(ba.value)::DOUBLE AS retail_net
           FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
-          WHERE ${dateFilter.clause} AND LEFT(ba.stock_code,4) = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_RETAIL'
+          WHERE ${dateFilter.clause} AND ba.stock_code = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_RETAIL'
         )
         SELECT
           COALESCE(lb.broker_net_val, 0)     AS broker_net_val,
@@ -435,7 +435,7 @@ export async function GET(req: NextRequest) {
           SUM(lot)::DOUBLE      AS net_lot
         FROM broker_activity
         WHERE ${dateFilter.clause}
-          AND LEFT(stock_code,4) = $${paramIdx}
+          AND stock_code = $${paramIdx}
           AND broker_code IN (${placeholders})
         GROUP BY date, broker_code
         ORDER BY date ASC, broker_code ASC`
@@ -451,7 +451,7 @@ export async function GET(req: NextRequest) {
       
       query = `
         SELECT
-          LEFT(stock_code,4) AS stock_code,
+          stock_code,
           SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS buy_val,
           SUM(CASE WHEN value>0 THEN lot ELSE 0 END)::DOUBLE     AS buy_lot,
           ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS sell_val,
@@ -463,7 +463,8 @@ export async function GET(req: NextRequest) {
         FROM broker_activity
         WHERE ${dateFilter.clause}
           AND broker_code IN (${placeholders})
-        GROUP BY LEFT(stock_code,4)
+          AND LENGTH(stock_code) = 4
+        GROUP BY stock_code
         ORDER BY ABS(SUM(value)) DESC
         LIMIT 300`
 
@@ -481,7 +482,7 @@ export async function GET(req: NextRequest) {
         WITH current_period AS (
           SELECT broker_code, SUM(value)::DOUBLE AS net_val, MAX(broker_name) AS broker_name
           FROM broker_activity
-          WHERE ${dateFilter.clause} AND LEFT(stock_code,4) = $${paramIdx}
+          WHERE ${dateFilter.clause} AND stock_code = $${paramIdx}
           GROUP BY broker_code
         ),
         prev_period AS (
@@ -490,7 +491,7 @@ export async function GET(req: NextRequest) {
           WHERE CAST(date AS DATE) BETWEEN
               ($1::DATE - ($2::DATE - $1::DATE) - INTERVAL '1 day')
               AND ($1::DATE - INTERVAL '1 day')
-            AND LEFT(stock_code,4) = $${paramIdx}
+            AND stock_code = $${paramIdx}
           GROUP BY broker_code
         )
         SELECT
@@ -745,18 +746,19 @@ export async function GET(req: NextRequest) {
           SELECT 
             ba.broker_code,
             MAX(ba.broker_name) AS broker_name,
-            LEFT(ba.stock_code,4) AS stock_code,
+            ba.stock_code AS stock_code,
             SUM(CASE WHEN ba.value > 0 THEN ba.value ELSE 0 END)::DOUBLE AS buy_val,
             SUM(ba.value)::DOUBLE AS net_val,
             AVG(dt.change_percent)::DOUBLE AS avg_return,
             COUNT(DISTINCT ba.date) AS days_active
           FROM broker_activity ba
           JOIN market.daily_transactions dt 
-            ON dt.stock_code = LEFT(ba.stock_code,4) 
+            ON dt.stock_code = ba.stock_code 
             AND dt.trading_date = ba.date
           WHERE ba.date >= (SELECT COALESCE(MAX(date), CURRENT_DATE) FROM broker_activity) - INTERVAL '${alphaDays} days'
             AND ba.value > 0
-          GROUP BY ba.broker_code, LEFT(ba.stock_code,4)
+            AND LENGTH(ba.stock_code) = 4
+          GROUP BY ba.broker_code, ba.stock_code
           HAVING SUM(CASE WHEN ba.value > 0 THEN ba.value ELSE 0 END) > 5000000000
         )
         SELECT 

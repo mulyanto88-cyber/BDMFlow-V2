@@ -87,7 +87,7 @@ export default function VolumeAovPage() {
             </div>
           </div>
           <button onClick={load} disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.07] text-muted-foreground hover:text-foreground text-[11px] font-semibold transition-all">
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line-3 bg-surface-2 hover:bg-surface-4 text-muted-foreground hover:text-foreground text-[11px] font-semibold transition-all">
             <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
             {loading ? 'Loading…' : 'Refresh'}
           </button>
@@ -127,7 +127,7 @@ export default function VolumeAovPage() {
                 'w-7 h-7 rounded-lg text-[11px] font-bold transition-all duration-150',
                 minConf === n
                   ? 'bg-primary/[0.12] text-primary border border-primary/20'
-                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.04] border border-transparent',
+                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-surface-3 border border-transparent',
               ].join(' ')}>
               {n}
             </button>
@@ -145,11 +145,11 @@ export default function VolumeAovPage() {
         )}
 
         {/* ── Table ──────────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+        <div className="rounded-xl border border-line-3 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-white/[0.02] border-b border-border/50 text-muted-foreground">
+                <tr className="bg-surface-1 border-b border-border/50 text-muted-foreground">
                 <th className="text-left px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('stock_code')}>Saham{sortArrow('stock_code')}</th>
                 <th className="text-right px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('close')}>Harga{sortArrow('close')}</th>
                 <th className="text-center px-3 py-3 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort('conf_score')}>Konfirmasi{sortArrow('conf_score')}</th>
@@ -169,7 +169,7 @@ export default function VolumeAovPage() {
               )) : filtered.length === 0 ? (
                 <tr><td colSpan={9} className="px-3 py-10 text-center text-muted-foreground">Tidak ada saham dengan konfirmasi yang diminta</td></tr>
               ) : filtered.map(r => (
-                <tr key={r.stock_code} className="tr-hover border-b border-white/[0.03]">
+                <tr key={r.stock_code} className="tr-hover border-b border-line-1">
                   <td className="px-3 py-2.5">
                     <Link href={`/stock/${r.stock_code}`} prefetch={false} className="font-semibold font-mono hover:text-primary transition-colors">{r.stock_code}</Link>
                     <div className="text-muted-foreground text-xs">{r.sector}</div>

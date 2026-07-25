@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
+import { mdQuery } from '@/lib/api'
 
 interface TickerItem {
   stock_code:     string
@@ -12,21 +13,13 @@ interface TickerItem {
 }
 
 async function fetchTickers(): Promise<TickerItem[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `
-        SELECT stock_code, close, change_percent
-        FROM market.vw_stock_latest
-        WHERE value > 1000000000
-        ORDER BY ABS(change_percent) DESC
-        LIMIT 20
-      `,
-    }),
-  })
-  const json = await res.json()
-  return json.data || []
+  try {
+    const res = await mdQuery('ticker.top')
+    return (res || []) as unknown as TickerItem[]
+  } catch (err) {
+    console.warn('[TickerTape] Fetch failed, falling back to static codes:', err)
+    return []
+  }
 }
 
 const SKELETON_CODES = ['BBCA', 'TLKM', 'BMRI', 'BBRI', 'ASII', 'GOTO', 'BYAN', 'ADRO', 'INDF', 'UNVR']
@@ -43,12 +36,14 @@ export default function TickerTape() {
 
     // Ticker fetch
     const load = () => {
-      fetchTickers().then(data => {
-        if (data.length > 0) {
-          setTickers(data)
-          setReady(true)
-        }
-      })
+      fetchTickers()
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setTickers(data)
+            setReady(true)
+          }
+        })
+        .catch(err => console.warn('[TickerTape] load error:', err))
     }
     load()
     const interval = setInterval(load, 5 * 60 * 1000)
@@ -70,14 +65,13 @@ export default function TickerTape() {
   const items  = ready ? [...tickers, ...tickers] : SKELETON_CODES
 
   return (
-    <div className="ticker-container h-7 flex items-stretch">
+    <div className="ticker-container h-7 flex items-stretch border-b border-border/60">
 
       {/* Left sentinel: market pulse badge */}
       <div
-        className="flex-shrink-0 flex items-center gap-1.5 px-3 border-r text-[10px] font-bold z-10"
+        className="flex-shrink-0 flex items-center gap-1.5 px-3 border-r border-border/50 text-[10px] font-bold z-10"
         style={{
-          borderColor: 'rgba(var(--primary-glow-rgb),0.12)',
-          background:  'var(--panel-bg)',
+          background: 'var(--panel-bg)',
         }}
       >
         {ready ? (
@@ -85,16 +79,16 @@ export default function TickerTape() {
             <span className="pulse-dot" />
             <span
               className="font-mono text-[9px] font-black"
-              style={{ color: upCount > downCount ? '#4ade80' : upCount < downCount ? '#f87171' : '#fbbf24' }}
+              style={{ color: upCount > downCount ? '#16a34a' : upCount < downCount ? '#dc2626' : '#d97706' }}
             >
               {upCount > downCount ? 'BULL' : upCount < downCount ? 'BEAR' : 'FLAT'}
             </span>
-            <span className="text-muted-foreground/30 font-mono text-[9px] hidden sm:block">
+            <span className="text-foreground/70 font-mono text-[9.5px] font-bold hidden sm:block">
               {upCount}↑{downCount}↓
             </span>
           </>
         ) : (
-          <span className="text-muted-foreground/25 font-mono text-[9px]">IDX</span>
+          <span className="text-foreground/80 font-mono text-[10px] font-bold">IDX</span>
         )}
       </div>
 
@@ -109,7 +103,7 @@ export default function TickerTape() {
           style={{ background: 'linear-gradient(to left, var(--ticker-bg), transparent)' }}
         />
 
-        <div className={`ticker-track h-full items-center ${!ready ? 'opacity-30' : ''}`}>
+        <div className={`ticker-track h-full items-center ${!ready ? 'opacity-50' : ''}`}>
           {ready
             ? items.map((t, i) => {
                 const item = t as TickerItem
@@ -119,17 +113,18 @@ export default function TickerTape() {
                   <Link
                     key={i}
                     href={`/stock/${item.stock_code}`}
-                    className="ticker-item hover:opacity-70 transition-opacity cursor-pointer h-full items-center"
+                    className="ticker-item hover:bg-black/5 dark:hover:bg-surface-3 transition-colors cursor-pointer h-full items-center px-3 border-r border-border/40"
                   >
-                    <span className="font-mono font-black text-[10.5px] text-foreground/80 tracking-wide">
+                    <span className="font-mono font-black text-[11px] text-foreground tracking-wide">
                       {item.stock_code}
                     </span>
-                    <span className="font-mono text-[10px] text-muted-foreground/60 tabular-nums">
+                    <span className="font-mono text-[10.5px] font-bold text-foreground/80 tabular-nums">
                       {Number(item.close).toLocaleString('id-ID')}
                     </span>
                     <span
-                      className="text-[9.5px] font-black tabular-nums"
-                      style={{ color: isUp ? '#4ade80' : '#f87171' }}
+                      className={`text-[10px] font-black tabular-nums ${
+                        isUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                      }`}
                     >
                       {isUp ? '▲' : '▼'}{Math.abs(chg).toFixed(2)}%
                     </span>
@@ -137,8 +132,8 @@ export default function TickerTape() {
                 )
               })
             : [...SKELETON_CODES, ...SKELETON_CODES].map((code, i) => (
-                <span key={i} className="ticker-item">
-                  <span className="font-mono font-black text-[10.5px] text-muted-foreground/40">{code}</span>
+                <span key={i} className="ticker-item px-3">
+                  <span className="font-mono font-black text-[10.5px] text-foreground/60">{code}</span>
                 </span>
               ))
           }
@@ -148,17 +143,16 @@ export default function TickerTape() {
       {/* Right sentinel: Live Clock + Date */}
       {mounted && (
         <div
-          className="hidden md:flex flex-shrink-0 items-center gap-2 px-3 border-l text-[10px] z-10 select-none"
+          className="hidden md:flex flex-shrink-0 items-center gap-2 px-3 border-l border-border/50 text-[10px] z-10 select-none"
           style={{
-            borderColor: 'rgba(var(--primary-glow-rgb),0.12)',
             background: 'var(--panel-bg)',
           }}
         >
-          <span className="font-mono text-[11px] font-semibold text-foreground/70 tracking-wider tabular-nums">
+          <span className="font-mono text-[11px] font-bold text-foreground tracking-wider tabular-nums">
             {time}
           </span>
-          <span className="text-muted-foreground/25 text-[9px]">WIB</span>
-          <span className="hidden lg:block text-[10px] text-muted-foreground/35 capitalize">
+          <span className="text-foreground/70 font-bold text-[9px]">WIB</span>
+          <span className="hidden lg:block text-[10px] font-medium text-foreground/70 capitalize">
             {date}
           </span>
         </div>

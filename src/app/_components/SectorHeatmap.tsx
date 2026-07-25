@@ -16,7 +16,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
   if (!sectorHeatmap || sectorHeatmap.length === 0) return null
 
   return (
-    <div className="glass rounded-3xl p-6 border border-white/10 shadow-2xl relative overflow-hidden group/heatmap">
+    <div className="glass rounded-3xl p-6 border border-line-5 shadow-2xl relative overflow-hidden group/heatmap">
       <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] -mr-20 -mt-20" />
       
       <div className="flex items-center justify-between mb-6 relative z-10">
@@ -50,8 +50,8 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
               onClick={() => setSelectedSector(isSelected ? null : sec.sector)}
               className={`relative rounded-2xl p-4 border transition-all duration-500 cursor-pointer group/sec ${
                 isSelected 
-                  ? 'ring-2 ring-gold-400/50 bg-white/[0.08] border-gold-400/30' 
-                  : 'bg-white/[0.03] border-white/5 hover:bg-white/[0.06] hover:border-white/10'
+                  ? 'ring-2 ring-gold-400/50 bg-surface-4 border-gold-400/30' 
+                  : 'bg-surface-2 border-line-2 hover:bg-surface-4 hover:border-line-5'
               }`}
             >
               <div className="flex items-start justify-between mb-3">
@@ -72,7 +72,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
                   <span>Breadth</span>
                   <span>{Math.round(upRatio * 100)}%</span>
                 </div>
-                <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                <div className="h-1 rounded-full bg-surface-3 overflow-hidden">
                   <div 
                     className={`h-full transition-all duration-1000 ${isPos ? 'bg-emerald-400' : 'bg-red-400'}`} 
                     style={{ width: `${upRatio * 100}%`, opacity: isSelected ? 1 : 0.4 }} 
@@ -80,7 +80,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+              <div className="mt-3 pt-3 border-t border-line-2 flex items-center justify-between">
                 <span className="text-[10px] font-bold text-muted-foreground">{sec.count} STK</span>
                 <span className={`text-[10px] font-black ${netF >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {netF >= 0 ? '▲' : '▼'} {formatRupiah(Math.abs(netF))}
@@ -102,7 +102,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
         const isPos = avg >= 0
         return (
           <div className="mt-6 rounded-3xl border border-gold-400/20 bg-gold-400/[0.02] overflow-hidden animate-in slide-in-from-top-4 duration-500 shadow-2xl relative z-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-6 py-4 bg-white/[0.02] border-b border-white/5 gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-6 py-4 bg-surface-1 border-b border-line-2 gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-gold-400/10 border border-gold-400/20 flex items-center justify-center">
                   <Building2 className="w-6 h-6 text-gold-400" />
@@ -122,7 +122,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
               </div>
               <button
                 onClick={() => setSelectedSector(null)}
-                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-all"
+                className="px-4 py-2 rounded-xl bg-surface-3 hover:bg-surface-5 border border-line-5 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-all"
               >Close Panel</button>
             </div>
 
@@ -131,7 +131,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
                 <Link
                   key={i}
                   href={`/stock/${s.code}`}
-                  className="flex flex-col p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all group/stock"
+                  className="flex flex-col p-4 rounded-2xl bg-surface-1 border border-line-2 hover:bg-surface-3 hover:border-line-5 transition-all group/stock"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="font-mono font-black text-lg text-white group-hover/stock:text-gold-400 transition-colors leading-none">{s.code}</span>
@@ -140,7 +140,7 @@ export default function SectorHeatmap({ sectorHeatmap, allStocks }: SectorHeatma
                     </span>
                   </div>
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Price: {formatRupiah(s.close)}</p>
-                  <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                  <div className="mt-3 pt-3 border-t border-line-2 flex items-center justify-between">
                      <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">Val: {formatNumber(s.value)}</span>
                      {s.netForeign !== 0 && (
                        <span className={`text-[9px] font-black ${s.netForeign > 0 ? 'text-emerald-400' : 'text-red-400'}`}>

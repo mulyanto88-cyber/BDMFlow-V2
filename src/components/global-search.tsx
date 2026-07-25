@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Clock, TrendingUp } from 'lucide-react'
+import {
+  Search, Clock, TrendingUp, ArrowRight, LayoutDashboard,
+  LineChart, PieChart, Globe, Activity, BarChart2,
+  Eye, Calculator, Bell, Zap, Brain, Shield,
+  TrendingUp as TrendingUpIcon, Crown, Star,
+} from 'lucide-react'
+import { mdQuery } from '@/lib/api'
 
 interface Suggestion {
   stock_code: string
@@ -10,6 +16,36 @@ interface Suggestion {
   close: number
   change_percent: number
 }
+
+interface PageItem {
+  href: string
+  label: string
+  icon: React.ElementType
+  section: string
+}
+
+const PAGES: PageItem[] = [
+  { href: '/dashboard',       label: 'Morning Brief',       icon: LayoutDashboard, section: 'Markets' },
+  { href: '/composite',       label: 'Composite Command',   icon: LineChart,       section: 'Markets' },
+  { href: '/bandarmologi',    label: 'Bandarmologi',        icon: Crown,           section: 'Markets' },
+  { href: '/sector',          label: 'Sector Analytics',    icon: PieChart,        section: 'Markets' },
+  { href: '/groups',          label: 'Group Intelligence',  icon: Globe,           section: 'Markets' },
+  { href: '/screener',        label: 'Pro Screener',        icon: Search,          section: 'Screeners' },
+  { href: '/volume-aov',      label: 'Breakout Scanner',    icon: Zap,             section: 'Screeners' },
+  { href: '/smart-money',     label: 'Smart Money Matrix',  icon: Brain,           section: 'Screeners' },
+  { href: '/radar',           label: 'Watchlist Radar',     icon: Activity,        section: 'Screeners' },
+  { href: '/msci-screener',   label: 'MSCI Screener',       icon: Shield,          section: 'Screeners' },
+  { href: '/ftse-screener',   label: 'FTSE Screener',       icon: Globe,           section: 'Screeners' },
+  { href: '/foreign-flow',    label: 'Foreign Flow',        icon: Globe,           section: 'Aliran Dana' },
+  { href: '/broker-flow',     label: 'Broker Flow Harian',  icon: Activity,        section: 'Aliran Dana' },
+  { href: '/broker-tracker',  label: 'Broker Summary',      icon: BarChart2,       section: 'Aliran Dana' },
+  { href: '/ksei-monthly',    label: 'KSEI Monthly',        icon: PieChart,        section: 'KSEI' },
+  { href: '/ksei1persen',     label: 'KSEI > 1%',           icon: Eye,             section: 'KSEI' },
+  { href: '/insider',         label: 'Insider Radar',       icon: Search,          section: 'KSEI' },
+  { href: '/watchlist',       label: 'Watchlist & Alerts',  icon: Bell,            section: 'Tools' },
+  { href: '/backtest',        label: 'Backtest Lab',        icon: Calculator,      section: 'Tools' },
+  { href: '/right-issue-calc',label: 'Right Issue Calc',    icon: TrendingUpIcon,  section: 'Tools' },
+]
 
 const RECENT_KEY = 'bdmflow_recent_searches'
 const MAX_RECENT = 5
@@ -23,22 +59,8 @@ function saveRecent(code: string) {
 }
 
 async function searchStocks(q: string): Promise<Suggestion[]> {
-  const res = await fetch('/api/motherduck', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `
-        SELECT stock_code, sector, close, change_percent
-        FROM market.vw_stock_latest
-        WHERE stock_code ILIKE $1
-        ORDER BY value DESC
-        LIMIT 8
-      `,
-      params: [`${q.toUpperCase()}%`],
-    }),
-  })
-  const json = await res.json()
-  return json.data || []
+  const data = await mdQuery('search.stocks', [`${q.toUpperCase()}%`])
+  return data as unknown as Suggestion[]
 }
 
 export default function GlobalSearch() {
@@ -60,6 +82,13 @@ export default function GlobalSearch() {
     setRecent(getRecent())
   }, [])
 
+  const filteredPages = query
+    ? PAGES.filter(p =>
+        p.label.toLowerCase().includes(query.toLowerCase()) ||
+        p.section.toLowerCase().includes(query.toLowerCase())
+      )
+    : []
+
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < 2) { setSuggestions([]); return }
     setLoading(true)
@@ -79,7 +108,6 @@ export default function GlobalSearch() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [query, fetchSuggestions, open])
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
@@ -88,7 +116,6 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // ⌘K / Ctrl+K global shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -102,7 +129,6 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
-  // open-global-search event (from mobile FAB)
   useEffect(() => {
     const openSearch = () => {
       inputRef.current?.scrollIntoView({ block: 'center' })
@@ -115,24 +141,50 @@ export default function GlobalSearch() {
   }, [])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const total = suggestions.length > 0 ? suggestions.length : recent.length
+    const hasSuggestions = suggestions.length > 0
+    const hasPages = filteredPages.length > 0
+    const hasRecents = !query && recent.length > 0
+    const total = hasSuggestions
+      ? suggestions.length + filteredPages.length
+      : hasPages
+        ? filteredPages.length
+        : hasRecents
+          ? recent.length + PAGES.length
+          : 0
+
     if (e.key === 'ArrowDown')  { e.preventDefault(); setHighlighted(h => Math.min(h + 1, total - 1)) }
     else if (e.key === 'ArrowUp')    { e.preventDefault(); setHighlighted(h => Math.max(h - 1, -1)) }
     else if (e.key === 'Enter') {
       e.preventDefault()
-      if (suggestions.length > 0) {
-        const target = highlighted >= 0 ? suggestions[highlighted]?.stock_code : query.toUpperCase()
-        if (target && target.length >= 2) navigate(target)
-      } else if (recent.length > 0 && highlighted >= 0) {
-        navigate(recent[highlighted])
+      if (hasSuggestions && highlighted >= 0) {
+        const pagesCount = filteredPages.length
+        if (highlighted < pagesCount) {
+          router.push(filteredPages[highlighted].href)
+          setQuery(''); setOpen(false)
+          return
+        }
+        const stockIdx = highlighted - pagesCount
+        const target = suggestions[stockIdx]?.stock_code ?? query.toUpperCase()
+        if (target && target.length >= 2) navigateStock(target)
+      } else if (hasPages && highlighted >= 0) {
+        router.push(filteredPages[highlighted].href)
+        setQuery(''); setOpen(false)
+      } else if (hasRecents) {
+        if (highlighted >= 0 && highlighted < recent.length) {
+          navigateStock(recent[highlighted])
+        } else if (highlighted >= recent.length) {
+          const pageIdx = highlighted - recent.length
+          router.push(PAGES[pageIdx].href)
+          setQuery(''); setOpen(false)
+        }
       } else if (query.length >= 2) {
-        navigate(query.toUpperCase())
+        navigateStock(query.toUpperCase())
       }
     }
     else if (e.key === 'Escape') { setOpen(false); inputRef.current?.blur() }
   }
 
-  const navigate = (code: string) => {
+  const navigateStock = (code: string) => {
     setQuery(''); setOpen(false); setSuggestions([])
     saveRecent(code.toUpperCase())
     setRecent(getRecent())
@@ -141,19 +193,21 @@ export default function GlobalSearch() {
 
   const showRecent    = open && !query && recent.length > 0
   const showSuggest   = open && suggestions.length > 0
-  const showDropdown  = showRecent || showSuggest
+  const showPages     = open && query && filteredPages.length > 0
+  const showAllPages  = open && !query
+  const showDropdown  = showRecent || showSuggest || showPages || showAllPages
 
   const chgColor = (chg: number) => chg >= 0 ? '#4ade80' : '#f87171'
 
+  let globalIdx = 0
+
   return (
     <div ref={containerRef} className="relative flex-1 md:flex-none md:w-72">
-      {/* Search icon */}
       <Search
         size={13}
         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none z-10"
       />
 
-      {/* Spinner */}
       {loading && (
         <svg className="absolute right-9 top-1/2 -translate-y-1/2 w-3 h-3 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25"/>
@@ -165,61 +219,118 @@ export default function GlobalSearch() {
         ref={inputRef}
         type="text"
         value={query}
-        onChange={e => setQuery(e.target.value.toUpperCase())}
+        onChange={e => setQuery(e.target.value)}
         onFocus={() => { setOpen(true); setRecent(getRecent()) }}
         onKeyDown={handleKeyDown}
-        placeholder="Cari saham..."
-        maxLength={6}
+        placeholder="Cari saham atau halaman..."
+        maxLength={30}
         autoComplete="off"
-        className="w-full pl-8 pr-16 py-1.5 text-[12px] bg-white/[0.04] border border-white/[0.07] rounded-xl focus:outline-none focus:border-primary/40 focus:bg-white/[0.06] transition-all placeholder:text-muted-foreground/40 uppercase font-mono tracking-wide"
+        className="w-full pl-8 pr-16 py-1.5 text-[12px] bg-surface-3 border border-line-3 rounded-xl focus:outline-none focus:border-primary/40 focus:bg-surface-4 transition-all placeholder:text-muted-foreground/50 font-mono tracking-wide"
         style={{ letterSpacing: query ? '0.08em' : undefined }}
       />
 
-      {/* ⌘K hint */}
       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 pointer-events-none">
-        <kbd className="hidden md:flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-[9px] font-mono text-muted-foreground/35">
+        <kbd className="hidden md:flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-line-4 bg-surface-3 text-[9px] font-mono text-muted-foreground/35">
           {isMac ? '⌘' : 'Ctrl'}
         </kbd>
-        <kbd className="hidden md:flex items-center px-1.5 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-[9px] font-mono text-muted-foreground/35">
+        <kbd className="hidden md:flex items-center px-1.5 py-0.5 rounded border border-line-4 bg-surface-3 text-[9px] font-mono text-muted-foreground/35">
           K
         </kbd>
       </div>
 
-      {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 glass rounded-xl overflow-hidden shadow-2xl">
-          {showRecent && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 glass rounded-xl overflow-hidden shadow-2xl max-h-[480px] overflow-y-auto custom-scrollbar">
+
+          {/* Page search results */}
+          {showPages && (
             <>
-              <div className="px-3 py-2 flex items-center gap-1.5 border-b border-white/[0.05]">
-                <Clock size={9} className="text-muted-foreground/30" />
-                <span className="text-[9px] font-black uppercase tracking-[0.16em] text-muted-foreground/30">Pencarian Terakhir</span>
+              <div className="px-3 py-2 flex items-center gap-1.5 border-b border-line-2">
+                <ArrowRight size={10} className="text-primary/50" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em] text-primary/60">Halaman</span>
               </div>
-              {recent.map((code, i) => (
-                <button
-                  key={code}
-                  onMouseDown={e => { e.preventDefault(); navigate(code) }}
-                  onMouseEnter={() => setHighlighted(i)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-left transition-colors ${highlighted === i ? 'bg-primary/8' : 'hover:bg-white/[0.03]'}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Clock size={11} className="text-muted-foreground/30 shrink-0" />
-                    <span className="font-mono font-black text-sm text-foreground/80">{code}</span>
-                  </div>
-                  <TrendingUp size={11} className="text-muted-foreground/20" />
-                </button>
-              ))}
+              {filteredPages.map((page) => {
+                const idx = globalIdx++
+                const PageIcon = page.icon
+                return (
+                  <button
+                    key={page.href}
+                    onMouseDown={e => { e.preventDefault(); router.push(page.href); setQuery(''); setOpen(false) }}
+                    onMouseEnter={() => setHighlighted(idx)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors ${highlighted === idx ? 'bg-primary/8' : 'hover:bg-surface-2'}`}
+                  >
+                    <PageIcon size={13} className="text-muted-foreground/50 shrink-0" />
+                    <span className="text-[11px] font-semibold text-foreground/80">{page.label}</span>
+                    <span className="ml-auto text-[9px] text-muted-foreground/30">{page.section}</span>
+                  </button>
+                )
+              })}
             </>
           )}
 
-          {showSuggest && suggestions.map((s, i) => {
+          {/* No-query state: all pages */}
+          {showAllPages && (
+            <>
+              <div className="px-3 py-2 flex items-center gap-1.5 border-b border-line-2">
+                <ArrowRight size={10} className="text-primary/50" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em] text-primary/60">Halaman</span>
+              </div>
+              {PAGES.map((page) => {
+                const idx = globalIdx++
+                const PageIcon = page.icon
+                return (
+                  <button
+                    key={page.href}
+                    onMouseDown={e => { e.preventDefault(); router.push(page.href); setQuery(''); setOpen(false) }}
+                    onMouseEnter={() => setHighlighted(idx)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${highlighted === idx ? 'bg-primary/8' : 'hover:bg-surface-2'}`}
+                  >
+                    <PageIcon size={13} className="text-muted-foreground/50 shrink-0" />
+                    <span className="text-[11px] font-semibold text-foreground/80">{page.label}</span>
+                    <span className="ml-auto text-[9px] text-muted-foreground/30">{page.section}</span>
+                  </button>
+                )
+              })}
+            </>
+          )}
+
+          {/* Recent searches */}
+          {showRecent && (
+            <>
+              <div className="px-3 py-2 flex items-center gap-1.5 border-b border-line-2">
+                <Clock size={9} className="text-muted-foreground/30" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em] text-muted-foreground/30">Pencarian Terakhir</span>
+              </div>
+              {recent.map((code) => {
+                const idx = globalIdx++
+                return (
+                  <button
+                    key={code}
+                    onMouseDown={e => { e.preventDefault(); navigateStock(code) }}
+                    onMouseEnter={() => setHighlighted(idx)}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left transition-colors ${highlighted === idx ? 'bg-primary/8' : 'hover:bg-surface-2'}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Clock size={11} className="text-muted-foreground/30 shrink-0" />
+                      <span className="font-mono font-black text-sm text-foreground/80">{code}</span>
+                    </div>
+                    <TrendingUp size={11} className="text-muted-foreground/20" />
+                  </button>
+                )
+              })}
+            </>
+          )}
+
+          {/* Stock search results */}
+          {showSuggest && suggestions.map((s) => {
+            const idx = globalIdx++
             const chg = Number(s.change_percent) || 0
             const isUp = chg >= 0
             return (
               <button
                 key={s.stock_code}
-                onMouseDown={e => { e.preventDefault(); navigate(s.stock_code) }}
-                onMouseEnter={() => setHighlighted(i)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${highlighted === i ? 'bg-primary/8' : 'hover:bg-white/[0.03]'}`}
+                onMouseDown={e => { e.preventDefault(); navigateStock(s.stock_code) }}
+                onMouseEnter={() => setHighlighted(idx)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${highlighted === idx ? 'bg-primary/8' : 'hover:bg-surface-2'}`}
               >
                 <div>
                   <span className="font-mono font-black text-sm text-foreground">{s.stock_code}</span>
@@ -238,7 +349,7 @@ export default function GlobalSearch() {
           })}
 
           {/* Footer hint */}
-          <div className="px-3 py-1.5 flex items-center gap-3 border-t border-white/[0.04]">
+          <div className="px-3 py-1.5 flex items-center gap-3 border-t border-line-1">
             <span className="text-[9px] text-muted-foreground/25 flex items-center gap-1">
               <kbd className="font-mono">↑↓</kbd> navigasi
             </span>
@@ -250,6 +361,11 @@ export default function GlobalSearch() {
             </span>
           </div>
         </div>
+      )}
+
+      {/* Backdrop */}
+      {showDropdown && (
+        <div className="fixed inset-0 z-[-1]" onClick={() => setOpen(false)} />
       )}
     </div>
   )
