@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // /api/alerts/summary prerenders at build time (it sets `revalidate`, not
+  // `force-dynamic`, so the edge cache in headers() below stays effective).
+  // Its view is heavy and MotherDuck sits in us-east-1, so the default 60s
+  // budget expires mid-query and fails the build.
+  staticPageGenerationTimeout: 300,
+
   async headers() {
     return [
       {
