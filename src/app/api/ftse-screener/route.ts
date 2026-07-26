@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       ),
       hsc AS (
         SELECT share_code, SUM(percentage)::DOUBLE AS top_holders_pct
-        FROM ksei.vw_ownership_1pct_latest
+        FROM ksei.tb_ownership_1pct_latest
         GROUP BY share_code
       )
       SELECT

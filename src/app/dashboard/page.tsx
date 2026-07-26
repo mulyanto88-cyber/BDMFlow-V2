@@ -32,19 +32,19 @@ async function getMorningBrief() {
                ROUND(r.local_inst_net_7d::DOUBLE,2) AS inst7d,
                ROUND(r.ksei_net_smart_miliar::DOUBLE,2) AS ksei
         FROM market.tb_radar r
-        INNER JOIN market.vw_stock_latest s ON r.stock_code=s.stock_code
+        INNER JOIN market.tb_stock_latest s ON r.stock_code=s.stock_code
         WHERE r.warning_flag IS NULL AND s.close>100 AND s.value>5000000000
         ORDER BY r.radar_score DESC LIMIT 8`
     ).catch(() => []),
     run(`SELECT group_name, composite_score::INTEGER AS composite_score, market_phase, group_action_signal,
                ROUND(perf_1d::DOUBLE,2) AS perf_1d, smart_money_trend
-        FROM market.vw_group_phase_composite
+        FROM market.tb_group_phase_composite
         WHERE group_name!='Others' ORDER BY composite_score DESC LIMIT 8`
     ).catch(() => []),
     run(`SELECT transaction_date::VARCHAR AS transaction_date, stock_code, insider_name, insider_type,
                action_type, ROUND(ABS(pct_change)::DOUBLE,4) AS pct_chg,
                alert_level, days_ago::INTEGER AS days_ago, sector
-        FROM main.vw_insider_alert_feed
+        FROM main.tb_insider_alert_feed
         WHERE days_ago<=7 AND action_type='BUY'
         ORDER BY days_ago ASC, ABS(pct_change) DESC LIMIT 6`
     ).catch(() => []),
@@ -52,7 +52,7 @@ async function getMorningBrief() {
     // rows (the same stock twice at different prices). Months where the share count
     // moved are excluded: Δshares×price is then a corporate-action artifact, not a
     // flow — the source of the impossible "-52 T" reading.
-    run(`WITH latest AS (SELECT MAX(Date) AS d FROM ksei.vw_stealth_accumulation),
+    run(`WITH latest AS (SELECT MAX(Date) AS d FROM ksei.tb_stealth_accumulation),
               shares AS (
                 SELECT Code, Date, Price, Total_Shares,
                        LAG(Total_Shares) OVER (PARTITION BY Code ORDER BY Date) AS prev_shares
@@ -62,7 +62,7 @@ async function getMorningBrief() {
                 ROUND(sa.CP_Flow_Miliar::DOUBLE,2) AS cp_flow,
                 ROUND(sa.Price_Chg_Pct::DOUBLE,2) AS chg, sa.Signal AS signal,
                 sa.Date::VARCHAR AS as_of
-         FROM ksei.vw_stealth_accumulation sa
+         FROM ksei.tb_stealth_accumulation sa
          CROSS JOIN latest l
          LEFT JOIN shares sh ON sh.Code = sa.Code AND sh.Date = sa.Date
          WHERE sa.Date = l.d

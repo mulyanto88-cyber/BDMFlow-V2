@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
           AVG(change_percent)::DOUBLE                AS avg_change_pct,
           SUM(value)::DOUBLE                         AS total_value,
           COUNT(CASE WHEN whale_signal THEN 1 END)::BIGINT AS whale_count
-        FROM market.vw_stock_screener
+        FROM market.tb_stock_screener
         WHERE sector IS NOT NULL AND sector <> ''
         GROUP BY sector
         ORDER BY SUM(${col}) DESC
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
           (SUM(${col}) / 30)::DOUBLE                  AS avg_daily_foreign,
           SUM(CASE WHEN ${col} > 0 THEN ${col} ELSE 0 END)::DOUBLE AS inflow,
           SUM(CASE WHEN ${col} < 0 THEN ${col} ELSE 0 END)::DOUBLE AS outflow
-        FROM market.vw_stock_screener
+        FROM market.tb_stock_screener
         WHERE group_name IS NOT NULL AND group_name <> ''
         GROUP BY group_name
         ORDER BY ABS(SUM(${col})) DESC
@@ -168,7 +168,7 @@ export async function GET(req: NextRequest) {
           FROM mp
           LEFT JOIN market.company_profile                   cp   ON cp.stock_code   = mp.stock_code
           LEFT JOIN market.tb_smart_money_score              sms  ON sms.stock_code  = mp.stock_code
-          LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = mp.stock_code
+          LEFT JOIN market.tb_tactical_momentum_smart_money  tact ON tact.stock_code = mp.stock_code
           LEFT JOIN main.tb_broker_rolling_net               br   ON br.stock_code   = mp.stock_code
         `, [c])
       ])
@@ -219,7 +219,7 @@ export async function GET(req: NextRequest) {
           END AS divergence_pattern
         FROM market.tb_smart_money_score sms
         LEFT JOIN market.company_profile                   cp   ON cp.stock_code  = sms.stock_code
-        LEFT JOIN market.vw_tactical_momentum_smart_money  tact ON tact.stock_code = sms.stock_code
+        LEFT JOIN market.tb_tactical_momentum_smart_money  tact ON tact.stock_code = sms.stock_code
         LEFT JOIN main.tb_broker_rolling_net               br   ON br.stock_code  = sms.stock_code
         LEFT JOIN ff                                              ON ff.stock_code = sms.stock_code
         WHERE ABS(sms.foreign_30d) > 500000000

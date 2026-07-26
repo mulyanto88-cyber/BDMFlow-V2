@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
           ROUND(aov_ratio_ma20::DOUBLE, 2)         AS aov_ratio_ma20,
           fresh_insider_buy::BOOLEAN AS fresh_insider_buy, fresh_insider_sell::BOOLEAN AS fresh_insider_sell,
           is_split_suspect::BOOLEAN AS is_split_suspect, is_reverse_suspect::BOOLEAN AS is_reverse_suspect
-        FROM market.vw_stock_multi_signal
+        FROM market.tb_stock_multi_signal
         WHERE stock_code = $1
         LIMIT 1
       `, [code]).catch(() => [])
@@ -161,7 +161,7 @@ export async function GET(req: NextRequest) {
              vwma_20d::DOUBLE AS vwma_20d, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
              whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly, signal,
              sector, free_float::DOUBLE AS free_float, group_name, tradeable_shares::BIGINT AS tradeable_shares
-      FROM market.vw_stock_detail
+      FROM market.tb_stock_detail
       WHERE stock_code = $1
       ORDER BY trading_date DESC LIMIT 1
     `, [code]).catch(() => [])
@@ -191,7 +191,7 @@ export async function GET(req: NextRequest) {
         SELECT report_date::VARCHAR AS report_date, share_code, investor_name, investor_type,
                nationality, prev_percentage::DOUBLE AS prev_percentage, curr_percentage::DOUBLE AS curr_percentage,
                pct_point_change::DOUBLE AS pct_point_change, share_change::BIGINT AS share_change, action, alert_level
-        FROM ksei.vw_ksei_individual_changes
+        FROM ksei.tb_ksei_individual_changes
         WHERE share_code = $1
         ORDER BY report_date DESC LIMIT 20
       `, [code]).catch(() => []),
@@ -199,7 +199,7 @@ export async function GET(req: NextRequest) {
         SELECT conviction_score::BIGINT AS conviction_score, insider_signal, internal_buy::BIGINT AS internal_buy,
                internal_sell::BIGINT AS internal_sell, fresh_internal_buy::BOOLEAN AS fresh_internal_buy, fresh_internal_sell::BOOLEAN AS fresh_internal_sell,
                latest_tx::VARCHAR AS latest_tx, total_tx::BIGINT AS total_tx
-        FROM main.vw_insider_conviction_score
+        FROM main.tb_insider_conviction_score
         WHERE stock_code = $1 LIMIT 1
       `, [code]).catch(() => []),
     ])
@@ -271,7 +271,7 @@ export async function GET(req: NextRequest) {
       const _r1 = await Promise.allSettled([
       
       // 1. Latest stock data
-      run(`SELECT * FROM market.vw_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
+      run(`SELECT * FROM market.tb_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
       
       // 2. Smart Money Score
       run(`SELECT * FROM market.tb_smart_money_score WHERE stock_code = $1`, [code]),
@@ -458,7 +458,7 @@ export async function GET(req: NextRequest) {
           pct_point_change,
           action,
           alert_level
-        FROM ksei.vw_ksei_individual_changes
+        FROM ksei.tb_ksei_individual_changes
         WHERE share_code = $1
         ORDER BY report_date DESC
         LIMIT 20
@@ -468,7 +468,7 @@ export async function GET(req: NextRequest) {
       run(`
         WITH latest_sa AS (
           SELECT Code, Date, Price, CP_Flow_Miliar, Foreign_CP_Miliar, Signal
-          FROM ksei.vw_stealth_accumulation
+          FROM ksei.tb_stealth_accumulation
           WHERE Code = $1
           ORDER BY Date DESC LIMIT 1
         ),
@@ -477,9 +477,9 @@ export async function GET(req: NextRequest) {
             SUM(net_foreign_value)::DOUBLE AS foreign_net_30d,
             SUM(foreign_buy_value)::DOUBLE AS foreign_buy_30d,
             SUM(foreign_sell_value)::DOUBLE AS foreign_sell_30d
-          FROM market.vw_stock_detail
+          FROM market.tb_stock_detail
           WHERE stock_code = $1
-            AND trading_date >= (SELECT MAX(trading_date) FROM market.vw_stock_detail) - INTERVAL '30 days'
+            AND trading_date >= (SELECT MAX(trading_date) FROM market.tb_stock_detail) - INTERVAL '30 days'
         ),
         broker_net AS (
           SELECT SUM(value)::DOUBLE AS broker_net_30d
@@ -604,7 +604,7 @@ export async function GET(req: NextRequest) {
           total_foreign,
           avg_price,
           avg_aov_ratio
-        FROM market.vw_whale_activity
+        FROM market.tb_whale_activity
         WHERE stock_code = $1
         LIMIT 1
       `, [code]),

@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
         SELECT
           CAST(trading_date AS VARCHAR) AS date,
           close, change_percent, volume, net_foreign_value, whale_signal, big_player_anomaly
-        FROM market.vw_stock_detail
+        FROM market.tb_stock_detail
         WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
           AND stock_code = $${ci}
         ORDER BY trading_date ASC`, p),
@@ -264,7 +264,7 @@ export async function GET(req: NextRequest) {
           net_foreign_value,
           whale_signal,
           big_player_anomaly
-        FROM market.vw_stock_detail
+        FROM market.tb_stock_detail
         WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
           AND stock_code = $${paramIdx}
         ORDER BY trading_date ASC`
@@ -381,7 +381,7 @@ export async function GET(req: NextRequest) {
             SUM(net_foreign_value)::DOUBLE  AS foreign_net_val,
             SUM(foreign_buy_value)::DOUBLE  AS foreign_buy,
             SUM(foreign_sell_value)::DOUBLE AS foreign_sell
-          FROM market.vw_stock_detail
+          FROM market.tb_stock_detail
           WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
             AND stock_code = $${paramIdx}
         ),
@@ -518,7 +518,7 @@ export async function GET(req: NextRequest) {
       queryParams = []
       query = `
         WITH latest_date AS (
-          SELECT MAX(date) AS max_date FROM main.vw_broker_daily
+          SELECT MAX(date) AS max_date FROM main.tb_broker_daily
         ),
         daily_net AS (
           SELECT
@@ -527,7 +527,7 @@ export async function GET(req: NextRequest) {
             COALESCE(buy_value, 0) AS buy_value,
             COALESCE(sell_value, 0) AS sell_value,
             (COALESCE(buy_value, 0) - COALESCE(sell_value, 0)) AS net_val
-          FROM main.vw_broker_daily
+          FROM main.tb_broker_daily
         ),
         consistency_calc AS (
           SELECT
@@ -555,7 +555,7 @@ export async function GET(req: NextRequest) {
           COALESCE(cc.total_days, 0)::BIGINT           AS total_days,
           COALESCE(cc.total_buy, 0.0)::DOUBLE          AS all_time_buy,
           COALESCE(cc.all_time_net, 0.0)::DOUBLE       AS all_time_net
-        FROM main.vw_broker_daily bd
+        FROM main.tb_broker_daily bd
         LEFT JOIN consistency_calc cc ON cc.broker_code = bd.broker_code
         CROSS JOIN latest_date ld
         WHERE bd.date = ld.max_date
@@ -575,7 +575,7 @@ export async function GET(req: NextRequest) {
           net_flow::DOUBLE        AS net_flow,
           buy_transactions::BIGINT  AS buy_transactions,
           sell_transactions::BIGINT AS sell_transactions
-        FROM main.vw_broker_market_breadth
+        FROM main.tb_broker_market_breadth
         ORDER BY date DESC
         LIMIT 30`
 
@@ -601,7 +601,7 @@ export async function GET(req: NextRequest) {
           w.holding_days::INTEGER             AS holding_days,
           w.position_trend,
           w.whale_verdict
-        FROM ksei.vw_whale_timing w
+        FROM ksei.tb_whale_timing w
         WHERE w.share_code = $${paramIdx}
         ORDER BY w.latest_percentage DESC
         LIMIT 15`
@@ -621,7 +621,7 @@ export async function GET(req: NextRequest) {
           net_foreign_5d::DOUBLE              AS net_foreign_5d,
           broker_net_5d::DOUBLE               AS broker_net_5d,
           tactical_signal
-        FROM market.vw_tactical_momentum_smart_money
+        FROM market.tb_tactical_momentum_smart_money
         WHERE stock_code = $${paramIdx}
         ORDER BY trading_date DESC
         LIMIT 1`
@@ -633,7 +633,7 @@ export async function GET(req: NextRequest) {
           CP_Flow_Miliar::DOUBLE              AS cp_flow_miliar,
           Foreign_CP_Miliar::DOUBLE           AS foreign_cp_miliar,
           Signal                              AS stealth_signal
-        FROM ksei.vw_stealth_accumulation
+        FROM ksei.tb_stealth_accumulation
         WHERE Code = $${paramIdx}
         ORDER BY Date DESC
         LIMIT 1`
@@ -644,7 +644,7 @@ export async function GET(req: NextRequest) {
           prev_inst_pct::DOUBLE               AS prev_inst_pct,
           mom_change_pct::DOUBLE              AS mom_change_pct,
           strategic_signal
-        FROM ksei.vw_ksei_inst_positioning
+        FROM ksei.tb_ksei_inst_positioning
         WHERE stock_code = $${paramIdx}
         LIMIT 1`
       const [tactData, stealthData, posData] = await Promise.all([
@@ -676,7 +676,7 @@ export async function GET(req: NextRequest) {
           share_change::BIGINT                AS share_change,
           action,
           alert_level
-        FROM ksei.vw_ksei_individual_changes
+        FROM ksei.tb_ksei_individual_changes
         WHERE share_code = $${paramIdx}
         ORDER BY
           CASE alert_level WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
@@ -690,7 +690,7 @@ export async function GET(req: NextRequest) {
           ind_change::DOUBLE                  AS ind_change,
           score::INTEGER                      AS insider_score,
           signals
-        FROM ksei.vw_insider_screener
+        FROM ksei.tb_insider_screener
         WHERE code = $${paramIdx}
         LIMIT 1`
       const [alerts, scores] = await Promise.all([

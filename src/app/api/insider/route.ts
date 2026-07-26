@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         WITH base AS (
           SELECT *,
             ${DERIVE_TYPE} AS derived_type
-          FROM main.vw_insider_activity_feed
+          FROM main.tb_insider_activity_feed
           WHERE days_ago <= ${days}
             ${srcFilter} ${realFilter}
         )
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
           est_value_miliar::DOUBLE           AS est_value_miliar,
           days_ago::INTEGER                  AS days_ago,
           recency_label
-        FROM main.vw_insider_activity_feed
+        FROM main.tb_insider_activity_feed
         WHERE days_ago <= ${days}
           ${typeClause}
           ${insideClause}
@@ -150,9 +150,9 @@ export async function GET(req: NextRequest) {
           iw.group_name,
           nf.buy_30d::BIGINT                 AS buy_count_30d,
           nf.sell_30d::BIGINT                AS sell_count_30d
-        FROM main.vw_insider_with_market iw
+        FROM main.tb_insider_with_market iw
         LEFT JOIN market.company_profile   cp ON cp.stock_code = iw.stock_code
-        LEFT JOIN main.vw_insider_net_flow_by_stock nf ON nf.stock_code = iw.stock_code
+        LEFT JOIN main.tb_insider_net_flow_by_stock nf ON nf.stock_code = iw.stock_code
         WHERE iw.insider_tx_count > 0
           ${minPct > 0 ? `AND ABS(iw.net_pct_30d) >= ${minPct}` : ''}
           ${actionType === 'BUY'  ? `AND iw.direction_30d = 'ACCUMULATING'` : ''}
@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
           cs.fresh_internal_sell::INTEGER    AS fresh_internal_sell,
           sml.close::DOUBLE                  AS current_price,
           sml.change_percent::DOUBLE         AS price_change_pct
-        FROM main.vw_insider_conviction_score cs
+        FROM main.tb_insider_conviction_score cs
         LEFT JOIN market.company_profile  cp  ON cp.stock_code  = cs.stock_code
         LEFT JOIN market.tb_stock_latest  sml ON sml.stock_code = cs.stock_code
         WHERE cs.conviction_score IS NOT NULL
@@ -227,7 +227,7 @@ export async function GET(req: NextRequest) {
           sector,
           market_signal,
           group_name
-        FROM main.vw_insider_alert_feed
+        FROM main.tb_insider_alert_feed
         WHERE days_ago <= ${days}
         ORDER BY alert_level DESC, transaction_date DESC
         LIMIT ${limit}
@@ -257,7 +257,7 @@ export async function GET(req: NextRequest) {
           nationality,
           insider_type,
           days_since_last_tx::INTEGER        AS days_since_last_tx
-        FROM main.vw_insider_latest_position
+        FROM main.tb_insider_latest_position
         ${codeClause}
         ORDER BY days_since_last_tx ASC, ABS(last_pct_change) DESC
         LIMIT ${limit}
@@ -280,7 +280,7 @@ export async function GET(req: NextRequest) {
             cp.sector,
             l.close::DOUBLE AS current_price,
             l.change_percent::DOUBLE AS price_change_pct
-          FROM main.vw_insider_activity_feed iaf
+          FROM main.tb_insider_activity_feed iaf
           LEFT JOIN market.company_profile cp ON cp.stock_code = iaf.stock_code
           LEFT JOIN market.tb_stock_latest l  ON l.stock_code  = iaf.stock_code
           WHERE days_ago <= ${days}

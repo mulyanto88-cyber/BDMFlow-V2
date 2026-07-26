@@ -32,7 +32,7 @@ export async function GET() {
                total_stocks::BIGINT AS total_stocks, ROUND(perf_1d::DOUBLE,2) AS perf_1d,
                ROUND(foreign_net_1d_miliar::DOUBLE,2) AS foreign_1d,
                smart_money_trend, broker_consensus
-        FROM market.vw_group_phase_composite
+        FROM market.tb_group_phase_composite
         WHERE group_name != 'Others' ORDER BY composite_score DESC LIMIT 10
       `),
       run(`
@@ -40,7 +40,7 @@ export async function GET() {
                ROUND(ABS(pct_change)::DOUBLE,4) AS pct_change, alert_level,
                ROUND(COALESCE(est_value_miliar,0)::DOUBLE,3) AS est_value_miliar,
                days_ago::INTEGER AS days_ago, current_price::DOUBLE AS current_price, sector, market_signal
-        FROM main.vw_insider_alert_feed
+        FROM main.tb_insider_alert_feed
         WHERE days_ago <= 7 AND action_type = 'BUY'
         ORDER BY days_ago ASC, ABS(pct_change) DESC LIMIT 8
       `),
@@ -50,7 +50,7 @@ export async function GET() {
       // share count jumps, Δshares×price is a mechanical artifact, not a flow —
       // that is what produced the impossible "-52 T" reading.
       run(`
-        WITH latest AS (SELECT MAX(Date) AS d FROM ksei.vw_stealth_accumulation),
+        WITH latest AS (SELECT MAX(Date) AS d FROM ksei.tb_stealth_accumulation),
         shares AS (
           SELECT Code, Date, Price, Total_Shares,
                  LAG(Total_Shares) OVER (PARTITION BY Code ORDER BY Date) AS prev_shares
@@ -60,7 +60,7 @@ export async function GET() {
                ROUND(sa.CP_Flow_Miliar::DOUBLE,2) AS cp_flow_miliar,
                ROUND(sa.Price_Chg_Pct::DOUBLE,2) AS price_chg_pct, sa.Signal,
                sa.Date::VARCHAR AS as_of
-        FROM ksei.vw_stealth_accumulation sa
+        FROM ksei.tb_stealth_accumulation sa
         CROSS JOIN latest l
         LEFT JOIN shares sh ON sh.Code = sa.Code AND sh.Date = sa.Date
         WHERE sa.Date = l.d

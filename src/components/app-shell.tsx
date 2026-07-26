@@ -8,6 +8,7 @@ import TickerTape from './ticker-tape'
 import GlobalSearch from './global-search'
 import ThemeToggle from './theme-toggle'
 import InlineActionCenter from './inline-action-center'
+import DataFreshnessBanner from './data-freshness-banner'
 import Sidebar from './sidebar'
 import { ChevronRight, Bell } from 'lucide-react'
 
@@ -215,6 +216,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         )}
+
+        {/* Sits above the ticker: if the data is stale, say so before showing prices. */}
+        <DataFreshnessBanner />
 
         {/* ═══ Ticker Tape ═══ */}
         <TickerTape />
