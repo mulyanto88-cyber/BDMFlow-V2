@@ -32,13 +32,13 @@ export type QueryDef = {
 export const QUERIES = {
   // ── Sector ────────────────────────────────────────────────────────────────
   'sector.analytics': {
-    sql: `SELECT * FROM market.vw_sector_analytics ORDER BY momentum_score DESC`,
+    sql: `SELECT * FROM market.tb_sector_analytics ORDER BY momentum_score DESC`,
   },
   'sector.stocks': {
     sql: `
       SELECT stock_code, close, change_percent, net_foreign_value, value,
              whale_signal, big_player_anomaly, aov_ratio_ma20, volume, ma20_volume
-      FROM market.vw_stock_latest
+      FROM market.tb_stock_latest
       WHERE sector = $1
       ORDER BY value DESC LIMIT 50`,
     params: 1,
@@ -46,7 +46,7 @@ export const QUERIES = {
 
   // ── Smart Money ───────────────────────────────────────────────────────────
   'smartMoney.instPositioning': {
-    sql: `SELECT * FROM ksei.vw_ksei_inst_positioning ORDER BY mom_change_pct DESC LIMIT 50`,
+    sql: `SELECT * FROM ksei.tb_ksei_inst_positioning ORDER BY mom_change_pct DESC LIMIT 50`,
     pro: true,
   },
   'smartMoney.scores': {
@@ -59,7 +59,7 @@ export const QUERIES = {
                WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 45 THEN '👀 WATCH'
                ELSE '➖ NEUTRAL'
              END AS signal
-      FROM market.vw_smart_money_score s
+      FROM market.tb_smart_money_score s
       LEFT JOIN market.tb_composite_v2 v2 ON v2.stock_code = s.stock_code
       ORDER BY smart_money_score DESC, s.aov_ratio_ma20 DESC
       LIMIT 50`,
@@ -67,7 +67,7 @@ export const QUERIES = {
   },
   'smartMoney.tactical': {
     sql: `
-      SELECT * FROM market.vw_tactical_momentum_smart_money
+      SELECT * FROM market.tb_tactical_momentum_smart_money
       WHERE ABS(net_foreign_7d_miliar * 1e9) > CAST($1 AS DOUBLE)
          OR ABS(broker_net_7d_miliar * 1e9)  > CAST($1 AS DOUBLE)
       ORDER BY ABS(net_foreign_7d_miliar) DESC, ABS(broker_net_7d_miliar) DESC
@@ -76,12 +76,12 @@ export const QUERIES = {
     pro: true,
   },
   'smartMoney.tacticalByCode': {
-    sql: `SELECT * FROM market.vw_tactical_momentum_smart_money WHERE stock_code = $1`,
+    sql: `SELECT * FROM market.tb_tactical_momentum_smart_money WHERE stock_code = $1`,
     params: 1,
     pro: true,
   },
   'smartMoney.instPositioningByCode': {
-    sql: `SELECT * FROM ksei.vw_ksei_inst_positioning WHERE stock_code = $1`,
+    sql: `SELECT * FROM ksei.tb_ksei_inst_positioning WHERE stock_code = $1`,
     params: 1,
     pro: true,
   },
@@ -103,9 +103,9 @@ export const QUERIES = {
         COALESCE(r.fresh_insider_buy, false)     AS fresh_insider_buy,
         COALESCE(l.value, 0)                     AS daily_value,
         COALESCE(l.vwma_20d, 0)                  AS vwma_20d
-      FROM market.vw_screener_allinone s
-      LEFT JOIN market.vw_watchlist_radar r ON s.stock_code = r.stock_code
-      LEFT JOIN market.vw_stock_latest    l ON s.stock_code = l.stock_code
+      FROM market.tb_screener_allinone s
+      LEFT JOIN market.tb_radar r ON s.stock_code = r.stock_code
+      LEFT JOIN market.tb_stock_latest    l ON s.stock_code = l.stock_code
       WHERE r.warning_flag IS NULL`,
     pro: true,
   },
@@ -117,7 +117,7 @@ export const QUERIES = {
       SELECT stock_code, close::DOUBLE AS close,
              ROUND(change_percent::DOUBLE,2) AS change_percent,
              composite_signal, radar_score::INTEGER AS radar_score
-      FROM market.vw_watchlist_radar
+      FROM market.tb_radar
       WHERE stock_code = ANY($1::VARCHAR[])`,
     params: 1,
     arrayParams: [0],
@@ -126,7 +126,7 @@ export const QUERIES = {
 
   // ── Groups ────────────────────────────────────────────────────────────────
   'groups.leaderLaggard': {
-    sql: `SELECT * FROM market.vw_group_leader_laggard WHERE group_name = $1 ORDER BY relative_perf DESC`,
+    sql: `SELECT * FROM market.tb_group_leader_laggard WHERE group_name = $1 ORDER BY relative_perf DESC`,
     params: 1,
   },
   'groups.brokerStance': {
@@ -136,7 +136,7 @@ export const QUERIES = {
       FROM (
         SELECT *,
           ROW_NUMBER() OVER (PARTITION BY broker_code ORDER BY net_7d_miliar DESC) AS rn
-        FROM market.vw_group_broker_stance
+        FROM market.tb_group_broker_stance
         WHERE group_name = $1
       ) t
       WHERE rn = 1
@@ -321,14 +321,14 @@ export const QUERIES = {
         COALESCE(pc.broker_net_7d_miliar, 0)       AS broker_net_7d_miliar,
         COALESCE(pc.whale_count, 0)                AS whale_count,
         COALESCE(pc.group_top_buyer, '')           AS group_top_buyer
-      FROM market.vw_group_multi_period_perf mp
-      LEFT JOIN market.vw_group_phase_composite pc ON mp.group_name = pc.group_name
+      FROM market.tb_group_multi_period_perf mp
+      LEFT JOIN market.tb_group_phase_composite pc ON mp.group_name = pc.group_name
       ORDER BY mp.foreign_net_1d_miliar DESC`,
   },
 
   // ── KSEI >1% ──────────────────────────────────────────────────────────────
   'ksei.insiderScreener': {
-    sql: `SELECT * FROM ksei.vw_insider_screener ORDER BY score DESC`,
+    sql: `SELECT * FROM ksei.tb_insider_screener ORDER BY score DESC`,
     pro: true,
   },
   'ksei.individualChanges': {
@@ -336,13 +336,13 @@ export const QUERIES = {
       SELECT report_date::VARCHAR AS report_date, share_code, investor_name, investor_type,
              nationality, prev_percentage, curr_percentage, pct_point_change,
              share_change, action, alert_level
-      FROM ksei.vw_ksei_individual_changes
+      FROM ksei.tb_ksei_individual_changes
       ORDER BY report_date DESC, ABS(pct_point_change) DESC
       LIMIT 500`,
     pro: true,
   },
   'ksei.whaleTiming': {
-    sql: `SELECT * FROM ksei.vw_whale_timing ORDER BY ABS(return_since_entry) DESC LIMIT 100`,
+    sql: `SELECT * FROM ksei.tb_whale_timing ORDER BY ABS(return_since_entry) DESC LIMIT 100`,
     pro: true,
   },
   // Latest KSEI month only, with corporate-action months excluded — see the note
@@ -350,14 +350,14 @@ export const QUERIES = {
   // share-count artifacts (the impossible "-52 T" CP flow).
   'ksei.stealthAccumulation': {
     sql: `
-      WITH latest AS (SELECT MAX(Date) AS d FROM ksei.vw_stealth_accumulation),
+      WITH latest AS (SELECT MAX(Date) AS d FROM ksei.tb_stealth_accumulation),
       shares AS (
         SELECT Code, Date, Price, Total_Shares,
                LAG(Total_Shares) OVER (PARTITION BY Code ORDER BY Date) AS prev_shares
         FROM ksei.monthly_snapshot
       )
       SELECT sa.*, sa.Date::VARCHAR AS as_of
-      FROM ksei.vw_stealth_accumulation sa
+      FROM ksei.tb_stealth_accumulation sa
       CROSS JOIN latest l
       LEFT JOIN shares sh ON sh.Code = sa.Code AND sh.Date = sa.Date
       WHERE sa.Date = l.d
@@ -369,7 +369,7 @@ export const QUERIES = {
     pro: true,
   },
   'ksei.topInvestors': {
-    sql: `SELECT * FROM ksei.vw_top_investors ORDER BY total_saham DESC LIMIT 50`,
+    sql: `SELECT * FROM ksei.tb_top_investors ORDER BY total_saham DESC LIMIT 50`,
     pro: true,
   },
   'ksei.monthlySnapshotLatest': {
@@ -395,7 +395,7 @@ export const QUERIES = {
     pro: true,
   },
   'ksei.changesByCode': {
-    sql: `SELECT * FROM ksei.vw_ksei_individual_changes WHERE share_code = $1 ORDER BY ABS(pct_point_change) DESC LIMIT 50`,
+    sql: `SELECT * FROM ksei.tb_ksei_individual_changes WHERE share_code = $1 ORDER BY ABS(pct_point_change) DESC LIMIT 50`,
     params: 1,
     pro: true,
   },
@@ -412,7 +412,7 @@ export const QUERIES = {
     pro: true,
   },
   'ksei.profileByCode': {
-    sql: `SELECT sector, free_float FROM ksei.vw_ownership_1pct_latest WHERE share_code = $1 LIMIT 1`,
+    sql: `SELECT sector, free_float FROM ksei.tb_ownership_1pct_latest WHERE share_code = $1 LIMIT 1`,
     params: 1,
     pro: true,
   },
@@ -496,7 +496,7 @@ export const QUERIES = {
   'ticker.top': {
     sql: `
       SELECT stock_code, close, change_percent
-      FROM market.vw_stock_latest
+      FROM market.tb_stock_latest
       WHERE value > 1000000000
       ORDER BY ABS(change_percent) DESC
       LIMIT 20`,
@@ -504,7 +504,7 @@ export const QUERIES = {
   'search.stocks': {
     sql: `
       SELECT stock_code, sector, close, change_percent
-      FROM market.vw_stock_latest
+      FROM market.tb_stock_latest
       WHERE stock_code ILIKE $1
       ORDER BY value DESC
       LIMIT 8`,
