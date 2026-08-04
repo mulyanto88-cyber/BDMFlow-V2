@@ -195,8 +195,10 @@ interface TacticalSignalData {
     close: number;
     change_percent: number;
     net_foreign_1d: number;
-    net_foreign_5d: number;
-    broker_net_5d: number;
+    // 7d/30d, not 5d: the source table never had 5-day windows.
+    net_foreign_7d: number;
+    broker_net_7d: number;
+    net_foreign_30d: number;
     tactical_signal: string;
   } | null;
   stealth: {
@@ -297,16 +299,30 @@ const COLOR_MAP = {
 
 // ─── Tactical Signal Configs ──────────────────────────────────────────────────
 
+/** Reduce a stored signal to a style key.
+ *
+ * market.tb_tactical_momentum_smart_money stores display-ready labels with
+ * emoji ("🟢 Strong Buy"), never snake_case. This config used to be keyed on a
+ * vocabulary (STRONG_BUY / MOMENTUM_BUY / BUY / SELL …) that shares only one
+ * name with the real data, so every lookup missed and the panel fell back to
+ * Neutral for all 966 stocks — the indicator was inert, not wrong-looking.
+ */
+const tacticalKey = (raw: string) =>
+  raw.replace(/[^A-Za-z\s]/g, ' ').trim().toUpperCase().replace(/\s+/g, '_')
+
 const TACTICAL_SIGNAL_CONFIG: Record<string, {
   label: string; color: string; bg: string; border: string; icon: string; priority: number
 }> = {
-  STRONG_BUY:    { label: 'Strong Buy 🚀',    color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/40', icon: '🚀', priority: 0 },
-  MOMENTUM_BUY:  { label: 'Momentum Buy ⚡',  color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: '⚡', priority: 1 },
-  BUY:           { label: 'Buy Signal 📈',    color: 'text-emerald-400', bg: 'bg-emerald-500/8',  border: 'border-emerald-500/20', icon: '📈', priority: 2 },
-  NEUTRAL:       { label: 'Neutral ⚪',       color: 'text-gray-400',    bg: 'bg-surface-3',        border: 'border-line-5',       icon: '⚪', priority: 3 },
-  SELL:          { label: 'Sell Signal 📉',   color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/20',     icon: '📉', priority: 4 },
-  MOMENTUM_SELL: { label: 'Momentum Sell ⚡', color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     icon: '🔻', priority: 5 },
-  STRONG_SELL:   { label: 'Strong Sell 🔴',   color: 'text-red-300',     bg: 'bg-red-500/15',     border: 'border-red-500/40',     icon: '🔴', priority: 6 },
+  STRONG_BUY:              { label: 'Strong Buy',                color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/40', icon: '🟢', priority: 0 },
+  MODERATE_BUY:            { label: 'Moderate Buy',              color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: '🟡', priority: 1 },
+  MILD_BUY:                { label: 'Mild Buy',                  color: 'text-emerald-400', bg: 'bg-emerald-500/8',  border: 'border-emerald-500/20', icon: '🔵', priority: 2 },
+  // Divergences carry no agreed direction — foreign and broker flow point
+  // opposite ways — so they read amber rather than green or red.
+  FOREIGN_BUY_BROKER_SELL: { label: 'Foreign Buy / Broker Sell', color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   icon: '⚡', priority: 3 },
+  BROKER_BUY_FOREIGN_SELL: { label: 'Broker Buy / Foreign Sell', color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   icon: '⚡', priority: 3 },
+  NEUTRAL:                 { label: 'Neutral',                   color: 'text-gray-400',    bg: 'bg-surface-3',      border: 'border-line-5',         icon: '⚪', priority: 4 },
+  MODERATE_SELL:           { label: 'Moderate Sell',             color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/20',     icon: '🟠', priority: 5 },
+  STRONG_SELL:             { label: 'Strong Sell',               color: 'text-red-300',     bg: 'bg-red-500/15',     border: 'border-red-500/40',     icon: '🔴', priority: 6 },
 };
 
 const STEALTH_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
@@ -630,7 +646,7 @@ function TacticalSignalBanner({ data, loading }: { data: TacticalSignalData | nu
   const pos = data.positioning;
 
   const tactCfg = tact?.tactical_signal
-    ? (TACTICAL_SIGNAL_CONFIG[tact.tactical_signal] ?? TACTICAL_SIGNAL_CONFIG.NEUTRAL)
+    ? (TACTICAL_SIGNAL_CONFIG[tacticalKey(tact.tactical_signal)] ?? TACTICAL_SIGNAL_CONFIG.NEUTRAL)
     : null;
   const stealthCfg = stealth?.stealth_signal
     ? (STEALTH_CONFIG[stealth.stealth_signal] ?? null)
@@ -644,18 +660,18 @@ function TacticalSignalBanner({ data, loading }: { data: TacticalSignalData | nu
           <div>
             <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-0.5">Tactical Signal</p>
             <p className={`text-sm font-black ${tactCfg?.color ?? 'text-gray-400'}`}>
-              {tactCfg?.label ?? '—'}
+              {tactCfg ? `${tactCfg.icon} ${tactCfg.label}` : '—'}
             </p>
             {tact && (
               <div className="flex gap-3 mt-1">
                 <span className="text-[9px] text-gray-600">
-                  Foreign 5d: <span className={`font-bold ${(tact.net_foreign_5d ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {tact.net_foreign_5d != null ? `${tact.net_foreign_5d >= 0 ? '+' : ''}${(tact.net_foreign_5d / 1e9).toFixed(1)} M` : '—'}
+                  Foreign 7d: <span className={`font-bold ${(tact.net_foreign_7d ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {tact.net_foreign_7d != null ? `${tact.net_foreign_7d >= 0 ? '+' : ''}${(tact.net_foreign_7d / 1e9).toFixed(1)} M` : '—'}
                   </span>
                 </span>
                 <span className="text-[9px] text-gray-600">
-                  Broker 5d: <span className={`font-bold ${(tact.broker_net_5d ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {tact.broker_net_5d != null ? `${tact.broker_net_5d >= 0 ? '+' : ''}${(tact.broker_net_5d / 1e9).toFixed(1)} M` : '—'}
+                  Broker 7d: <span className={`font-bold ${(tact.broker_net_7d ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {tact.broker_net_7d != null ? `${tact.broker_net_7d >= 0 ? '+' : ''}${(tact.broker_net_7d / 1e9).toFixed(1)} M` : '—'}
                   </span>
                 </span>
               </div>
@@ -883,12 +899,15 @@ function InsiderSignalCard({ data, loading }: { data: InsiderSignalData | null; 
 
 function ScreenerTacticalCell({ row }: { row: ScreenerRow }) {
   const sig = row.tactical_signal;
-  if (!sig || sig === 'NEUTRAL') return <span className="text-gray-600 text-[10px]">—</span>;
-  const cfg = TACTICAL_SIGNAL_CONFIG[sig];
+  const key = sig ? tacticalKey(sig) : '';
+  if (!sig || key === 'NEUTRAL') return <span className="text-gray-600 text-[10px]">—</span>;
+  const cfg = TACTICAL_SIGNAL_CONFIG[key];
+  // Unrecognised signals print verbatim rather than being silently normalised
+  // into a neighbouring bucket.
   if (!cfg) return <span className="text-gray-500 text-[10px]">{sig}</span>;
   return (
     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
-      {cfg.icon} {sig.replace('_', ' ')}
+      {cfg.icon} {cfg.label}
     </span>
   );
 }
@@ -2247,6 +2266,9 @@ export default function BrokerTrackerPage() {
   const [filterSector,     setFilterSector]     = useState('');
   const [filterWhaleOnly,  setFilterWhaleOnly]  = useState(false);
   const [filterPowerScore, setFilterPowerScore] = useState(0);
+  const [screenerMode,     setScreenerMode]     = useState<'accum' | 'convergence' | 'divergence'>('accum'); // NEW
+  const [convData,         setConvData]         = useState<any[]>([]); // NEW
+  const [convLoading,      setConvLoading]      = useState(false); // NEW
   const [filterMinVal,     setFilterMinVal]     = useState('1000000000');
   const [filterMinBroker,  setFilterMinBroker]  = useState('3');
 
@@ -2524,12 +2546,12 @@ export default function BrokerTrackerPage() {
         const pwrQ       = filterPowerScore > 0 ? `&min_power_score=${filterPowerScore}`            : '';
         const minValQ    = `&min_total_value=${filterMinVal}`;
         const minBrkQ    = `&min_broker_count=${filterMinBroker}`;
-        // ★ New quality filters
         const minNetQ    = `&min_net_miliar=${filterMinNet}`;
         const maxSpQ     = `&max_sell_pressure=${filterMaxSellPct}`;
         const periodQ    = `&screener_days=${screenerPeriod}`;
+        const convAction = screenerMode === 'convergence' ? 'convergence' : screenerMode === 'divergence' ? 'divergence' : 'screener';
 
-        const res  = await fetch(`/api/broker-tracker?action=screener&${params}${sectorQ}${whaleQ}${pwrQ}${minValQ}${minBrkQ}${minNetQ}${maxSpQ}${periodQ}`);
+        const res  = await fetch(`/api/broker-tracker?action=${convAction}&${params}${sectorQ}${periodQ}&limit=30`);
         const json = await res.json();
         if (json.error) throw new Error(json.error);
         setScreenerData(json.data || []);
@@ -2544,7 +2566,7 @@ export default function BrokerTrackerPage() {
       setError(e.message ?? 'Terjadi kesalahan.');
     }
     setLoading(false);
-  }, [activeTab, code, startDate, endDate, filterSector, filterWhaleOnly, filterPowerScore, filterMinVal, filterMinBroker, filterMinNet, filterMaxSellPct, screenerPeriod, enrichTracker, loadStance]);
+  }, [activeTab, code, startDate, endDate, filterSector, filterWhaleOnly, filterPowerScore, filterMinVal, filterMinBroker, filterMinNet, filterMaxSellPct, screenerPeriod, screenerMode, enrichTracker, loadStance]);
 
   useEffect(() => {
     if (urlCode) loadData(urlCode, 'tracker');
@@ -2852,6 +2874,26 @@ export default function BrokerTrackerPage() {
 
             {activeTab === 'screener' && (
               <div className="flex flex-wrap gap-3 items-end">
+                {/* Screener mode toggle: Accumulation / Convergence / Divergence */}
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">Mode</label>
+                  <div className="flex gap-1 bg-background rounded-lg p-1">
+                    {[
+                      { key: 'accum', label: 'Accum', icon: '📈', desc: 'Akumulasi broker' },
+                      { key: 'convergence', label: 'Smart', icon: '🎯', desc: 'Foreign + Inst convergent' },
+                      { key: 'divergence', label: 'Split', icon: '⚡', desc: 'Foreign vs Inst divergent' },
+                    ].map(m => (
+                      <button key={m.key} onClick={() => setScreenerMode(m.key as any)}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all whitespace-nowrap flex items-center gap-1 ${
+                          screenerMode === m.key ? 'bg-gold-400 text-black shadow' : 'text-gray-400 hover:text-white'
+                        }`}
+                        title={m.desc}
+                      >
+                        {m.icon} {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-gray-500 ml-1">Sektor</label>
                   <select value={filterSector} onChange={e => setFilterSector(e.target.value)}
@@ -3045,8 +3087,8 @@ export default function BrokerTrackerPage() {
         </div>
       )}
 
-      {/* ── WHALE SCREENER TAB ── */}
-      {activeTab === 'screener' && sortedScreenerData.length > 0 && (
+      {/* ── SCREENER TAB (Accum, Convergence, Divergence) ── */}
+      {activeTab === 'screener' && sortedScreenerData.length > 0 && screenerMode === 'accum' && (
         <ScreenerResults
           data={sortedScreenerData}
           screenerSortCol={screenerSortCol}
@@ -3060,6 +3102,66 @@ export default function BrokerTrackerPage() {
           setActiveTab={setActiveTab}
           loadData={loadData}
         />
+      )}
+
+      {activeTab === 'screener' && sortedScreenerData.length > 0 && screenerMode !== 'accum' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex items-center gap-2 px-1">
+            <div className={`w-2 h-2 rounded-full ${screenerMode === 'convergence' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/60">
+              {screenerMode === 'convergence' ? 'Foreign + Local Inst — Konvergensi Akumulasi' : 'Foreign vs Local Inst — Divergensi Aliran Dana'}
+            </span>
+            <span className="text-[9px] text-muted-foreground/30 ml-auto">{sortedScreenerData.length} saham</span>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {sortedScreenerData.map((r: any, i: number) => (
+              <div key={r.stock_code} className="glass rounded-xl px-4 py-3 hover:bg-white/[0.04] transition-all cursor-pointer active:scale-[0.99]"
+                onClick={() => { setCode(r.stock_code); setActiveTab('tracker') }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-mono text-muted-foreground/40 w-5 shrink-0">{i + 1}</span>
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400/20 to-amber-600/10 flex items-center justify-center font-black text-xs text-amber-400 shrink-0">
+                    {r.stock_code?.[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-foreground">{r.stock_code}</p>
+                    <p className="text-[10px] text-muted-foreground/50 truncate">{r.sector || ''}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-xs font-black ${(r.net_miliar ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{r.net_miliar?.toFixed(1)} M</p>
+                    <p className="text-[9px] text-muted-foreground/40">Net</p>
+                  </div>
+                  {screenerMode === 'convergence' ? (
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <p className="text-[11px] font-black text-sky-400">{r.foreign_net_miliar?.toFixed(1)}</p>
+                        <p className="text-[8px] text-muted-foreground/40">Foreign</p>
+                      </div>
+                      <div className="w-16 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
+                          style={{ width: `${Math.min(100, Math.abs(r.foreign_net_miliar / Math.max(0.1, r.local_net_miliar || 0.1)) * 50)}%` }} />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[11px] font-black text-emerald-400">{r.local_net_miliar?.toFixed(1)}</p>
+                        <p className="text-[8px] text-muted-foreground/40">Local Inst</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-right shrink-0">
+                      <p className={`text-[11px] font-black ${(r.foreign_net_miliar ?? 0) > 0 ? 'text-sky-400' : 'text-red-400'}`}>Foreign: {r.foreign_net_miliar?.toFixed(1)} M</p>
+                      <p className={`text-[11px] font-black ${(r.local_net_miliar ?? 0) > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Local: {r.local_net_miliar?.toFixed(1)} M</p>
+                    </div>
+                  )}
+                  <div className="text-center shrink-0 w-12">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs font-mono mx-auto"
+                      style={{
+                        background: `conic-gradient(#fbbf24 ${Math.min(100, r.composite_score || 0)}%, rgba(255,255,255,0.05) ${Math.min(100, r.composite_score || 0)}%)`,
+                      }}>{r.composite_score ?? '-'}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {activeTab === 'screener' && !loading && screenerData.length > 0 && sortedScreenerData.length === 0 && !error && (
@@ -3084,7 +3186,9 @@ export default function BrokerTrackerPage() {
             Screener akan menampilkan saham dengan broker net buy signifikan, sell pressure rendah, dan composite score tertinggi.
           </p>
           <div className="mt-4 flex flex-wrap gap-2 justify-center text-[10px] text-muted-foreground/40">
-            {['Net Akumulasi ≥ 500 Jt', 'Sell Pressure ≤ 85%', 'Broker Count ≥ 3'].map(t => (
+            {/* Sell pressure is sell value as a share OF BUY value, so 100% is
+                balanced. The old copy said 85%, which no stock has ever met. */}
+            {['Net Akumulasi ≥ 500 Jt', 'Sell Pressure ≤ 100%', 'Broker Count ≥ 3'].map(t => (
               <span key={t} className="px-2.5 py-1 rounded-full border border-border/30 bg-surface-1">{t}</span>
             ))}
           </div>

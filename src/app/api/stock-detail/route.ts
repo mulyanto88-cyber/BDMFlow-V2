@@ -374,7 +374,10 @@ export async function GET(req: NextRequest) {
                c.whale_score::INTEGER AS whale_score, c.price_score::INTEGER AS price_score,
                c.ksei_score::INTEGER AS ksei_score, c.insider_score::INTEGER AS insider_score
         FROM market.tb_composite_v2 v2
-        LEFT JOIN market.vw_c_composite_score c ON c.stock_code = v2.stock_code
+        -- The materialized twin of vw_c_composite_score, refreshed nightly by
+        -- the ETL. The view costs ~5s to evaluate on every cold request; the
+        -- table carries the same 18 columns for the price of a lookup.
+        LEFT JOIN market.tb_composite_score c ON c.stock_code = v2.stock_code
         WHERE v2.stock_code = $1
         LIMIT 1
       `, [code]).catch(() => []),

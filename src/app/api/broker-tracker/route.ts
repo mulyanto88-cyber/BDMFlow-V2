@@ -6,22 +6,56 @@ export const revalidate = 1800
 
 // ─── Helper Functions ───────────────────────────────────────────────────────
 
+const isoDay = (d: Date) => d.toISOString().split('T')[0]
+
 function buildDateFilter(days: string | null, startDate: string | null, endDate: string | null) {
   if (startDate && endDate) {
     const re = /^\d{4}-\d{2}-\d{2}$/
     if (!re.test(startDate) || !re.test(endDate)) throw new Error('Format tanggal tidak valid. Gunakan YYYY-MM-DD')
-    return { clause: `CAST(date AS DATE) BETWEEN $1::DATE AND $2::DATE`, params: [startDate, endDate] }
+    return {
+      clause: `CAST(date AS DATE) BETWEEN $1::DATE AND $2::DATE`,
+      params: [startDate, endDate],
+      start: startDate,
+      end: endDate,
+    }
   }
   const d = parseInt(days || '5')
   if (isNaN(d) || d < 0) throw new Error('Parameter days harus angka positif')
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - d)
-  return { clause: `CAST(date AS DATE) >= $1::DATE`, params: [cutoff.toISOString().split('T')[0]] }
+  // start/end are exposed so callers can derive an adjacent window without
+  // reconstructing the branch logic and getting a different answer.
+  return {
+    clause: `CAST(date AS DATE) >= $1::DATE`,
+    params: [isoDay(cutoff)],
+    start: isoDay(cutoff),
+    end: isoDay(new Date()),
+  }
 }
+
+/** The equally long window ending the day before `start`.
+ *
+ * Derived here rather than in SQL: DuckDB types (DATE - DATE) as BIGINT and has
+ * no DATE - BIGINT operator, so the arithmetic has to be spelled out with an
+ * INTEGER cast — and the previous version instead assumed $1 and $2 were both
+ * dates, which is only true on the startDate/endDate branch. Under ?days=N the
+ * second parameter is the stock code, and it was being cast to DATE.
+ */
+function previousWindow(start: string, end: string) {
+  const s = new Date(`${start}T00:00:00Z`)
+  const e = new Date(`${end}T00:00:00Z`)
+  const spanDays = Math.max(1, Math.round((e.getTime() - s.getTime()) / 86_400_000))
+  const prevEnd = new Date(s.getTime() - 86_400_000)
+  const prevStart = new Date(prevEnd.getTime() - spanDays * 86_400_000)
+  return { start: isoDay(prevStart), end: isoDay(prevEnd) }
+}
+
+/** A caller mistake, not a server fault — mapped to 400 by the handler. */
+class BadRequest extends Error {}
 
 function validateStockCode(code: string): string {
   const cleaned = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
-  if (cleaned.length < 1 || cleaned.length > 10) throw new Error('Kode saham tidak valid')
+  if (cleaned.length < 1 || cleaned.length > 10) throw new BadRequest('Kode saham tidak valid')
   return cleaned
 }
 
@@ -48,7 +82,12 @@ export async function GET(req: NextRequest) {
   const minBuyBroker    = searchParams.get('min_buy_broker_count')   || '2'
   const minPowerScore   = searchParams.get('min_power_score')        || '0'
   const minNetMiliar    = parseFloat(searchParams.get('min_net_miliar')    || '0.5')  // min 500 juta net
-  const maxSellPressure = parseFloat(searchParams.get('max_sell_pressure') || '85')   // max 85% sell vs buy
+  // sell_pressure_pct is sell value as a percentage OF BUY value, so 100 means
+  // balanced — not "share of activity that was selling". Its floor across
+  // market.tb_broker_accum_*d is 89.8, so the previous default of 85 could never
+  // match and the screener returned nothing at all. Among rows passing the other
+  // filters none exceed 100, so 100 admits them and any higher value is inert.
+  const maxSellPressure = parseFloat(searchParams.get('max_sell_pressure') || '100')
   const sector          = searchParams.get('sector')                 || ''
   const whaleOnly       = searchParams.get('whale_only')             === 'true'
 
@@ -134,7 +173,7 @@ export async function GET(req: NextRequest) {
           k.confirmation AS ksei_confirmation,
           COALESCE(v2.v2_score, 0)  AS v2_score, v2.tier_v2, v2.flow_context, v2.rank_overall
         FROM market.tb_smart_money_score s
-        LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
+        LEFT JOIN market.tb_broker_ksei_confirm k ON k.stock_code = s.stock_code
         LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
         WHERE s.stock_code = $1
         LIMIT 1`, [cleanCode]),
@@ -292,7 +331,7 @@ export async function GET(req: NextRequest) {
           v2.flow_context,
           v2.rank_overall
         FROM market.tb_smart_money_score s
-        LEFT JOIN market.vw_broker_ksei_confirm k ON k.stock_code = s.stock_code
+        LEFT JOIN market.tb_broker_ksei_confirm k ON k.stock_code = s.stock_code
         LEFT JOIN market.tb_composite_v2 v2      ON v2.stock_code = s.stock_code
         WHERE s.stock_code = $${paramIdx}
         LIMIT 1`
@@ -322,8 +361,10 @@ export async function GET(req: NextRequest) {
     } else if (action === 'broker_profile') {
       const cleanBroker = brokerCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
       if (!cleanBroker) return NextResponse.json({ error: 'broker_code diperlukan' }, { status: 400 })
-      paramIdx++
-      queryParams.push(cleanBroker)
+      // Neither query has a date clause, so the shared date params must be
+      // dropped: DuckDB counts the placeholders the statement actually contains
+      // and rejects the surplus values ("expected 1 parameters, got 2").
+      queryParams = [cleanBroker]
       const summaryQuery = `
         SELECT
           broker_code, MAX(broker_name) AS broker_name,
@@ -333,7 +374,7 @@ export async function GET(req: NextRequest) {
           ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS total_sell_value,
           SUM(value)::DOUBLE AS net_value,
           ROUND(SUM(CASE WHEN value>0 THEN value ELSE 0 END)*100.0/NULLIF(SUM(ABS(value)),0),1)::DOUBLE AS buy_ratio_pct
-        FROM broker_activity WHERE broker_code = $${paramIdx} AND LENGTH(stock_code) = 4 GROUP BY broker_code`
+        FROM broker_activity WHERE broker_code = $1 AND LENGTH(stock_code) = 4 GROUP BY broker_code`
       const favQuery = `
         SELECT
           stock_code,
@@ -342,7 +383,7 @@ export async function GET(req: NextRequest) {
           SUM(value)::DOUBLE AS net_value,
           COUNT(*)::BIGINT   AS total_transactions,
           (SUM(CASE WHEN value>0 THEN value ELSE 0 END)/NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::DOUBLE AS avg_buy_price
-        FROM broker_activity WHERE broker_code = $${paramIdx} AND LENGTH(stock_code) = 4
+        FROM broker_activity WHERE broker_code = $1 AND LENGTH(stock_code) = 4
         GROUP BY stock_code
         ORDER BY ABS(SUM(value)) DESC LIMIT 10`
       const [summaryData, favData] = await Promise.all([safeRun(summaryQuery, queryParams), safeRun(favQuery, queryParams)])
@@ -476,22 +517,22 @@ export async function GET(req: NextRequest) {
     // ── 10. STANCE HISTORY ─────────────────────────────────────────────────
     } else if (action === 'stance_history') {
       const cleanCode = validateStockCode(code)
-      paramIdx++
-      queryParams.push(cleanCode)
+      const prev = previousWindow(dateFilter.start, dateFilter.end)
+      // Bounds passed explicitly instead of derived in SQL — see previousWindow().
+      const codeIdx = dateFilter.params.length + 1
+      queryParams = [...dateFilter.params, cleanCode, prev.start, prev.end]
       query = `
         WITH current_period AS (
           SELECT broker_code, SUM(value)::DOUBLE AS net_val, MAX(broker_name) AS broker_name
           FROM broker_activity
-          WHERE ${dateFilter.clause} AND stock_code = $${paramIdx}
+          WHERE ${dateFilter.clause} AND stock_code = $${codeIdx}
           GROUP BY broker_code
         ),
         prev_period AS (
           SELECT broker_code, SUM(value)::DOUBLE AS net_val
           FROM broker_activity
-          WHERE CAST(date AS DATE) BETWEEN
-              ($1::DATE - ($2::DATE - $1::DATE) - INTERVAL '1 day')
-              AND ($1::DATE - INTERVAL '1 day')
-            AND stock_code = $${paramIdx}
+          WHERE CAST(date AS DATE) BETWEEN $${codeIdx + 1}::DATE AND $${codeIdx + 2}::DATE
+            AND stock_code = $${codeIdx}
           GROUP BY broker_code
         )
         SELECT
@@ -582,8 +623,8 @@ export async function GET(req: NextRequest) {
     // ── 13. WHALE TIMING ───────────────────────────────────────────────────
     } else if (action === 'whale_timing') {
       const cleanCode = validateStockCode(code)
-      paramIdx++
-      queryParams.push(cleanCode)
+      // ksei.tb_whale_timing is a snapshot with no date column to filter on.
+      queryParams = [cleanCode]
       query = `
         SELECT
           w.share_code,
@@ -602,27 +643,35 @@ export async function GET(req: NextRequest) {
           w.position_trend,
           w.whale_verdict
         FROM ksei.tb_whale_timing w
-        WHERE w.share_code = $${paramIdx}
+        WHERE w.share_code = $1
         ORDER BY w.latest_percentage DESC
         LIMIT 15`
 
     // ── 14. TACTICAL SIGNAL ────────────────────────────────────────────────
     } else if (action === 'tactical_signal') {
       const cleanCode = validateStockCode(code)
-      paramIdx++
-      queryParams.push(cleanCode)
+      // All three tables are per-stock snapshots with no date filter.
+      queryParams = [cleanCode]
+      // net_foreign_5d / broker_net_5d do not exist: the table carries 7d and
+      // 30d windows. DuckDB matched the missing names against the identical
+      // aliases and reported them as referenced-before-defined.
+      //
+      // The 7d/30d columns are stored in miliar while net_foreign_1d is in
+      // rupiah, so they are scaled here — one unit for the whole payload, which
+      // is what the client already assumes when it divides by 1e9.
       const tacticalQuery = `
         SELECT
           stock_code,
-          CAST(trading_date AS VARCHAR)       AS trading_date,
-          close::DOUBLE                       AS close,
-          change_percent::DOUBLE              AS change_percent,
-          net_foreign_1d::DOUBLE              AS net_foreign_1d,
-          net_foreign_5d::DOUBLE              AS net_foreign_5d,
-          broker_net_5d::DOUBLE               AS broker_net_5d,
+          CAST(trading_date AS VARCHAR)         AS trading_date,
+          close::DOUBLE                         AS close,
+          change_percent::DOUBLE                AS change_percent,
+          net_foreign_1d::DOUBLE                AS net_foreign_1d,
+          (net_foreign_7d_miliar  * 1e9)::DOUBLE AS net_foreign_7d,
+          (broker_net_7d_miliar   * 1e9)::DOUBLE AS broker_net_7d,
+          (net_foreign_30d_miliar * 1e9)::DOUBLE AS net_foreign_30d,
           tactical_signal
         FROM market.tb_tactical_momentum_smart_money
-        WHERE stock_code = $${paramIdx}
+        WHERE stock_code = $1
         ORDER BY trading_date DESC
         LIMIT 1`
       const stealthQuery = `
@@ -634,7 +683,7 @@ export async function GET(req: NextRequest) {
           Foreign_CP_Miliar::DOUBLE           AS foreign_cp_miliar,
           Signal                              AS stealth_signal
         FROM ksei.tb_stealth_accumulation
-        WHERE Code = $${paramIdx}
+        WHERE Code = $1
         ORDER BY Date DESC
         LIMIT 1`
       const positionQuery = `
@@ -645,7 +694,7 @@ export async function GET(req: NextRequest) {
           mom_change_pct::DOUBLE              AS mom_change_pct,
           strategic_signal
         FROM ksei.tb_ksei_inst_positioning
-        WHERE stock_code = $${paramIdx}
+        WHERE stock_code = $1
         LIMIT 1`
       const [tactData, stealthData, posData] = await Promise.all([
         safeRun(tacticalQuery, queryParams),
@@ -661,8 +710,8 @@ export async function GET(req: NextRequest) {
     // ── 15. INSIDER SIGNAL ─────────────────────────────────────────────────
     } else if (action === 'insider_signal') {
       const cleanCode = validateStockCode(code)
-      paramIdx++
-      queryParams.push(cleanCode)
+      // Both KSEI tables are snapshots; neither takes the broker date window.
+      queryParams = [cleanCode]
       const alertQuery = `
         SELECT
           CAST(report_date AS VARCHAR)        AS report_date,
@@ -677,7 +726,7 @@ export async function GET(req: NextRequest) {
           action,
           alert_level
         FROM ksei.tb_ksei_individual_changes
-        WHERE share_code = $${paramIdx}
+        WHERE share_code = $1
         ORDER BY
           CASE alert_level WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
           report_date DESC
@@ -691,7 +740,7 @@ export async function GET(req: NextRequest) {
           score::INTEGER                      AS insider_score,
           signals
         FROM ksei.tb_insider_screener
-        WHERE code = $${paramIdx}
+        WHERE code = $1
         LIMIT 1`
       const [alerts, scores] = await Promise.all([
         safeRun(alertQuery, queryParams),
@@ -735,6 +784,54 @@ export async function GET(req: NextRequest) {
           ${sectorClause} ${whaleClause}
         ORDER BY composite_score DESC
         LIMIT 100`
+
+    // ── 17. CONVERGENCE & DIVERGENCE — smart money flow divergence signals ──
+    } else if (action === 'convergence' || action === 'divergence') {
+      const convDays = parseInt(searchParams.get('conv_days') || '30')
+      const validDays = [5, 14, 30, 60, 90].includes(convDays) ? convDays : 30
+      const tbl = `market.tb_broker_accum_${validDays}d`
+      const limit = Math.min(50, parseInt(searchParams.get('limit') || '20'))
+      // NOTE: 'divergence' never reaches here — the branch at ~line 380 matches
+      // it first. This arm is effectively convergence-only.
+      const sectorFilter = sector ? `AND sector = $1` : ''
+      // Assigned, not just built: the shared executor reads queryParams, so the
+      // local array was discarded and the leftover date param was sent to a
+      // statement with no placeholders ("expected 0 parameters, got 1").
+      queryParams = sector ? [sector] : []
+
+      if (action === 'convergence') {
+        query = `
+          SELECT stock_code, sector, company_name, latest_price, price_change_pct,
+            net_miliar, foreign_net_miliar, local_net_miliar,
+            smart_broker_count, broker_count, composite_score,
+            whale_signal, big_player_anomaly, smart_signal,
+            top_smart_buyer_code
+          FROM ${tbl}
+          WHERE net_accumulation > 0
+            AND foreign_net_miliar > 0
+            AND local_net_miliar > 0
+            AND net_miliar >= 0.5
+            AND broker_count >= 3
+            ${sectorFilter}
+          ORDER BY composite_score DESC, net_miliar DESC
+          LIMIT ${limit}`
+      } else {
+        query = `
+          SELECT stock_code, sector, company_name, latest_price, price_change_pct,
+            net_miliar, foreign_net_miliar, local_net_miliar,
+            smart_broker_count, broker_count, composite_score,
+            whale_signal, big_player_anomaly, smart_signal,
+            CASE WHEN foreign_net_miliar > 0 AND local_net_miliar < 0 THEN 'FOREIGN_BUY_LOCAL_SELL'
+                 WHEN foreign_net_miliar < 0 AND local_net_miliar > 0 THEN 'FOREIGN_SELL_LOCAL_BUY'
+                 ELSE 'NEUTRAL' END AS divergence_pattern,
+            smart_buy_miliar, sell_pressure_pct
+          FROM ${tbl}
+          WHERE (foreign_net_miliar > 0.3 AND local_net_miliar < -0.3)
+             OR (foreign_net_miliar < -0.3 AND local_net_miliar > 0.3)
+            ${sectorFilter}
+          ORDER BY ABS(foreign_net_miliar - local_net_miliar) DESC
+          LIMIT ${limit}`
+      }
 
     // ── 18. BROKER ALPHA SCORE ──────────────────────────────────────────────
     } else if (action === 'broker_alpha') {
@@ -782,6 +879,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data })
 
   } catch (error: any) {
+    // A missing or malformed code is the caller's error; reporting it as 500
+    // buries real faults among routine bad requests.
+    if (error instanceof BadRequest) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     console.error('[broker-tracker]', { action, message: error.message })
     return NextResponse.json({ error: error.message || 'Gagal mengambil data.' }, { status: 500 })
   }
