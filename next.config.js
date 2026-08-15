@@ -1,11 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // /api/alerts/summary prerenders at build time (it sets `revalidate`, not
-  // `force-dynamic`, so the edge cache in headers() below stays effective).
-  // Its view is heavy and MotherDuck sits in us-east-1, so the default 60s
-  // budget expires mid-query and fails the build.
-  staticPageGenerationTimeout: 300,
-
   async headers() {
     return [
       {
@@ -18,17 +12,22 @@ const nextConfig = {
       {
         // Read-only market data refreshes once per trading day (~20:00 WIB). Cache it long at the
         // edge with stale-while-revalidate so users get instant responses and MotherDuck is hit at
-        // most ~once per window per key instead of every 60s. User-specific routes (watchlist, auth)
-        // and the raw-SQL POST endpoint (motherduck) are excluded so nothing is shared-cached.
+        // most ~once per window per key instead of every 60s.
+        //
+        // s-maxage=3600 + SWR=7d: data is T+1, so an hour-old edge copy is always "fresh enough";
+        // the 7-day stale window only ever matters while the origin is down (SWR serves the last
+        // good copy instead of an error). max-age=300 lets browsers skip the round-trip on quick
+        // back-and-forth navigation. User-specific routes (watchlist, auth) and the raw-SQL POST
+        // endpoint (motherduck) are excluded so nothing is shared-cached.
         source: '/api/:route(bandarmologi|broker-flow|broker-tracker|composite|foreign-flow|insider|ksei-monthly|msci-screener|ftse-screener|radar|stock-detail|volume-aov|morning-brief)',
         headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=1800, stale-while-revalidate=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800' },
         ],
       },
       {
         source: '/api/alerts/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=1800, stale-while-revalidate=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800' },
         ],
       },
     ];
