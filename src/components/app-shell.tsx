@@ -11,6 +11,7 @@ import InlineActionCenter from './inline-action-center'
 import DataFreshnessBanner from './data-freshness-banner'
 import Sidebar from './sidebar'
 import SignupNudge from './signup-nudge'
+import UpgradeGateOverlay from './upgrade-gate-overlay'
 import { ChevronRight, Bell } from 'lucide-react'
 
 // Bare pages (no shell): landing, auth, pricing, and the compliance pages.
@@ -252,6 +253,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <InlineActionCenter />
       <SignupNudge />
+      <UpgradeGateOverlay />
     </div>
   )
 }

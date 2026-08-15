@@ -42,6 +42,11 @@ async function authHeaders(): Promise<Record<string, string>> {
  * the caller's plan server-side the same way /api/motherduck does. Pages and
  * hooks must use this wrapper so that when ENFORCE_PRO_GATING is switched on,
  * signed-in Pro users still pass the server-side gate.
+ *
+ * On 402 (paid-tier data withheld) it also broadcasts a
+ * `bdmflow:upgrade-required` window event so the app shell can show one
+ * global upgrade prompt — pages keep their own error handling, nothing
+ * per-page needs to know about the paywall.
  */
 export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers)
@@ -52,7 +57,11 @@ export async function authFetch(input: RequestInfo | URL, init?: RequestInit): P
   } catch {
     // Not signed in, or auth unavailable — proceed anonymously.
   }
-  return fetch(input, { ...init, headers })
+  const res = await fetch(input, { ...init, headers })
+  if (res.status === 402 && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('bdmflow:upgrade-required'))
+  }
+  return res
 }
 
 /**

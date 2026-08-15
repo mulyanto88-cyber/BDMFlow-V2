@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { track } from '@/lib/analytics'
@@ -53,6 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [isPro, setIsPro]     = useState(false)
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null)
+  // null = not yet resolved; the first resolution just records state, so
+  // 'plan_activated' fires only on a real free → active-Pro transition
+  // (i.e. the moment a payment's webhook lands and the UI reloads).
+  const wasPlanActiveRef = useRef<boolean | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -109,6 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // plan='pro' only counts while the window is unexpired (NULL expiry =
       // legacy manual grant, still active). Mirrors src/lib/auth-server.ts.
       const planActive = isPlanActive(data?.plan, data?.plan_expires_at)
+      if (wasPlanActiveRef.current === false && planActive) {
+        track('plan_activated')
+      }
+      wasPlanActiveRef.current = planActive
       setIsPro(planActive)
 
       // trial_ends_at may be absent until migration 001 has been applied.

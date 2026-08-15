@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest'
+import { createHash } from 'crypto'
 import {
   nextExpiry,
   isPlanActive,
   isEntitled,
   verifyCallbackToken,
+  verifyMidtransSignature,
   parseWebhookEvent,
+  parseMidtransNotification,
   PRO_PLAN,
 } from '@/lib/billing'
 
@@ -87,6 +90,7 @@ describe('parseWebhookEvent', () => {
       eventId: 'evt-1',
       status: 'PAID',
       externalId: 'bdm-x-1',
+      gatewayRef: 'evt-1',
       amount: 55000,
     })
   })
@@ -95,5 +99,80 @@ describe('parseWebhookEvent', () => {
     expect(parseWebhookEvent({ status: 'PAID' })).toBeNull()
     expect(parseWebhookEvent({ id: 'evt-1' })).toBeNull()
     expect(parseWebhookEvent(null)).toBeNull()
+  })
+})
+
+describe('parseMidtransNotification', () => {
+  it('maps settlement/capture → PAID and keeps external_id as the order id', () => {
+    expect(
+      parseMidtransNotification({
+        order_id: 'bdm-x-1',
+        transaction_id: 'tx-9',
+        transaction_status: 'settlement',
+        gross_amount: '55000.00',
+      }),
+    ).toEqual({
+      eventId: 'bdm-x-1:tx-9:PAID',
+      status: 'PAID',
+      externalId: 'bdm-x-1',
+      gatewayRef: 'tx-9',
+      amount: 55000,
+    })
+  })
+
+  it('maps non-terminal statuses', () => {
+    expect(parseMidtransNotification({ order_id: 'o1', transaction_status: 'pending' })?.status).toBe('PENDING')
+    expect(parseMidtransNotification({ order_id: 'o2', transaction_status: 'expire' })?.status).toBe('EXPIRED')
+    expect(parseMidtransNotification({ order_id: 'o3', transaction_status: 'deny' })?.status).toBe('FAILED')
+    expect(parseMidtransNotification({ order_id: 'o4', transaction_status: 'cancel' })?.status).toBe('CANCELED')
+  })
+
+  it('rejects payloads without order_id or status', () => {
+    expect(parseMidtransNotification({ transaction_status: 'settlement' })).toBeNull()
+    expect(parseMidtransNotification({ order_id: 'o1' })).toBeNull()
+    expect(parseMidtransNotification(null)).toBeNull()
+  })
+})
+
+describe('verifyMidtransSignature', () => {
+  const SERVER_KEY = 'test-server-key'
+
+  function sign(orderId: string, statusCode: string, grossAmount: string) {
+    return createHash('sha512')
+      .update(`${orderId}${statusCode}${grossAmount}${SERVER_KEY}`)
+      .digest('hex')
+  }
+
+  it('accepts a valid signature (gross_amount as the raw string)', () => {
+    const body = {
+      order_id: 'bdm-x-1',
+      status_code: '200',
+      gross_amount: '55000.00',
+      signature_key: sign('bdm-x-1', '200', '55000.00'),
+    }
+    expect(verifyMidtransSignature(body, SERVER_KEY)).toBe(true)
+  })
+
+  it('rejects a tampered amount or order id', () => {
+    const body = {
+      order_id: 'bdm-x-1',
+      status_code: '200',
+      gross_amount: '55000.00',
+      signature_key: sign('bdm-x-1', '200', '55000.01'),
+    }
+    expect(verifyMidtransSignature(body, SERVER_KEY)).toBe(false)
+
+    const body2 = {
+      order_id: 'bdm-x-2',
+      status_code: '200',
+      gross_amount: '55000.00',
+      signature_key: sign('bdm-x-1', '200', '55000.00'),
+    }
+    expect(verifyMidtransSignature(body2, SERVER_KEY)).toBe(false)
+  })
+
+  it('rejects when no server key is configured or fields are missing', () => {
+    expect(verifyMidtransSignature({ order_id: 'a', status_code: '200', gross_amount: '1', signature_key: 'x' }, null)).toBe(false)
+    expect(verifyMidtransSignature({ order_id: 'a', status_code: '200' }, SERVER_KEY)).toBe(false)
   })
 })
