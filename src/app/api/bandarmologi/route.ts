@@ -1,6 +1,7 @@
 // /api/bandarmologi — broker intel: prime tracker, convergence map, leaderboard
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
 
 export const revalidate = 300
 
@@ -16,6 +17,9 @@ const TIER_CASE = `CASE
     ELSE 'NEUTRAL' END AS tier_pct`
 
 export async function GET(request: NextRequest) {
+  const guarded = await guardApi(request, { pro: true })
+  if (guarded) return guarded
+
   try {
     const { searchParams } = new URL(request.url)
     const action = searchParams.get('action') ?? 'all'
@@ -26,7 +30,7 @@ export async function GET(request: NextRequest) {
                t.composite_tier, ${TIER_CASE}, t.sector, t.group_name, t.close, t.change_percent,
                t.return_5d, t.return_20d, t.rank_overall
         FROM market.tb_broker_screener t LEFT JOIN cal ON TRUE
-        ORDER BY t.broker_score DESC, t.composite_score DESC LIMIT 25`)
+        ORDER BY t.broker_score DESC NULLS LAST, t.composite_score DESC NULLS LAST LIMIT 25`)
       return NextResponse.json(data)
     }
     if (action === 'convergence') {
@@ -34,7 +38,7 @@ export async function GET(request: NextRequest) {
         SELECT t.stock_code, t.foreign_score, t.broker_score, t.composite_score, t.composite_tier,
                ${TIER_CASE}, t.sector, t.group_name, t.close, t.change_percent
         FROM market.tb_broker_screener t LEFT JOIN cal ON TRUE
-        ORDER BY t.foreign_score DESC LIMIT 25`)
+        ORDER BY t.foreign_score DESC NULLS LAST LIMIT 25`)
       return NextResponse.json(data)
     }
     if (action === 'leaderboard') {
@@ -42,14 +46,16 @@ export async function GET(request: NextRequest) {
         SELECT t.stock_code, t.broker_score, t.foreign_score, t.whale_score, t.composite_score,
                t.composite_tier, ${TIER_CASE}, t.sector, t.group_name, t.close, t.change_percent, t.return_5d
         FROM market.tb_broker_screener t LEFT JOIN cal ON TRUE
-        ORDER BY t.broker_score DESC LIMIT 25`)
+        ORDER BY t.broker_score DESC NULLS LAST LIMIT 25`)
       return NextResponse.json(data)
     }
     const data = await run(`WITH ${TIER_CTE}
       SELECT t.*, ${TIER_CASE} FROM market.tb_broker_screener t LEFT JOIN cal ON TRUE
-      ORDER BY t.broker_score DESC LIMIT 25`)
+      ORDER BY t.broker_score DESC NULLS LAST LIMIT 25`)
     return NextResponse.json(data)
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    // Generic message — DB internals stay server-side.
+    console.error('[bandarmologi]', err?.message)
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 })
   }
 }

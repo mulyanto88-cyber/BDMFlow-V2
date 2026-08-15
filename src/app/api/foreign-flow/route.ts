@@ -1,8 +1,10 @@
-export const revalidate = 1800
+export const revalidate = 3600
 
 // src/app/api/foreign-flow/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
+import { snapParam } from '@/lib/utils'
 
 function safeRun(query: string, params: any[] = []): Promise<any[]> {
   return run(query, params).catch((err: any) => {
@@ -12,6 +14,9 @@ function safeRun(query: string, params: any[] = []): Promise<any[]> {
 }
 
 export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: true })
+  if (guarded) return guarded
+
   const { searchParams } = new URL(req.url)
   const action    = searchParams.get('action')
   const code      = searchParams.get('code') || ''
@@ -27,10 +32,10 @@ export async function GET(req: NextRequest) {
         WITH ld AS (SELECT MAX(trading_date) AS max_date FROM market.daily_transactions)
         SELECT
           CAST(trading_date AS VARCHAR)         AS date,
-          SUM(foreign_buy_value)::DOUBLE        AS total_foreign_buy,
-          SUM(foreign_sell_value)::DOUBLE       AS total_foreign_sell,
-          SUM(net_foreign_value)::DOUBLE        AS net_foreign,
-          SUM(value)::DOUBLE                    AS total_market_value,
+          SUM(foreign_buy_value)::FLOAT8        AS total_foreign_buy,
+          SUM(foreign_sell_value)::FLOAT8       AS total_foreign_sell,
+          SUM(net_foreign_value)::FLOAT8        AS net_foreign,
+          SUM(value)::FLOAT8                    AS total_market_value,
           COUNT(DISTINCT stock_code)::BIGINT    AS stock_count,
           COUNT(CASE WHEN net_foreign_value > 0 THEN 1 END)::BIGINT AS stocks_bought,
           COUNT(CASE WHEN net_foreign_value < 0 THEN 1 END)::BIGINT AS stocks_sold
@@ -48,14 +53,14 @@ export async function GET(req: NextRequest) {
         SELECT
           sector,
           COUNT(stock_code)::BIGINT                  AS stock_count,
-          SUM(${col})::DOUBLE                         AS total_foreign_flow,
-          AVG(change_percent)::DOUBLE                AS avg_change_pct,
-          SUM(value)::DOUBLE                         AS total_value,
+          SUM(${col})::FLOAT8                         AS total_foreign_flow,
+          AVG(change_percent)::FLOAT8                AS avg_change_pct,
+          SUM(value)::FLOAT8                         AS total_value,
           COUNT(CASE WHEN whale_signal THEN 1 END)::BIGINT AS whale_count
         FROM market.tb_stock_screener
         WHERE sector IS NOT NULL AND sector <> ''
         GROUP BY sector
-        ORDER BY SUM(${col}) DESC
+        ORDER BY SUM(${col}) DESC NULLS LAST
       `)
       return NextResponse.json({ data })
 
@@ -65,16 +70,16 @@ export async function GET(req: NextRequest) {
       const data = await safeRun(`
         SELECT
           group_name,
-          SUM(${col})::DOUBLE                         AS total_foreign_30d,
-          SUM(value)::DOUBLE                         AS total_value_30d,
+          SUM(${col})::FLOAT8                         AS total_foreign_30d,
+          SUM(value)::FLOAT8                         AS total_value_30d,
           30::BIGINT                                 AS active_days,
-          (SUM(${col}) / 30)::DOUBLE                  AS avg_daily_foreign,
-          SUM(CASE WHEN ${col} > 0 THEN ${col} ELSE 0 END)::DOUBLE AS inflow,
-          SUM(CASE WHEN ${col} < 0 THEN ${col} ELSE 0 END)::DOUBLE AS outflow
+          (SUM(${col}) / 30)::FLOAT8                  AS avg_daily_foreign,
+          SUM(CASE WHEN ${col} > 0 THEN ${col} ELSE 0 END)::FLOAT8 AS inflow,
+          SUM(CASE WHEN ${col} < 0 THEN ${col} ELSE 0 END)::FLOAT8 AS outflow
         FROM market.tb_stock_screener
         WHERE group_name IS NOT NULL AND group_name <> ''
         GROUP BY group_name
-        ORDER BY ABS(SUM(${col})) DESC
+        ORDER BY ABS(SUM(${col})) DESC NULLS LAST
         LIMIT 20
       `)
       return NextResponse.json({ data })
@@ -95,7 +100,7 @@ export async function GET(req: NextRequest) {
           ${sectorClause}
           ${groupClause}
           ${whaleClause}
-        ORDER BY ABS(f30d) DESC
+        ORDER BY ABS(f30d) DESC NULLS LAST
         LIMIT 150
       `, params)
       return NextResponse.json({ data })
@@ -105,24 +110,25 @@ export async function GET(req: NextRequest) {
       if (!code) return NextResponse.json({ error: 'code diperlukan' }, { status: 400 })
       const c = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10)
       const daysParam = searchParams.get('days') || '120'
-      const days = Math.min(Math.max(parseInt(daysParam) || 120, 30), 730)
+      // Snap free-form values onto the chart's own options so cache keys converge.
+      const days = snapParam(Math.min(Math.max(parseInt(daysParam) || 120, 30), 730), [30, 60, 90, 120, 180, 250, 365, 730], 120)
 
       const [chartRows, metricRows] = await Promise.all([
         safeRun(`
           WITH ld AS (SELECT MAX(trading_date) AS max_date FROM market.daily_transactions)
           SELECT
             CAST(trading_date AS VARCHAR)   AS date,
-            open_price::DOUBLE              AS open,
-            high::DOUBLE                    AS high,
-            low::DOUBLE                     AS low,
-            close::DOUBLE                   AS close,
-            previous::DOUBLE                AS previous,
-            change_percent::DOUBLE          AS change_percent,
-            net_foreign_value::DOUBLE       AS net_foreign,
-            foreign_buy_value::DOUBLE       AS foreign_buy,
-            foreign_sell_value::DOUBLE      AS foreign_sell,
+            open_price::FLOAT8              AS open,
+            high::FLOAT8                    AS high,
+            low::FLOAT8                     AS low,
+            close::FLOAT8                   AS close,
+            previous::FLOAT8                AS previous,
+            change_percent::FLOAT8          AS change_percent,
+            net_foreign_value::FLOAT8       AS net_foreign,
+            foreign_buy_value::FLOAT8       AS foreign_buy,
+            foreign_sell_value::FLOAT8      AS foreign_sell,
             volume::BIGINT                  AS volume,
-            value::DOUBLE                   AS market_value
+            value::FLOAT8                   AS market_value
           FROM market.daily_transactions LEFT JOIN market.company_profile USING (stock_code), ld
           WHERE stock_code = $1
             AND trading_date >= ld.max_date - INTERVAL '${days} days'
@@ -135,16 +141,16 @@ export async function GET(req: NextRequest) {
             -- TRADING-DAY windows: f1d = latest trading day, f7d = 7 most recent trading days, etc.
             SELECT
               stock_code,
-              SUM(CASE WHEN rn <= 1   THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f1d,
-              SUM(CASE WHEN rn <= 7   THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f7d,
-              SUM(CASE WHEN rn <= 14  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f14d,
-              SUM(CASE WHEN rn <= 30  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f30d,
-              SUM(CASE WHEN rn <= 60  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f60d,
-              SUM(CASE WHEN rn <= 90  THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f90d,
-              SUM(CASE WHEN rn <= 120 THEN net_foreign_value ELSE 0 END)::DOUBLE  AS f120d
+              SUM(CASE WHEN rn <= 1   THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f1d,
+              SUM(CASE WHEN rn <= 7   THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f7d,
+              SUM(CASE WHEN rn <= 14  THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f14d,
+              SUM(CASE WHEN rn <= 30  THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f30d,
+              SUM(CASE WHEN rn <= 60  THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f60d,
+              SUM(CASE WHEN rn <= 90  THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f90d,
+              SUM(CASE WHEN rn <= 120 THEN net_foreign_value ELSE 0 END)::FLOAT8  AS f120d
             FROM (
               SELECT stock_code, net_foreign_value,
-                     ROW_NUMBER() OVER (ORDER BY trading_date DESC) AS rn
+                     ROW_NUMBER() OVER (ORDER BY trading_date DESC NULLS LAST) AS rn
               FROM market.daily_transactions, ld
               WHERE stock_code = $1
                 AND trading_date >= ld.max_date - INTERVAL '250 days'
@@ -160,10 +166,10 @@ export async function GET(req: NextRequest) {
             sms.smart_money_score,
             sms.whale_signal,
             -- local institutional broker net (non-zero-sum); sms.broker_net was zero-sum ≈ 0
-            (COALESCE(br.local_inst_net_7d, 0) * 1e9)::DOUBLE AS broker_net,
+            (COALESCE(br.local_inst_net_7d, 0) * 1e9)::FLOAT8 AS broker_net,
             sms.signal,
-            (mp.f7d / 1e9)::DOUBLE                 AS tact_foreign_5d,
-            COALESCE(br.local_inst_net_7d, 0)::DOUBLE AS broker_net_5d,
+            (mp.f7d / 1e9)::FLOAT8                 AS tact_foreign_5d,
+            COALESCE(br.local_inst_net_7d, 0)::FLOAT8 AS broker_net_5d,
             tact.tactical_signal
           FROM mp
           LEFT JOIN market.company_profile                   cp   ON cp.stock_code   = mp.stock_code
@@ -181,11 +187,11 @@ export async function GET(req: NextRequest) {
         ff AS (
           -- TRADING-DAY foreign flow, computed inline (not from the view) so 1D/7D are correct
           SELECT stock_code,
-            SUM(CASE WHEN rn <= 1 THEN net_foreign_value ELSE 0 END)::DOUBLE         AS nf_1d,
-            (SUM(CASE WHEN rn <= 7 THEN net_foreign_value ELSE 0 END) / 1e9)::DOUBLE AS nf_7d_miliar
+            SUM(CASE WHEN rn <= 1 THEN net_foreign_value ELSE 0 END)::FLOAT8         AS nf_1d,
+            (SUM(CASE WHEN rn <= 7 THEN net_foreign_value ELSE 0 END) / 1e9)::FLOAT8 AS nf_7d_miliar
           FROM (
             SELECT stock_code, net_foreign_value,
-                   ROW_NUMBER() OVER (PARTITION BY stock_code ORDER BY trading_date DESC) AS rn
+                   ROW_NUMBER() OVER (PARTITION BY stock_code ORDER BY trading_date DESC NULLS LAST) AS rn
             FROM market.daily_transactions, ld
             WHERE trading_date >= ld.max_date - INTERVAL '40 days'
           )
@@ -195,19 +201,19 @@ export async function GET(req: NextRequest) {
           sms.stock_code,
           cp.group_name                          AS company_name,
           cp.sector,
-          sms.close::DOUBLE                      AS close,
-          sms.change_percent::DOUBLE             AS change_percent,
-          sms.foreign_30d::DOUBLE                AS foreign_30d,
+          sms.close::FLOAT8                      AS close,
+          sms.change_percent::FLOAT8             AS change_percent,
+          sms.foreign_30d::FLOAT8                AS foreign_30d,
           -- LOCAL axis = local institutional broker net (non-zero-sum). sms.broker_net was
           -- SUM(value) of ALL brokers = zero-sum ≈ 0, making the old divergence patterns noise.
-          (COALESCE(br.local_inst_net_7d, 0) * 1e9)::DOUBLE AS broker_net,
+          (COALESCE(br.local_inst_net_7d, 0) * 1e9)::FLOAT8 AS broker_net,
           sms.whale_signal,
           sms.big_player_anomaly,
           sms.smart_money_score,
           sms.signal,
           ff.nf_1d                               AS net_foreign_1d,
           ff.nf_7d_miliar                        AS net_foreign_5d,
-          COALESCE(br.local_inst_net_7d, 0)::DOUBLE AS broker_net_5d,
+          COALESCE(br.local_inst_net_7d, 0)::FLOAT8 AS broker_net_5d,
           tact.tactical_signal,
           CASE
             WHEN sms.foreign_30d > 0 AND COALESCE(br.local_inst_net_7d,0) > 0 AND sms.whale_signal = TRUE THEN 'TRIPLE_BUY'
@@ -223,7 +229,7 @@ export async function GET(req: NextRequest) {
         LEFT JOIN main.tb_broker_rolling_net               br   ON br.stock_code  = sms.stock_code
         LEFT JOIN ff                                              ON ff.stock_code = sms.stock_code
         WHERE ABS(sms.foreign_30d) > 500000000
-        ORDER BY ABS(sms.foreign_30d) DESC
+        ORDER BY ABS(sms.foreign_30d) DESC NULLS LAST
         LIMIT 120
       `)
       return NextResponse.json({ data })
@@ -233,7 +239,8 @@ export async function GET(req: NextRequest) {
     }
 
   } catch (err: any) {
+    // Generic message — DB internals stay server-side.
     console.error('[foreign-flow]', { action, message: err.message })
-    return NextResponse.json({ error: err.message ?? 'Gagal mengambil data.' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 })
   }
 }

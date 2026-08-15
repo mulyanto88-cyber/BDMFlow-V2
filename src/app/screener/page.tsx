@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber } from '@/lib/utils'
 import { RefreshCw, X, AlertTriangle, SlidersHorizontal, Radar, ChevronLeft, ChevronRight, EyeOff, Zap, Filter, Clock, Flame, Globe, Building2 } from 'lucide-react'
 import Link from 'next/link'
-import { mdQuery } from '@/lib/api'
+import { mdQuery, UpgradeRequiredError } from '@/lib/api'
+import { UpgradePrompt } from '@/components/upgrade-prompt'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StockRow {
@@ -107,6 +108,7 @@ export default function ScreenerPage() {
   const [rawData, setRawData]       = useState<any[]>([])
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState<string | null>(null)
+  const [blocked, setBlocked]       = useState(false)
 
   // UI state
   const [showFilters, setShowFilters]   = useState(false)
@@ -138,7 +140,8 @@ export default function ScreenerPage() {
       const data = await mdQuery('screener.allInOne')
       setRawData(data)
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch data')
+      if (err instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(err.message || 'Failed to fetch data')
     } finally {
       setLoading(false)
     }
@@ -244,6 +247,19 @@ export default function ScreenerPage() {
     sortBy === col ? <span className="text-gold-400">{sortDir === 'desc' ? ' ▼' : ' ▲'}</span> : null
 
   // ── Render ────────────────────────────────────────────────────────────────
+  // The screener draws entirely on one paid-tier query, so a refusal leaves no
+  // table to show — offer the upgrade rather than an empty grid.
+  if (blocked) {
+    return (
+      <div className="w-full animate-fade-in pb-10 pt-6">
+        <UpgradePrompt
+          feature="Pro Screener"
+          detail="Saring 900+ saham IDX dengan skor komposit, aliran asing, dan jejak broker dalam satu tabel."
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5 animate-fade-in pb-10">
 

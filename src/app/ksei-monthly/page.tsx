@@ -7,6 +7,8 @@ import {
   PieChart as PieChartIcon, LineChart as LineChartIcon, ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react'
 import Link from 'next/link'
+import { authFetch } from '@/lib/api'
+import { TIPE_COLOR, TIPE_GLOSS, KSEI_BUCKETS } from '@/lib/ksei-constants'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   ComposedChart, Line, Area, CartesianGrid, ReferenceLine,
@@ -17,7 +19,7 @@ type SortKey = 'm0_smart' | 'm1_smart' | 'm2_smart' | 'cum3m_smart' | 'm0_retail
 
 async function apiFetch(params: Record<string, string | number>) {
   const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()
-  const r  = await fetch(`/api/ksei-monthly?${qs}`)
+  const r  = await authFetch(`/api/ksei-monthly?${qs}`)
   const j  = await r.json()
   if (j.error) throw new Error(j.error)
   return j
@@ -50,31 +52,7 @@ const KAT_COLOR: Record<string, string> = {
   Other:  '#94a3b8',
 }
 
-// Warna per tipe investor individual (Local = solid, Foreign = lebih terang/teal-shift)
-const TIPE_COLOR: Record<string, string> = {
-  'Local CP': '#16a34a', 'Local PF': '#22c55e', 'Local IB': '#4ade80', 'Local MF': '#86efac',
-  'Local ID': '#ef4444', 'Local IS': '#3b82f6', 'Local SC': '#64748b', 'Local FD': '#94a3b8', 'Local OT': '#cbd5e1',
-  'Foreign CP': '#0d9488', 'Foreign PF': '#14b8a6', 'Foreign IB': '#2dd4bf', 'Foreign MF': '#5eead4',
-  'Foreign ID': '#f87171', 'Foreign IS': '#60a5fa', 'Foreign SC': '#475569', 'Foreign FD': '#78716c', 'Foreign OT': '#a8a29e',
-}
-
-// Glossary tipe KSEI
-const TIPE_GLOSS: Record<string, string> = {
-  CP: 'Corporate', PF: 'Pension Fund', IB: 'Insurance/Bank', MF: 'Mutual Fund',
-  ID: 'Individual', IS: 'Insurance', SC: 'Securities', FD: 'Foundation', OT: 'Others',
-}
-
-// 18 investor-type buckets (Local/Foreign × 9 KSEI types) for the global-flow tab.
-// kat mirrors the route: Smart = CP/PF/IB/MF, Retail = ID, Inst = IS, Other = SC/FD/OT.
-const BUCKET_KAT: Record<string, string> = {
-  CP: 'Smart', PF: 'Smart', IB: 'Smart', MF: 'Smart',
-  ID: 'Retail', IS: 'Inst', SC: 'Other', FD: 'Other', OT: 'Other',
-}
-const KSEI_BUCKETS = (['Local', 'Foreign'] as const).flatMap(side =>
-  ['CP', 'PF', 'IB', 'MF', 'ID', 'IS', 'SC', 'FD', 'OT'].map(code => ({
-    key: `${side}_${code}`, label: `${side} ${code}`, code, side, kat: BUCKET_KAT[code],
-  }))
-)
+// Warna/glosarium/bucket KSEI terpusat di @/lib/ksei-constants (shared dengan ksei1persen).
 
 // ── Sortable table header ──
 function SortableTh({ k, label, align, cls = '', sortKey, sortDir, onSort }: {

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatRupiah, formatNumber } from '@/lib/utils';
+import { authFetch } from '@/lib/api';
 import { InventoryChart, type InvCandle, type InvBrokerRow } from '@/components/inventory-chart';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -957,7 +958,7 @@ const BrokerProfileDrawer = ({
     const controller = new AbortController();
     setLoading(true);
     setProfile(null);
-    fetch(`/api/broker-tracker?action=broker_profile&broker_code=${brokerCode}`, { signal: controller.signal })
+    authFetch(`/api/broker-tracker?action=broker_profile&broker_code=${brokerCode}`, { signal: controller.signal })
       .then(r => r.json())
       .then(j => { if (!controller.signal.aborted) setProfile(j.error ? null : j); })
       .catch(() => {})
@@ -2319,7 +2320,7 @@ export default function BrokerTrackerPage() {
     setStalkerLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/broker-tracker?action=broker_stalker&broker_codes=${encodeURIComponent(stalkerBrokers)}&startDate=${startDate}&endDate=${endDate}`);
+      const res = await authFetch(`/api/broker-tracker?action=broker_stalker&broker_codes=${encodeURIComponent(stalkerBrokers)}&startDate=${startDate}&endDate=${endDate}`);
       const json = await res.json();
       if (json.error) setError(json.error);
       else setStalkerData(json.data || json);
@@ -2350,7 +2351,7 @@ export default function BrokerTrackerPage() {
   [priceData]);
 
   useEffect(() => {
-    fetch('/api/broker-tracker?action=sector_list')
+    authFetch('/api/broker-tracker?action=sector_list')
       .then(r => r.json())
       .then(j => {
         if (!j.error) setSectorList((j.data || []).map((r: any) => r.sector));
@@ -2365,7 +2366,7 @@ export default function BrokerTrackerPage() {
     price: number | null,
   ) => {
     try {
-      const cvRes  = await fetch(`/api/broker-tracker?action=broker_conviction&code=${tick}&${params}`);
+      const cvRes  = await authFetch(`/api/broker-tracker?action=broker_conviction&code=${tick}&${params}`);
       const cvJson = await cvRes.json();
       if (!cvJson.error && cvJson.data) {
         const map = new Map<string, any>();
@@ -2399,9 +2400,9 @@ export default function BrokerTrackerPage() {
     setIntelError(null);
     try {
       const [intelRes, breadthRes, alphaRes] = await Promise.all([
-        fetch('/api/broker-tracker?action=broker_intel'),
-        fetch('/api/broker-tracker?action=broker_breadth'),
-        fetch('/api/broker-tracker?action=broker_alpha&alpha_days=30'),
+        authFetch('/api/broker-tracker?action=broker_intel'),
+        authFetch('/api/broker-tracker?action=broker_breadth'),
+        authFetch('/api/broker-tracker?action=broker_alpha&alpha_days=30'),
       ]);
       const [iJson, bJson, aJson] = await Promise.all([
         intelRes.json(),
@@ -2440,7 +2441,7 @@ export default function BrokerTrackerPage() {
   const loadStance = useCallback(async (tick: string, params: string) => {
     setStanceLoading(true);
     try {
-      const res  = await fetch(`/api/broker-tracker?action=stance_history&code=${tick}&${params}`);
+      const res  = await authFetch(`/api/broker-tracker?action=stance_history&code=${tick}&${params}`);
       const json = await res.json();
       if (!json.error) setStanceData(json.data || []);
       else setStanceData([]);
@@ -2455,7 +2456,7 @@ export default function BrokerTrackerPage() {
     const c = code.trim().toUpperCase();
     if (!c) return;
     setInvLoading(true);
-    fetch(`/api/broker-tracker?action=inventory&code=${c}&start=${invStart}&end=${invEnd}&top_n=${invTopN}`)
+    authFetch(`/api/broker-tracker?action=inventory&code=${c}&start=${invStart}&end=${invEnd}&top_n=${invTopN}`)
       .then(r => r.json())
       .then(j => { setInvPrice(j.price || []); setInvBrokers(j.brokers || []); })
       .catch(() => { setInvPrice([]); setInvBrokers([]); })
@@ -2484,8 +2485,8 @@ export default function BrokerTrackerPage() {
         // 1.3: tracker+history+price_history+stock_context in ONE request (action=bundle);
         // divergence kept separate (heavier 5-CTE query). Wave-1 round-trips: 5 → 2.
         const [bundleRes, divRes] = await Promise.all([
-          fetch(`/api/broker-tracker?action=bundle&code=${tick}&${params}`),
-          fetch(`/api/broker-tracker?action=divergence&code=${tick}&${params}`),
+          authFetch(`/api/broker-tracker?action=bundle&code=${tick}&${params}`),
+          authFetch(`/api/broker-tracker?action=divergence&code=${tick}&${params}`),
         ]);
 
         const [bundleJson, divJson] = await Promise.all([bundleRes.json(), divRes.json()]);
@@ -2509,7 +2510,7 @@ export default function BrokerTrackerPage() {
         const topS = enriched.filter(r => r.net_val < 0).slice(0, 10).map(r => r.broker_code);
         const codes = [...topB, ...topS];
         if (codes.length > 0) {
-          const mRes  = await fetch(`/api/broker-tracker?action=multi_broker_history&code=${tick}&broker_codes=${codes.join(',')}&${params}`);
+          const mRes  = await authFetch(`/api/broker-tracker?action=multi_broker_history&code=${tick}&broker_codes=${codes.join(',')}&${params}`);
           const mJson = await mRes.json();
           setMultiBrokerData(!mJson.error ? mJson.data || [] : []);
         } else {
@@ -2518,21 +2519,21 @@ export default function BrokerTrackerPage() {
 
         // Fire-and-forget: whale timing, tactical signal, insider signal
         setWhaleLoading(true);
-        fetch(`/api/broker-tracker?action=whale_timing&code=${tick}&days=365`)
+        authFetch(`/api/broker-tracker?action=whale_timing&code=${tick}&days=365`)
           .then(r => r.json())
           .then(j => setWhaleTiming(!j.error ? (j.data ?? []) : []))
           .catch(() => setWhaleTiming([]))
           .finally(() => setWhaleLoading(false));
 
         setTacticalLoading(true);
-        fetch(`/api/broker-tracker?action=tactical_signal&code=${tick}&${params}`)
+        authFetch(`/api/broker-tracker?action=tactical_signal&code=${tick}&${params}`)
           .then(r => r.json())
           .then(j => setTacticalData(j.error ? null : j))
           .catch(() => setTacticalData(null))
           .finally(() => setTacticalLoading(false));
 
         setInsiderLoading(true);
-        fetch(`/api/broker-tracker?action=insider_signal&code=${tick}&days=90`)
+        authFetch(`/api/broker-tracker?action=insider_signal&code=${tick}&days=90`)
           .then(r => r.json())
           .then(j => setInsiderData(j.error ? null : j))
           .catch(() => setInsiderData(null))
@@ -2551,7 +2552,7 @@ export default function BrokerTrackerPage() {
         const periodQ    = `&screener_days=${screenerPeriod}`;
         const convAction = screenerMode === 'convergence' ? 'convergence' : screenerMode === 'divergence' ? 'divergence' : 'screener';
 
-        const res  = await fetch(`/api/broker-tracker?action=${convAction}&${params}${sectorQ}${periodQ}&limit=30`);
+        const res  = await authFetch(`/api/broker-tracker?action=${convAction}&${params}${sectorQ}${periodQ}&limit=30`);
         const json = await res.json();
         if (json.error) throw new Error(json.error);
         setScreenerData(json.data || []);

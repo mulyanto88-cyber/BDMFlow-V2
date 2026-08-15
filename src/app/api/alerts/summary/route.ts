@@ -7,14 +7,19 @@
 // The same signals already sit in market.tb_radar, refreshed nightly by the ETL,
 // so the alert shape is derived from that instead: ~600ms, no view fan-out.
 // The response shape is unchanged, so ActionCenter needs no edits.
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
 
-// Data is T+1 → revalidate every 30 min, matching the edge cache in next.config.js.
+// Data is T+1 → revalidate every hour, matching the edge cache in next.config.js.
 // Not force-dynamic: that sends no-store and defeats that cache.
-export const revalidate = 1800
+export const revalidate = 3600
 
-export async function GET() {
+// Shown to every visitor by the app shell — rate-limited but never Pro-gated.
+export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: false })
+  if (guarded) return guarded
+
   try {
     const data = await run(`
       WITH flagged AS (
@@ -57,7 +62,7 @@ export async function GET() {
         radar_score::INTEGER AS alert_rank_score
       FROM flagged
       WHERE concat_ws(', ', a_whale, a_anomaly, a_insider, a_ksei, a_foreign, a_aov) <> ''
-      ORDER BY radar_score DESC
+      ORDER BY radar_score DESC NULLS LAST
       LIMIT 30
     `)
     return NextResponse.json(data)

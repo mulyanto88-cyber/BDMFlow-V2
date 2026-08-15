@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { authFetch } from '@/lib/api';
 import {
   ComposedChart, BarChart, Bar, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
@@ -375,7 +376,7 @@ export default function ForeignFlowPage() {
     setOverviewLoading(true);
     setOverviewError(null);
     try {
-      const res = await fetch('/api/foreign-flow?action=market_summary');
+      const res = await authFetch('/api/foreign-flow?action=market_summary');
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       setMarketData(json.data || []);
@@ -387,7 +388,7 @@ export default function ForeignFlowPage() {
 
   const loadSectorData = useCallback(async (period: string) => {
     try {
-      const res = await fetch(`/api/foreign-flow?action=sector_flow&period=${period}`);
+      const res = await authFetch(`/api/foreign-flow?action=sector_flow&period=${period}`);
       const json = await res.json();
       if (!json.error) setSectorData(json.data || []);
     } catch (e) {}
@@ -395,7 +396,7 @@ export default function ForeignFlowPage() {
 
   const loadGroupData = useCallback(async (period: string) => {
     try {
-      const res = await fetch(`/api/foreign-flow?action=group_flow&period=${period}`);
+      const res = await authFetch(`/api/foreign-flow?action=group_flow&period=${period}`);
       const json = await res.json();
       if (!json.error) setGroupData(json.data || []);
     } catch (e) {}
@@ -404,7 +405,7 @@ export default function ForeignFlowPage() {
   const loadSectorDetails = useCallback(async (sector: string, period: string) => {
     setSectorDetailsLoading(true);
     try {
-      const res = await fetch(`/api/foreign-flow?action=screener&sector=${encodeURIComponent(sector)}`);
+      const res = await authFetch(`/api/foreign-flow?action=screener&sector=${encodeURIComponent(sector)}`);
       const json = await res.json();
       if (!json.error) {
         const col = `f${period}` as keyof ScreenerRow;
@@ -418,7 +419,7 @@ export default function ForeignFlowPage() {
   const loadGroupDetails = useCallback(async (group: string, period: string) => {
     setGroupDetailsLoading(true);
     try {
-      const res = await fetch(`/api/foreign-flow?action=screener&group_name=${encodeURIComponent(group)}`);
+      const res = await authFetch(`/api/foreign-flow?action=screener&group_name=${encodeURIComponent(group)}`);
       const json = await res.json();
       if (!json.error) {
         const col = `f${period}` as keyof ScreenerRow;
@@ -435,7 +436,7 @@ export default function ForeignFlowPage() {
     setScreenerError(null);
     try {
       const whaleQ = filterWhaleOnly ? '&whale_only=true' : '';
-      const res  = await fetch(`/api/foreign-flow?action=screener${whaleQ}`);
+      const res  = await authFetch(`/api/foreign-flow?action=screener${whaleQ}`);
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       setScreenerData(json.data || []);
@@ -454,7 +455,7 @@ export default function ForeignFlowPage() {
     setChartData([]);
     setChartMetrics(null);
     try {
-      const res  = await fetch(`/api/foreign-flow?action=stock_chart&code=${code}&days=${targetDays}`);
+      const res  = await authFetch(`/api/foreign-flow?action=stock_chart&code=${code}&days=${targetDays}`);
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       setChartData(json.chart || []);
@@ -470,7 +471,7 @@ export default function ForeignFlowPage() {
     setDivLoading(true);
     setDivError(null);
     try {
-      const res  = await fetch('/api/foreign-flow?action=divergence');
+      const res  = await authFetch('/api/foreign-flow?action=divergence');
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       setDivData(json.data || []);

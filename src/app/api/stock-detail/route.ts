@@ -1,7 +1,9 @@
-export const revalidate = 1800
+export const revalidate = 3600
 
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
+import { intParam, snapParam } from '@/lib/utils'
 
 // ── Plain-language verdict from the evidence-validated v2 scorecard + flow context ──
 function buildVerdict(sc: any, fd: any, sd: any) {
@@ -62,9 +64,13 @@ function detectUnadjustedAction(history: any[]) {
 }
 
 export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: true })
+  if (guarded) return guarded
+
   const { searchParams } = new URL(req.url)
   const code   = (searchParams.get('code') || '').toUpperCase().trim().replace(/[^A-Z0-9]/g, '')
-  const days   = Math.min(parseInt(searchParams.get('days') || '90'), 1095)
+  // Snap to the chart's own presets (30/90/180/365/730/1095) so cache keys converge.
+  const days   = snapParam(intParam(searchParams.get('days'), 90, 1, 3650), [30, 90, 180, 365, 730, 1095], 90)
   const action = searchParams.get('action') || ''
 
   if (!code || code.length < 1 || code.length > 10) {
@@ -77,15 +83,15 @@ export async function GET(req: NextRequest) {
       const [rolling, topBuyers, topSellers] = await Promise.all([
         run(`
           SELECT
-            ROUND(foreign_broker_net_1d::DOUBLE, 3)  AS foreign_broker_net_1d,
-            ROUND(foreign_broker_net_7d::DOUBLE, 3)  AS foreign_broker_net_7d,
-            ROUND(foreign_broker_net_30d::DOUBLE, 3) AS foreign_broker_net_30d,
-            ROUND(prime_broker_net_7d::DOUBLE, 3)    AS prime_broker_net_7d,
-            ROUND(local_inst_net_1d::DOUBLE, 3)      AS local_inst_net_1d,
-            ROUND(local_inst_net_7d::DOUBLE, 3)      AS local_inst_net_7d,
-            ROUND(local_inst_net_30d::DOUBLE, 3)     AS local_inst_net_30d,
-            ROUND(retail_net_1d::DOUBLE, 3)          AS retail_net_1d,
-            ROUND(retail_net_7d::DOUBLE, 3)          AS retail_net_7d,
+            ROUND((foreign_broker_net_1d::FLOAT8)::NUMERIC, 3)  AS foreign_broker_net_1d,
+            ROUND((foreign_broker_net_7d::FLOAT8)::NUMERIC, 3)  AS foreign_broker_net_7d,
+            ROUND((foreign_broker_net_30d::FLOAT8)::NUMERIC, 3) AS foreign_broker_net_30d,
+            ROUND((prime_broker_net_7d::FLOAT8)::NUMERIC, 3)    AS prime_broker_net_7d,
+            ROUND((local_inst_net_1d::FLOAT8)::NUMERIC, 3)      AS local_inst_net_1d,
+            ROUND((local_inst_net_7d::FLOAT8)::NUMERIC, 3)      AS local_inst_net_7d,
+            ROUND((local_inst_net_30d::FLOAT8)::NUMERIC, 3)     AS local_inst_net_30d,
+            ROUND((retail_net_1d::FLOAT8)::NUMERIC, 3)          AS retail_net_1d,
+            ROUND((retail_net_7d::FLOAT8)::NUMERIC, 3)          AS retail_net_7d,
             foreign_brokers_buying_7d::BIGINT        AS foreign_brokers_buying_7d,
             local_inst_brokers_buying_7d::BIGINT     AS local_inst_brokers_buying_7d
           FROM main.tb_broker_rolling_net WHERE stock_code = $1
@@ -94,20 +100,20 @@ export async function GET(req: NextRequest) {
           SELECT ba.broker_code, MAX(ba.broker_name) AS broker_name,
             COALESCE(bc.category, 'LOCAL_RETAIL') AS category,
             COALESCE(bc.is_prime, false)::BOOLEAN AS is_prime,
-            ROUND(SUM(CASE WHEN ba.side='BUY' THEN ba.value ELSE 0 END) / 1e9, 3) AS buy_miliar,
-            ROUND(SUM(CASE WHEN ba.side='SELL' THEN ABS(ba.value) ELSE 0 END) / 1e9, 3) AS sell_miliar,
-            ROUND(SUM(ba.value) / 1e9, 3) AS net_miliar
+            ROUND((SUM(CASE WHEN ba.side='BUY' THEN ba.value ELSE 0 END) / 1e9)::NUMERIC, 3) AS buy_miliar,
+            ROUND((SUM(CASE WHEN ba.side='SELL' THEN ABS(ba.value) ELSE 0 END) / 1e9)::NUMERIC, 3) AS sell_miliar,
+            ROUND((SUM(ba.value) / 1e9)::NUMERIC, 3) AS net_miliar
           FROM main.broker_activity ba
           LEFT JOIN main.broker_classification bc ON ba.broker_code = bc.broker_code
           WHERE ba.stock_code = $1
             AND ba.date >= (SELECT MAX(date) FROM main.broker_activity) - INTERVAL '7 days'
           GROUP BY ba.broker_code, bc.category, bc.is_prime
-          ORDER BY net_miliar DESC LIMIT 10
+          ORDER BY net_miliar DESC NULLS LAST LIMIT 10
         `, [code]).catch(() => []),
         run(`
           SELECT ba.broker_code, MAX(ba.broker_name) AS broker_name,
             COALESCE(bc.category, 'LOCAL_RETAIL') AS category,
-            ROUND(SUM(ba.value) / 1e9, 3) AS net_miliar
+            ROUND((SUM(ba.value) / 1e9)::NUMERIC, 3) AS net_miliar
           FROM main.broker_activity ba
           LEFT JOIN main.broker_classification bc ON ba.broker_code = bc.broker_code
           WHERE ba.stock_code = $1
@@ -129,13 +135,13 @@ export async function GET(req: NextRequest) {
         SELECT
           stock_code, radar_score::INTEGER AS radar_score,
           composite_signal, market_signal,
-          ROUND(foreign_broker_net_7d::DOUBLE, 2) AS foreign_broker_net_7d,
-          ROUND(local_inst_net_7d::DOUBLE, 2)     AS local_inst_net_7d,
-          ROUND(ksei_net_smart_miliar::DOUBLE, 2) AS ksei_net_smart_miliar,
+          ROUND((foreign_broker_net_7d::FLOAT8)::NUMERIC, 2) AS foreign_broker_net_7d,
+          ROUND((local_inst_net_7d::FLOAT8)::NUMERIC, 2)     AS local_inst_net_7d,
+          ROUND((ksei_net_smart_miliar::FLOAT8)::NUMERIC, 2) AS ksei_net_smart_miliar,
           insider_conviction_score::INTEGER        AS insider_conviction_score,
           insider_signal, whale_signal::BOOLEAN AS whale_signal,
           big_player_anomaly::BOOLEAN AS big_player_anomaly,
-          ROUND(aov_ratio_ma20::DOUBLE, 2)         AS aov_ratio_ma20,
+          ROUND((aov_ratio_ma20::FLOAT8)::NUMERIC, 2)         AS aov_ratio_ma20,
           fresh_insider_buy::BOOLEAN AS fresh_insider_buy, fresh_insider_sell::BOOLEAN AS fresh_insider_sell,
           is_split_suspect::BOOLEAN AS is_split_suspect, is_reverse_suspect::BOOLEAN AS is_reverse_suspect
         FROM market.tb_stock_multi_signal
@@ -155,15 +161,15 @@ export async function GET(req: NextRequest) {
   // ── Latest stock info ─────────────────────────────────────────────────────
   if (action === 'latest') {
     const rows = await run(`
-      SELECT stock_code, trading_date::VARCHAR AS trading_date, close::DOUBLE AS close, change_percent::DOUBLE AS change_percent,
-             previous::DOUBLE AS previous, high::DOUBLE AS high, low::DOUBLE AS low, open_price::DOUBLE AS open_price,
-             volume::BIGINT AS volume, value::DOUBLE AS value, net_foreign_value::DOUBLE AS net_foreign_value,
-             vwma_20d::DOUBLE AS vwma_20d, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
+      SELECT stock_code, trading_date::VARCHAR AS trading_date, close::FLOAT8 AS close, change_percent::FLOAT8 AS change_percent,
+             previous::FLOAT8 AS previous, high::FLOAT8 AS high, low::FLOAT8 AS low, open_price::FLOAT8 AS open_price,
+             volume::BIGINT AS volume, value::FLOAT8 AS value, net_foreign_value::FLOAT8 AS net_foreign_value,
+             vwma_20d::FLOAT8 AS vwma_20d, aov_ratio_ma20::FLOAT8 AS aov_ratio_ma20,
              whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly, signal,
-             sector, free_float::DOUBLE AS free_float, group_name, tradeable_shares::BIGINT AS tradeable_shares
+             sector, free_float::FLOAT8 AS free_float, group_name, tradeable_shares::BIGINT AS tradeable_shares
       FROM market.tb_stock_detail
       WHERE stock_code = $1
-      ORDER BY trading_date DESC LIMIT 1
+      ORDER BY trading_date DESC NULLS LAST LIMIT 1
     `, [code]).catch(() => [])
     return NextResponse.json({ data: rows[0] ?? null })
   }
@@ -171,10 +177,10 @@ export async function GET(req: NextRequest) {
   // ── Price chart history ───────────────────────────────────────────────────
   if (action === 'chart') {
     const rows = await run(`
-      SELECT trading_date::VARCHAR AS trading_date, open_price::DOUBLE AS open_price,
-             high::DOUBLE AS high, low::DOUBLE AS low, close::DOUBLE AS close,
-             volume::BIGINT AS volume, net_foreign_value::DOUBLE AS net_foreign_value,
-             vwma_20d::DOUBLE AS vwma_20d, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
+      SELECT trading_date::VARCHAR AS trading_date, open_price::FLOAT8 AS open_price,
+             high::FLOAT8 AS high, low::FLOAT8 AS low, close::FLOAT8 AS close,
+             volume::BIGINT AS volume, net_foreign_value::FLOAT8 AS net_foreign_value,
+             vwma_20d::FLOAT8 AS vwma_20d, aov_ratio_ma20::FLOAT8 AS aov_ratio_ma20,
              whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly
       FROM market.daily_transactions
       WHERE stock_code = $1
@@ -189,11 +195,11 @@ export async function GET(req: NextRequest) {
     const [alerts, score] = await Promise.all([
       run(`
         SELECT report_date::VARCHAR AS report_date, share_code, investor_name, investor_type,
-               nationality, prev_percentage::DOUBLE AS prev_percentage, curr_percentage::DOUBLE AS curr_percentage,
-               pct_point_change::DOUBLE AS pct_point_change, share_change::BIGINT AS share_change, action, alert_level
+               nationality, prev_percentage::FLOAT8 AS prev_percentage, curr_percentage::FLOAT8 AS curr_percentage,
+               pct_point_change::FLOAT8 AS pct_point_change, share_change::BIGINT AS share_change, action, alert_level
         FROM ksei.tb_ksei_individual_changes
         WHERE share_code = $1
-        ORDER BY report_date DESC LIMIT 20
+        ORDER BY report_date DESC NULLS LAST LIMIT 20
       `, [code]).catch(() => []),
       run(`
         SELECT conviction_score::BIGINT AS conviction_score, insider_signal, internal_buy::BIGINT AS internal_buy,
@@ -210,11 +216,11 @@ export async function GET(req: NextRequest) {
   if (action === 'ownership') {
     const rows = await run(`
       SELECT investor_name, investor_type, local_foreign, nationality,
-             percentage::DOUBLE AS percentage, total_holding_shares::BIGINT AS total_holding_shares, holdings_scripless::BIGINT AS holdings_scripless
+             percentage::FLOAT8 AS percentage, total_holding_shares::BIGINT AS total_holding_shares, holdings_scripless::BIGINT AS holdings_scripless
       FROM ksei.ownership_1pct
       WHERE share_code = $1
         AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
-      ORDER BY percentage DESC LIMIT 50
+      ORDER BY percentage DESC NULLS LAST LIMIT 50
     `, [code]).catch(() => [])
     return NextResponse.json({ data: rows })
   }
@@ -224,13 +230,13 @@ export async function GET(req: NextRequest) {
     const rows = await run(`
       SELECT investor_name, investor_type, local_foreign,
              first_seen_date::VARCHAR AS first_seen_date, latest_date::VARCHAR AS latest_date,
-             first_percentage::DOUBLE AS first_percentage, latest_percentage::DOUBLE AS latest_percentage,
-             latest_shares::BIGINT AS latest_shares, est_entry_price::DOUBLE AS est_entry_price, current_price::DOUBLE AS current_price,
-             return_since_entry::DOUBLE AS return_since_entry, holding_days::INTEGER AS holding_days,
+             first_percentage::FLOAT8 AS first_percentage, latest_percentage::FLOAT8 AS latest_percentage,
+             latest_shares::BIGINT AS latest_shares, est_entry_price::FLOAT8 AS est_entry_price, current_price::FLOAT8 AS current_price,
+             return_since_entry::FLOAT8 AS return_since_entry, holding_days::INTEGER AS holding_days,
              position_trend, whale_verdict
       FROM ksei.whale_timing_snapshot
       WHERE share_code = $1
-      ORDER BY latest_percentage DESC LIMIT 20
+      ORDER BY latest_percentage DESC NULLS LAST LIMIT 20
     `, [code]).catch(() => [])
     return NextResponse.json({ data: rows })
   }
@@ -238,22 +244,22 @@ export async function GET(req: NextRequest) {
   // ── Volume spike history ──────────────────────────────────────────────────
   if (action === 'volume_spike') {
     const rows = await run(`
-      SELECT trading_date::VARCHAR AS trading_date, close::DOUBLE AS close, volume::BIGINT AS volume,
+      SELECT trading_date::VARCHAR AS trading_date, close::FLOAT8 AS close, volume::BIGINT AS volume,
              ma20_volume::BIGINT AS ma20_volume,
-             ROUND((volume::DOUBLE / NULLIF(ma20_volume,0)),2)::DOUBLE AS volume_ratio,
-             change_percent::DOUBLE AS change_percent, net_foreign_value::DOUBLE AS net_foreign_value,
-             whale_signal::BOOLEAN AS whale_signal, aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
+             ROUND(((volume::FLOAT8 / NULLIF(ma20_volume,0)))::NUMERIC,2)::FLOAT8 AS volume_ratio,
+             change_percent::FLOAT8 AS change_percent, net_foreign_value::FLOAT8 AS net_foreign_value,
+             whale_signal::BOOLEAN AS whale_signal, aov_ratio_ma20::FLOAT8 AS aov_ratio_ma20,
              CASE
-               WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent > 0 THEN '🚀 BREAKOUT'
-               WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent < 0 THEN '🔻 BREAKDOWN'
-               WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 1.5 THEN '📊 HIGH VOL'
+               WHEN (volume::FLOAT8 / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent > 0 THEN '🚀 BREAKOUT'
+               WHEN (volume::FLOAT8 / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent < 0 THEN '🔻 BREAKDOWN'
+               WHEN (volume::FLOAT8 / NULLIF(ma20_volume,0)) >= 1.5 THEN '📊 HIGH VOL'
                ELSE 'NORMAL'
              END AS spike_type
       FROM market.daily_transactions
       WHERE stock_code = $1
         AND CAST(trading_date AS DATE) >= (SELECT MAX(CAST(trading_date AS DATE)) FROM market.daily_transactions) - INTERVAL '90 days'
         AND ma20_volume > 0
-      ORDER BY trading_date DESC
+      ORDER BY trading_date DESC NULLS LAST
     `, [code]).catch(() => [])
     return NextResponse.json({ data: rows })
   }
@@ -271,7 +277,7 @@ export async function GET(req: NextRequest) {
       const _r1 = await Promise.allSettled([
       
       // 1. Latest stock data
-      run(`SELECT * FROM market.tb_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC LIMIT 1`, [code]),
+      run(`SELECT * FROM market.tb_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC NULLS LAST LIMIT 1`, [code]),
       
       // 2. Smart Money Score
       run(`SELECT * FROM market.tb_smart_money_score WHERE stock_code = $1`, [code]),
@@ -290,12 +296,12 @@ export async function GET(req: NextRequest) {
       // 4. Broker Activity — FIX: CAST date AS DATE
       run(`
         SELECT broker_code AS kode_broker, MAX(broker_name) AS nama_broker,
-               SUM(value)::DOUBLE AS net_value
+               SUM(value)::FLOAT8 AS net_value
         FROM main.broker_activity
         WHERE stock_code = $1
           AND CAST(date AS DATE) >= (SELECT CAST(MAX(date) AS DATE) FROM main.broker_activity) - INTERVAL '90 days'
         GROUP BY broker_code
-        ORDER BY ABS(SUM(value)) DESC
+        ORDER BY ABS(SUM(value)) DESC NULLS LAST
         LIMIT 6
       `, [code]),
       
@@ -305,7 +311,7 @@ export async function GET(req: NextRequest) {
         FROM ksei.ownership_1pct
         WHERE share_code = $1
           AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
-        ORDER BY percentage DESC
+        ORDER BY percentage DESC NULLS LAST
         LIMIT 100
       `, [code]),
       
@@ -316,7 +322,7 @@ export async function GET(req: NextRequest) {
       run(`
         WITH ranked AS (
           SELECT trading_date, close, change_percent, net_foreign_value,
-                 ROW_NUMBER() OVER (ORDER BY trading_date DESC) AS rn
+                 ROW_NUMBER() OVER (ORDER BY trading_date DESC NULLS LAST) AS rn
           FROM market.daily_transactions
           WHERE stock_code = $1
             AND CAST(trading_date AS DATE) >= (SELECT CAST(MAX(trading_date) AS DATE) FROM market.daily_transactions) - 45
@@ -332,7 +338,7 @@ export async function GET(req: NextRequest) {
         SELECT
           foreign_30d_net,
           latest_chg_pct AS price_chg_pct,
-          ROUND(((price_now - price_30d_ago) / NULLIF(price_30d_ago, 0)) * 100, 2) AS price_chg_30d,
+          ROUND((((price_now - price_30d_ago) / NULLIF(price_30d_ago, 0)) * 100)::NUMERIC, 2) AS price_chg_30d,
           CASE
             WHEN foreign_30d_net > 1e9 AND latest_chg_pct BETWEEN -1 AND 1 THEN 'STEALTH ACCUMULATION'
             WHEN foreign_30d_net > 1e9 AND latest_chg_pct > 1 THEN 'BULLISH CONFIRMATION'
@@ -364,11 +370,11 @@ export async function GET(req: NextRequest) {
         SELECT v2.v2_score::INTEGER AS v2_score, v2.tier_v2, v2.flow_context,
                v2.aov_pts::INTEGER AS aov_pts, v2.vwma_pts::INTEGER AS vwma_pts,
                v2.whale_pts::INTEGER AS whale_pts, v2.foreign_pts::INTEGER AS foreign_pts,
-               v2.foreign_20d_miliar::DOUBLE AS foreign_20d_miliar,
+               v2.foreign_20d_miliar::FLOAT8 AS foreign_20d_miliar,
                v2.rank_overall::BIGINT AS rank_overall,
-               v2.c85::DOUBLE AS c85, v2.c95::DOUBLE AS c95, v2.c99::DOUBLE AS c99,
-               v2.aov_ratio_ma20::DOUBLE AS aov_ratio_ma20,
-               v2.return_5d::DOUBLE AS return_5d, v2.return_20d::DOUBLE AS return_20d,
+               v2.c85::FLOAT8 AS c85, v2.c95::FLOAT8 AS c95, v2.c99::FLOAT8 AS c99,
+               v2.aov_ratio_ma20::FLOAT8 AS aov_ratio_ma20,
+               v2.return_5d::FLOAT8 AS return_5d, v2.return_20d::FLOAT8 AS return_20d,
                c.composite_score::INTEGER AS v1_score, c.composite_tier AS v1_tier,
                c.foreign_score::INTEGER AS foreign_score, c.broker_score::INTEGER AS broker_score,
                c.whale_score::INTEGER AS whale_score, c.price_score::INTEGER AS price_score,
@@ -431,7 +437,7 @@ export async function GET(req: NextRequest) {
         ranked AS (
           SELECT
             percentage,
-            ROW_NUMBER() OVER (ORDER BY percentage DESC) AS rn,
+            ROW_NUMBER() OVER (ORDER BY percentage DESC NULLS LAST) AS rn,
             COUNT(*) OVER () AS total_count
           FROM ksei.ownership_1pct
           WHERE share_code = $1 AND date = (SELECT max_date FROM latest)
@@ -463,7 +469,7 @@ export async function GET(req: NextRequest) {
           alert_level
         FROM ksei.tb_ksei_individual_changes
         WHERE share_code = $1
-        ORDER BY report_date DESC
+        ORDER BY report_date DESC NULLS LAST
         LIMIT 20
       `, [code]),
 
@@ -473,19 +479,19 @@ export async function GET(req: NextRequest) {
           SELECT Code, Date, Price, CP_Flow_Miliar, Foreign_CP_Miliar, Signal
           FROM ksei.tb_stealth_accumulation
           WHERE Code = $1
-          ORDER BY Date DESC LIMIT 1
+          ORDER BY Date DESC NULLS LAST LIMIT 1
         ),
         flow_30d AS (
           SELECT
-            SUM(net_foreign_value)::DOUBLE AS foreign_net_30d,
-            SUM(foreign_buy_value)::DOUBLE AS foreign_buy_30d,
-            SUM(foreign_sell_value)::DOUBLE AS foreign_sell_30d
+            SUM(net_foreign_value)::FLOAT8 AS foreign_net_30d,
+            SUM(foreign_buy_value)::FLOAT8 AS foreign_buy_30d,
+            SUM(foreign_sell_value)::FLOAT8 AS foreign_sell_30d
           FROM market.tb_stock_detail
           WHERE stock_code = $1
             AND trading_date >= (SELECT MAX(trading_date) FROM market.tb_stock_detail) - INTERVAL '30 days'
         ),
         broker_net AS (
-          SELECT SUM(value)::DOUBLE AS broker_net_30d
+          SELECT SUM(value)::FLOAT8 AS broker_net_30d
           FROM main.broker_activity
           WHERE stock_code = $1
             AND date >= (SELECT CAST(MAX(date) AS DATE) FROM main.broker_activity) - 30
@@ -533,8 +539,8 @@ export async function GET(req: NextRequest) {
             broker_code,
             MAX(broker_name) AS nama_broker,
             CAST(date AS DATE) AS d,
-            SUM(value)::DOUBLE AS net_val,
-            SUM(ABS(value))::DOUBLE AS total_val
+            SUM(value)::FLOAT8 AS net_val,
+            SUM(ABS(value))::FLOAT8 AS total_val
           FROM main.broker_activity
           WHERE stock_code = $1
             AND CAST(date AS DATE) >= (SELECT CAST(MAX(date) AS DATE) FROM main.broker_activity) - 30
@@ -547,8 +553,8 @@ export async function GET(req: NextRequest) {
             COUNT(*) AS total_days,
             SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END) AS days_net_buy,
             SUM(CASE WHEN net_val < 0 THEN 1 ELSE 0 END) AS days_net_sell,
-            ROUND(SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) AS consistency_pct,
-            SUM(total_val)::DOUBLE AS total_val
+            ROUND((SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))::NUMERIC, 1) AS consistency_pct,
+            SUM(total_val)::FLOAT8 AS total_val
           FROM daily
           GROUP BY broker_code
           HAVING COUNT(*) >= 3
@@ -569,7 +575,7 @@ export async function GET(req: NextRequest) {
             ELSE 'MIXED'
           END AS verdict
         FROM stats
-        ORDER BY total_val DESC
+        ORDER BY total_val DESC NULLS LAST
         LIMIT 15
       `, [code]),
 
@@ -577,23 +583,23 @@ export async function GET(req: NextRequest) {
       run(`
         SELECT
           CAST(trading_date AS VARCHAR) AS trading_date,
-          close::DOUBLE AS close,
+          close::FLOAT8 AS close,
           volume::BIGINT AS volume,
           ma20_volume::BIGINT AS ma20_volume,
-          ROUND((volume::DOUBLE / NULLIF(ma20_volume,0)),2)::DOUBLE AS volume_ratio,
-          change_percent::DOUBLE AS change_percent,
-          net_foreign_value::DOUBLE AS net_foreign_value,
+          ROUND(((volume::FLOAT8 / NULLIF(ma20_volume,0)))::NUMERIC,2)::FLOAT8 AS volume_ratio,
+          change_percent::FLOAT8 AS change_percent,
+          net_foreign_value::FLOAT8 AS net_foreign_value,
           whale_signal::BOOLEAN AS whale_signal,
           CASE
-            WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent > 0 THEN 'BREAKOUT'
-            WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent < 0 THEN 'BREAKDOWN'
-            WHEN (volume::DOUBLE / NULLIF(ma20_volume,0)) >= 1.5 THEN 'HIGH_VOLUME'
+            WHEN (volume::FLOAT8 / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent > 0 THEN 'BREAKOUT'
+            WHEN (volume::FLOAT8 / NULLIF(ma20_volume,0)) >= 2.0 AND change_percent < 0 THEN 'BREAKDOWN'
+            WHEN (volume::FLOAT8 / NULLIF(ma20_volume,0)) >= 1.5 THEN 'HIGH_VOLUME'
             ELSE 'NORMAL'
           END AS spike_type
         FROM market.daily_transactions
         WHERE stock_code = $1
           AND CAST(trading_date AS DATE) >= (SELECT MAX(CAST(trading_date AS DATE)) FROM market.daily_transactions) - INTERVAL '90 days'
-        ORDER BY trading_date DESC
+        ORDER BY trading_date DESC NULLS LAST
         LIMIT 15
       `, [code]),
 
@@ -649,7 +655,7 @@ export async function GET(req: NextRequest) {
       },
       {
         headers: {
-          'Cache-Control': 'public, max-age=300, s-maxage=900, stale-while-revalidate=1800',
+          'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800',
         },
       }
     )

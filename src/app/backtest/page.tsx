@@ -13,7 +13,8 @@ import {
   Cell, Legend,
 } from 'recharts'
 import { formatRupiah } from '@/lib/utils'
-import { mdQuery } from '@/lib/api'
+import { mdQuery, UpgradeRequiredError } from '@/lib/api'
+import { UpgradePrompt } from '@/components/upgrade-prompt'
 
 declare const window: any
 
@@ -99,6 +100,7 @@ export default function BacktestPage() {
   const [stockCode, setStockCode] = useState('BBCA')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [blocked, setBlocked] = useState(false)
 
   // ── Strategy mode ──────────────────────────────────────────────────────────
   const [signalType, setSignalType] = useState('WHALE_SIGNAL')
@@ -262,7 +264,8 @@ export default function BacktestPage() {
         sharpeApprox, totalFee, equityCurve,
       })
     } catch (e: any) {
-      setError(e.message)
+      if (e instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(e.message)
     } finally {
       setLoading(false)
     }
@@ -345,7 +348,8 @@ export default function BacktestPage() {
       setTimeout(() => renderBnHChart(data), 200)
 
     } catch (e: any) {
-      setError(e.message)
+      if (e instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(e.message)
     } finally {
       setLoading(false)
     }
@@ -421,6 +425,19 @@ export default function BacktestPage() {
   }
 
   // ─── Render ────────────────────────────────────────────────────────────────
+  // Both the price history and the composite range are paid-tier, so a refusal
+  // leaves nothing to backtest against.
+  if (blocked) {
+    return (
+      <div className="w-full animate-fade-in pb-10 pt-6">
+        <UpgradePrompt
+          feature="Backtest Lab"
+          detail="Uji strategi Anda terhadap data harga historis dan skor komposit — sebelum mempertaruhkan modal."
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="w-full py-6 space-y-5 pb-12 animate-fade-in">
 

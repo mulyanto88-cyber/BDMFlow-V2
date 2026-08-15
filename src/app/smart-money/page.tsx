@@ -10,7 +10,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-import { mdQuery } from '@/lib/api'
+import { mdQuery, UpgradeRequiredError } from '@/lib/api'
+import { UpgradePrompt } from '@/components/upgrade-prompt'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface TacticalData {
@@ -125,6 +126,8 @@ export default function SmartMoneyMatrix() {
   const [smartScoreList, setSmartScoreList] = useState<SmartScoreData[]>([])
   const [loading, setLoading]               = useState(true)
   const [error, setError]                   = useState<string | null>(null)
+  // Every query on this page is paid-tier, so one refusal locks the whole page.
+  const [blocked, setBlocked]               = useState(false)
 
   const [threshold, setThreshold]   = useState(10)
   const [foreignDays, setForeignDays] = useState(5)
@@ -137,6 +140,7 @@ export default function SmartMoneyMatrix() {
       const data = await mdQuery('smartMoney.instPositioning')
       setStrategicList(data as unknown as StrategicData[])
     } catch (err: any) {
+      if (err instanceof UpgradeRequiredError) return setBlocked(true)
       console.error('Strategic Error:', err)
     }
   }, [])
@@ -148,6 +152,7 @@ export default function SmartMoneyMatrix() {
       const data = await mdQuery('smartMoney.scores')
       setSmartScoreList(data as unknown as SmartScoreData[])
     } catch (err: any) {
+      if (err instanceof UpgradeRequiredError) return setBlocked(true)
       console.error('SmartScore Error:', err)
     }
   }, [])
@@ -159,7 +164,8 @@ export default function SmartMoneyMatrix() {
       const data = await mdQuery('smartMoney.tactical', [threshold * 1_000_000_000])
       setTacticalList(data as unknown as TacticalData[])
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch data')
+      if (err instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(err.message || 'Failed to fetch data')
     } finally {
       setLoading(false)
     }
@@ -248,6 +254,20 @@ export default function SmartMoneyMatrix() {
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
+  // Every panel below draws on paid-tier queries, so when the server withholds
+  // them there is nothing left to render — show the offer instead of a page of
+  // empty tables.
+  if (blocked) {
+    return (
+      <div className="w-full animate-fade-in pb-10 pt-6">
+        <UpgradePrompt
+          feature="Smart Money Matrix"
+          detail="Posisi institusi, skor smart money, dan sinyal taktis harian — jejak dana besar yang tidak terlihat di grafik harga."
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="w-full space-y-6 animate-fade-in pb-10">
 

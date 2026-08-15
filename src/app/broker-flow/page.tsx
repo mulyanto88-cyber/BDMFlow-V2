@@ -3,10 +3,11 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Building2, Globe, Users, RefreshCw, Search, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
+import { authFetch } from '@/lib/api'
 
 async function apiFetch(params: Record<string,string|number>) {
   const qs = new URLSearchParams(Object.entries(params).map(([k,v])=>[k,String(v)])).toString()
-  const r = await fetch(`/api/broker-flow?${qs}`)
+  const r = await authFetch(`/api/broker-flow?${qs}`)
   const j = await r.json()
   if (j.error) throw new Error(j.error)
   return j.data ?? []

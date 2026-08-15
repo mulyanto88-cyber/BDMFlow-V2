@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
+import { authFetch } from '@/lib/api'
 import {
   Users, TrendingUp, TrendingDown, Activity, Loader2, Search,
   AlertCircle, RefreshCw, ArrowUpRight, ArrowDownRight, Zap,
@@ -194,7 +195,7 @@ async function apiFetch(params: Record<string, string | number>) {
   const qs = new URLSearchParams(
     Object.entries(params).reduce((a, [k, v]) => ({ ...a, [k]: String(v) }), {} as Record<string, string>)
   )
-  const res = await fetch(`/api/insider?${qs}`)
+  const res = await authFetch(`/api/insider?${qs}`)
   const json = await res.json()
   if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`)
   return json

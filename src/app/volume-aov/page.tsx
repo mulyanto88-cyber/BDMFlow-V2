@@ -3,10 +3,11 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Zap, RefreshCw, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import { authFetch } from '@/lib/api'
 
 async function apiFetch(params: Record<string,string|number>) {
   const qs = new URLSearchParams(Object.entries(params).map(([k,v])=>[k,String(v)])).toString()
-  const r = await fetch(`/api/volume-aov?${qs}`)
+  const r = await authFetch(`/api/volume-aov?${qs}`)
   const j = await r.json()
   if (j.error) throw new Error(j.error)
   return j.data ?? []

@@ -402,6 +402,8 @@
   }
 
   html.dark           body { background-color: #030712; }
+  /* Must track --background above. This hardcoded value is what actually paints
+     the page, so changing the variable alone shows nothing. */
   html.theme-purple   body { background-color: #070310; }
 
   /* ── Light Mode High-Contrast Typography & Color Overrides ─ */

@@ -8,6 +8,7 @@ import { DataTable } from '@/components/data-table'
 import { MetricCard } from '@/components/metric-card'
 import { createColumnHelper } from '@tanstack/react-table'
 import { BarChart3, Activity, Shield, AlertTriangle, Loader2 } from 'lucide-react'
+import { authFetch } from '@/lib/api'
 
 function fmtM(v: number) { if (v == null) return '—'; const a = Math.abs(v); return a >= 1000 ? `${(v / 1000).toFixed(1)}T` : `${v >= 0 ? '+' : ''}${v.toFixed(0)}M` }
 function fmtP(v: number) { if (v == null) return '—'; return `${v >= 0 ? '+' : ''}${v?.toFixed(2) ?? '0.00'}%` }
@@ -36,7 +37,7 @@ export default function CompositePage() {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/composite?page=${page}&pageSize=30`)
+    authFetch(`/api/composite?page=${page}&pageSize=30`)
       .then(r => r.json())
       .then(d => { if (d.error) throw new Error(d.error); setData(d.data ?? []); setTotal(d.total ?? 0) })
       .catch(e => setError(e.message))

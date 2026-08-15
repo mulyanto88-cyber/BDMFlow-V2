@@ -477,6 +477,13 @@ export default function LandingPage() {
               IDX Active
             </span>
           </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <Link href="/terms" className="hover:text-muted-foreground/60 transition-colors">Syarat &amp; Ketentuan</Link>
+            <Link href="/privacy" className="hover:text-muted-foreground/60 transition-colors">Kebijakan Privasi</Link>
+            <Link href="/contact" className="hover:text-muted-foreground/60 transition-colors">Kontak</Link>
+            <a href="mailto:mulyanto.my88@gmail.com" className="hover:text-muted-foreground/60 transition-colors">mulyanto.my88@gmail.com</a>
+            <a href="tel:+6285782672208" className="hover:text-muted-foreground/60 transition-colors">+62 857-8267-2208</a>
+          </div>
         </div>
       </div>
 

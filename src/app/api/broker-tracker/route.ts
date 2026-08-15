@@ -1,8 +1,10 @@
   // src/app/api/broker-tracker/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
+import { intParam } from '@/lib/utils'
 
-export const revalidate = 1800
+export const revalidate = 3600
 
 // ─── Helper Functions ───────────────────────────────────────────────────────
 
@@ -69,6 +71,9 @@ function safeRun(query: string, params: any[]): Promise<any[]> {
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: true })
+  if (guarded) return guarded
+
   const { searchParams } = new URL(req.url)
   const action         = searchParams.get('action')
   const code           = searchParams.get('code') || ''
@@ -114,40 +119,40 @@ export async function GET(req: NextRequest) {
           MAX(ba.broker_name)                                                AS broker_name,
           CASE WHEN LOWER(COALESCE(bc.category,'')) = 'foreign' THEN 'F' ELSE 'L' END AS broker_lf,
           COALESCE(bc.is_prime, false)                                       AS is_prime,
-          SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE        AS buy_val,
-          SUM(CASE WHEN ba.value>0 THEN ba.lot   ELSE 0 END)::DOUBLE        AS buy_lot,
+          SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::FLOAT8        AS buy_val,
+          SUM(CASE WHEN ba.value>0 THEN ba.lot   ELSE 0 END)::FLOAT8        AS buy_lot,
           SUM(CASE WHEN ba.value>0 THEN ba.freq  ELSE 0 END)::BIGINT        AS buy_freq,
-          ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::DOUBLE   AS sell_val,
-          ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot   ELSE 0 END))::DOUBLE   AS sell_lot,
+          ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::FLOAT8   AS sell_val,
+          ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot   ELSE 0 END))::FLOAT8   AS sell_lot,
           SUM(CASE WHEN ba.value<0 THEN ba.freq  ELSE 0 END)::BIGINT        AS sell_freq,
-          SUM(ba.value)::DOUBLE                                              AS net_val,
-          SUM(ba.lot)::DOUBLE                                                AS net_lot,
+          SUM(ba.value)::FLOAT8                                              AS net_val,
+          SUM(ba.lot)::FLOAT8                                                AS net_lot,
           (SUM(CASE WHEN ba.value>0 THEN ba.freq ELSE 0 END)
            + SUM(CASE WHEN ba.value<0 THEN ba.freq ELSE 0 END))::BIGINT     AS total_freq,
           (SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)
            / NULLIF(SUM(CASE WHEN ba.value>0 THEN ba.lot ELSE 0 END)*100.0,0))
-          ::DOUBLE                                                           AS buy_avg_price,
+          ::FLOAT8                                                           AS buy_avg_price,
           (ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))
            / NULLIF(ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot ELSE 0 END))*100.0,0))
-          ::DOUBLE                                                           AS sell_avg_price
+          ::FLOAT8                                                           AS sell_avg_price
         FROM broker_activity ba
         LEFT JOIN broker_classification bc ON bc.broker_code = ba.broker_code
         WHERE ${dateFilter.clause}
           AND ba.stock_code = $${ci}
         GROUP BY ba.broker_code, bc.category, bc.is_prime
-        ORDER BY net_val DESC`, p),
+        ORDER BY net_val DESC NULLS LAST`, p),
         run(`
         SELECT
           CAST(date AS VARCHAR)                                              AS date,
-          SUM(value)::DOUBLE                                                 AS daily_net_val,
-          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE               AS daily_buy_val,
-          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE          AS daily_sell_val,
-          SUM(lot)::DOUBLE                                                    AS daily_net_lot,
+          SUM(value)::FLOAT8                                                 AS daily_net_val,
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::FLOAT8               AS daily_buy_val,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::FLOAT8          AS daily_sell_val,
+          SUM(lot)::FLOAT8                                                    AS daily_net_lot,
           SUM(CASE WHEN value>0 THEN freq ELSE 0 END)::BIGINT                AS daily_buy_freq,
           SUM(CASE WHEN value<0 THEN freq ELSE 0 END)::BIGINT                AS daily_sell_freq,
           (SUM(CASE WHEN value>0 THEN value ELSE 0 END)
            / NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))
-          ::DOUBLE                                                            AS daily_avg_price
+          ::FLOAT8                                                            AS daily_avg_price
         FROM broker_activity
         WHERE ${dateFilter.clause}
           AND stock_code = $${ci}
@@ -165,7 +170,7 @@ export async function GET(req: NextRequest) {
         SELECT
           s.stock_code, s.sector, s.close, s.change_percent,
           s.foreign_30d, s.broker_net, s.whale_signal, s.big_player_anomaly, s.aov_ratio_ma20,
-          ROUND(COALESCE(v2.v2_score, 0) / 73.0 * 100, 0)  AS smart_money_score,
+          ROUND((COALESCE(v2.v2_score, 0) / 73.0 * 100)::NUMERIC, 0)  AS smart_money_score,
           s.signal,
           k.broker_net_miliar,
           k.ksei_local_smart_flow_miliar    AS local_smart_miliar_saham,
@@ -196,16 +201,16 @@ export async function GET(req: NextRequest) {
       const [price, brokers] = await Promise.all([
         run(`
           SELECT trading_date::VARCHAR AS date,
-                 (CASE WHEN open_price > 0 THEN open_price WHEN previous > 0 THEN previous ELSE close END)::DOUBLE AS open,
-                 (CASE WHEN high > 0 THEN high WHEN previous > 0 THEN GREATEST(close, previous) ELSE close END)::DOUBLE AS high,
-                 (CASE WHEN low  > 0 THEN low  WHEN previous > 0 THEN LEAST(close, previous)  ELSE close END)::DOUBLE AS low,
-                 close::DOUBLE AS close
+                 (CASE WHEN open_price > 0 THEN open_price WHEN previous > 0 THEN previous ELSE close END)::FLOAT8 AS open,
+                 (CASE WHEN high > 0 THEN high WHEN previous > 0 THEN GREATEST(close, previous) ELSE close END)::FLOAT8 AS high,
+                 (CASE WHEN low  > 0 THEN low  WHEN previous > 0 THEN LEAST(close, previous)  ELSE close END)::FLOAT8 AS low,
+                 close::FLOAT8 AS close
           FROM market.daily_transactions
           WHERE stock_code = $1 AND ${priceWhere} AND close > 0
           ORDER BY trading_date ASC`, dp),
         run(`
           WITH daily AS (
-            SELECT CAST(date AS DATE) AS d, broker_code, MAX(broker_name) AS broker_name, SUM(lot)::DOUBLE AS net_lot
+            SELECT CAST(date AS DATE) AS d, broker_code, MAX(broker_name) AS broker_name, SUM(lot)::FLOAT8 AS net_lot
             FROM broker_activity
             WHERE stock_code = $1 AND ${brokerWhere}
             GROUP BY CAST(date AS DATE), broker_code
@@ -216,12 +221,12 @@ export async function GET(req: NextRequest) {
           ),
           picked AS (
             SELECT broker_code, broker_name, total_lot,
-                   ROW_NUMBER() OVER (ORDER BY total_lot DESC) AS rk_acc,
+                   ROW_NUMBER() OVER (ORDER BY total_lot DESC NULLS LAST) AS rk_acc,
                    ROW_NUMBER() OVER (ORDER BY total_lot ASC)  AS rk_dist
             FROM totals
           )
           SELECT d.d::VARCHAR AS date, d.broker_code, p.broker_name,
-                 d.net_lot, p.total_lot::DOUBLE AS total_lot,
+                 d.net_lot, p.total_lot::FLOAT8 AS total_lot,
                  CASE WHEN p.rk_acc <= ${topN} THEN 'ACC' ELSE 'DIST' END AS role
           FROM daily d
           JOIN picked p ON p.broker_code = d.broker_code
@@ -243,28 +248,28 @@ export async function GET(req: NextRequest) {
           -- ★ Local/Foreign badge dari broker_classification
           CASE WHEN LOWER(COALESCE(bc.category,'')) = 'foreign' THEN 'F' ELSE 'L' END AS broker_lf,
           COALESCE(bc.is_prime, false)                                       AS is_prime,
-          SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE        AS buy_val,
-          SUM(CASE WHEN ba.value>0 THEN ba.lot   ELSE 0 END)::DOUBLE        AS buy_lot,
+          SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::FLOAT8        AS buy_val,
+          SUM(CASE WHEN ba.value>0 THEN ba.lot   ELSE 0 END)::FLOAT8        AS buy_lot,
           SUM(CASE WHEN ba.value>0 THEN ba.freq  ELSE 0 END)::BIGINT        AS buy_freq,
-          ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::DOUBLE   AS sell_val,
-          ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot   ELSE 0 END))::DOUBLE   AS sell_lot,
+          ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::FLOAT8   AS sell_val,
+          ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot   ELSE 0 END))::FLOAT8   AS sell_lot,
           SUM(CASE WHEN ba.value<0 THEN ba.freq  ELSE 0 END)::BIGINT        AS sell_freq,
-          SUM(ba.value)::DOUBLE                                              AS net_val,
-          SUM(ba.lot)::DOUBLE                                                AS net_lot,
+          SUM(ba.value)::FLOAT8                                              AS net_val,
+          SUM(ba.lot)::FLOAT8                                                AS net_lot,
           (SUM(CASE WHEN ba.value>0 THEN ba.freq ELSE 0 END)
            + SUM(CASE WHEN ba.value<0 THEN ba.freq ELSE 0 END))::BIGINT     AS total_freq,
           (SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)
            / NULLIF(SUM(CASE WHEN ba.value>0 THEN ba.lot ELSE 0 END)*100.0,0))
-          ::DOUBLE                                                           AS buy_avg_price,
+          ::FLOAT8                                                           AS buy_avg_price,
           (ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))
            / NULLIF(ABS(SUM(CASE WHEN ba.value<0 THEN ba.lot ELSE 0 END))*100.0,0))
-          ::DOUBLE                                                           AS sell_avg_price
+          ::FLOAT8                                                           AS sell_avg_price
         FROM broker_activity ba
         LEFT JOIN broker_classification bc ON bc.broker_code = ba.broker_code
         WHERE ${dateFilter.clause}
           AND ba.stock_code = $${paramIdx}
         GROUP BY ba.broker_code, bc.category, bc.is_prime
-        ORDER BY net_val DESC`
+        ORDER BY net_val DESC NULLS LAST`
 
     // ── 2. HISTORY ─────────────────────────────────────────────────────────
     } else if (action === 'history') {
@@ -274,15 +279,15 @@ export async function GET(req: NextRequest) {
       query = `
         SELECT
           CAST(date AS VARCHAR)                                              AS date,
-          SUM(value)::DOUBLE                                                 AS daily_net_val,
-          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE               AS daily_buy_val,
-          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE          AS daily_sell_val,
-          SUM(lot)::DOUBLE                                                    AS daily_net_lot,
+          SUM(value)::FLOAT8                                                 AS daily_net_val,
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::FLOAT8               AS daily_buy_val,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::FLOAT8          AS daily_sell_val,
+          SUM(lot)::FLOAT8                                                    AS daily_net_lot,
           SUM(CASE WHEN value>0 THEN freq ELSE 0 END)::BIGINT                AS daily_buy_freq,
           SUM(CASE WHEN value<0 THEN freq ELSE 0 END)::BIGINT                AS daily_sell_freq,
           (SUM(CASE WHEN value>0 THEN value ELSE 0 END)
            / NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))
-          ::DOUBLE                                                            AS daily_avg_price
+          ::FLOAT8                                                            AS daily_avg_price
         FROM broker_activity
         WHERE ${dateFilter.clause}
           AND stock_code = $${paramIdx}
@@ -319,7 +324,7 @@ export async function GET(req: NextRequest) {
           s.foreign_30d, s.broker_net, s.whale_signal, s.big_player_anomaly,
           s.aov_ratio_ma20,
           -- smart money score now reflects validated composite v2 (normalized 0-100)
-          ROUND(COALESCE(v2.v2_score, 0) / 73.0 * 100, 0)  AS smart_money_score,
+          ROUND((COALESCE(v2.v2_score, 0) / 73.0 * 100)::NUMERIC, 0)  AS smart_money_score,
           s.signal,
           k.broker_net_miliar,
           k.ksei_local_smart_flow_miliar    AS local_smart_miliar_saham,
@@ -353,7 +358,7 @@ export async function GET(req: NextRequest) {
           COUNT(*)                                          AS total_days,
           SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END)     AS net_buy_days,
           SUM(CASE WHEN net_val < 0 THEN 1 ELSE 0 END)     AS net_sell_days,
-          ROUND(SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END)*100.0/NULLIF(COUNT(*),0),1)::DOUBLE AS buy_consistency_pct
+          ROUND((SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END)*100.0/NULLIF(COUNT(*),0))::NUMERIC,1)::FLOAT8 AS buy_consistency_pct
         FROM daily
         GROUP BY broker_code`
 
@@ -370,22 +375,22 @@ export async function GET(req: NextRequest) {
           broker_code, MAX(broker_name) AS broker_name,
           COUNT(DISTINCT CAST(date AS DATE))    AS active_days,
           COUNT(DISTINCT stock_code)            AS total_stocks,
-          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS total_buy_value,
-          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS total_sell_value,
-          SUM(value)::DOUBLE AS net_value,
-          ROUND(SUM(CASE WHEN value>0 THEN value ELSE 0 END)*100.0/NULLIF(SUM(ABS(value)),0),1)::DOUBLE AS buy_ratio_pct
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::FLOAT8   AS total_buy_value,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::FLOAT8 AS total_sell_value,
+          SUM(value)::FLOAT8 AS net_value,
+          ROUND((SUM(CASE WHEN value>0 THEN value ELSE 0 END)*100.0/NULLIF(SUM(ABS(value)),0))::NUMERIC,1)::FLOAT8 AS buy_ratio_pct
         FROM broker_activity WHERE broker_code = $1 AND LENGTH(stock_code) = 4 GROUP BY broker_code`
       const favQuery = `
         SELECT
           stock_code,
-          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS buy_value,
-          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS sell_value,
-          SUM(value)::DOUBLE AS net_value,
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::FLOAT8   AS buy_value,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::FLOAT8 AS sell_value,
+          SUM(value)::FLOAT8 AS net_value,
           COUNT(*)::BIGINT   AS total_transactions,
-          (SUM(CASE WHEN value>0 THEN value ELSE 0 END)/NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::DOUBLE AS avg_buy_price
+          (SUM(CASE WHEN value>0 THEN value ELSE 0 END)/NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::FLOAT8 AS avg_buy_price
         FROM broker_activity WHERE broker_code = $1 AND LENGTH(stock_code) = 4
         GROUP BY stock_code
-        ORDER BY ABS(SUM(value)) DESC LIMIT 10`
+        ORDER BY ABS(SUM(value)) DESC NULLS LAST LIMIT 10`
       const [summaryData, favData] = await Promise.all([safeRun(summaryQuery, queryParams), safeRun(favQuery, queryParams)])
       return NextResponse.json({ summary: summaryData, favorites: favData })
 
@@ -397,9 +402,9 @@ export async function GET(req: NextRequest) {
       query = `
         WITH local_broker_agg AS (
           SELECT
-            SUM(ba.value)::DOUBLE AS broker_net_val,
-            SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE AS broker_buy,
-            ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::DOUBLE AS broker_sell
+            SUM(ba.value)::FLOAT8 AS broker_net_val,
+            SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::FLOAT8 AS broker_buy,
+            ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::FLOAT8 AS broker_sell
           FROM broker_activity ba
           JOIN broker_classification bc ON bc.broker_code = ba.broker_code
           WHERE ${dateFilter.clause}
@@ -408,9 +413,9 @@ export async function GET(req: NextRequest) {
         ),
         foreign_broker_agg AS (
           SELECT
-            SUM(ba.value)::DOUBLE AS foreign_broker_net_val,
-            SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::DOUBLE AS foreign_broker_buy,
-            ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::DOUBLE AS foreign_broker_sell
+            SUM(ba.value)::FLOAT8 AS foreign_broker_net_val,
+            SUM(CASE WHEN ba.value>0 THEN ba.value ELSE 0 END)::FLOAT8 AS foreign_broker_buy,
+            ABS(SUM(CASE WHEN ba.value<0 THEN ba.value ELSE 0 END))::FLOAT8 AS foreign_broker_sell
           FROM broker_activity ba
           JOIN broker_classification bc ON bc.broker_code = ba.broker_code
           WHERE ${dateFilter.clause}
@@ -419,20 +424,20 @@ export async function GET(req: NextRequest) {
         ),
         foreign_flow_agg AS (
           SELECT
-            SUM(net_foreign_value)::DOUBLE  AS foreign_net_val,
-            SUM(foreign_buy_value)::DOUBLE  AS foreign_buy,
-            SUM(foreign_sell_value)::DOUBLE AS foreign_sell
+            SUM(net_foreign_value)::FLOAT8  AS foreign_net_val,
+            SUM(foreign_buy_value)::FLOAT8  AS foreign_buy,
+            SUM(foreign_sell_value)::FLOAT8 AS foreign_sell
           FROM market.tb_stock_detail
           WHERE ${dateFilter.clause.replace(/CAST\(date AS DATE\)/g, 'CAST(trading_date AS DATE)')}
             AND stock_code = $${paramIdx}
         ),
         inst_broker_agg AS (
-          SELECT SUM(ba.value)::DOUBLE AS inst_net
+          SELECT SUM(ba.value)::FLOAT8 AS inst_net
           FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
           WHERE ${dateFilter.clause} AND ba.stock_code = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_INST'
         ),
         retail_broker_agg AS (
-          SELECT SUM(ba.value)::DOUBLE AS retail_net
+          SELECT SUM(ba.value)::FLOAT8 AS retail_net
           FROM broker_activity ba JOIN broker_classification bc ON bc.broker_code = ba.broker_code
           WHERE ${dateFilter.clause} AND ba.stock_code = $${paramIdx} AND UPPER(bc.category) = 'LOCAL_RETAIL'
         )
@@ -472,8 +477,8 @@ export async function GET(req: NextRequest) {
         SELECT
           CAST(date AS VARCHAR) AS date,
           broker_code,
-          SUM(value)::DOUBLE    AS net_val,
-          SUM(lot)::DOUBLE      AS net_lot
+          SUM(value)::FLOAT8    AS net_val,
+          SUM(lot)::FLOAT8      AS net_lot
         FROM broker_activity
         WHERE ${dateFilter.clause}
           AND stock_code = $${paramIdx}
@@ -493,20 +498,20 @@ export async function GET(req: NextRequest) {
       query = `
         SELECT
           stock_code,
-          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::DOUBLE   AS buy_val,
-          SUM(CASE WHEN value>0 THEN lot ELSE 0 END)::DOUBLE     AS buy_lot,
-          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::DOUBLE AS sell_val,
-          ABS(SUM(CASE WHEN value<0 THEN lot ELSE 0 END))::DOUBLE   AS sell_lot,
-          SUM(value)::DOUBLE AS net_val,
+          SUM(CASE WHEN value>0 THEN value ELSE 0 END)::FLOAT8   AS buy_val,
+          SUM(CASE WHEN value>0 THEN lot ELSE 0 END)::FLOAT8     AS buy_lot,
+          ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END))::FLOAT8 AS sell_val,
+          ABS(SUM(CASE WHEN value<0 THEN lot ELSE 0 END))::FLOAT8   AS sell_lot,
+          SUM(value)::FLOAT8 AS net_val,
           (SUM(CASE WHEN value>0 THEN freq ELSE 0 END) + SUM(CASE WHEN value<0 THEN freq ELSE 0 END))::BIGINT AS total_freq,
-          (SUM(CASE WHEN value>0 THEN value ELSE 0 END) / NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::DOUBLE AS buy_avg_price,
-          (ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END)) / NULLIF(ABS(SUM(CASE WHEN value<0 THEN lot ELSE 0 END))*100.0,0))::DOUBLE AS sell_avg_price
+          (SUM(CASE WHEN value>0 THEN value ELSE 0 END) / NULLIF(SUM(CASE WHEN value>0 THEN lot ELSE 0 END)*100.0,0))::FLOAT8 AS buy_avg_price,
+          (ABS(SUM(CASE WHEN value<0 THEN value ELSE 0 END)) / NULLIF(ABS(SUM(CASE WHEN value<0 THEN lot ELSE 0 END))*100.0,0))::FLOAT8 AS sell_avg_price
         FROM broker_activity
         WHERE ${dateFilter.clause}
           AND broker_code IN (${placeholders})
           AND LENGTH(stock_code) = 4
         GROUP BY stock_code
-        ORDER BY ABS(SUM(value)) DESC
+        ORDER BY ABS(SUM(value)) DESC NULLS LAST
         LIMIT 300`
 
     // ── 9. SECTOR LIST ─────────────────────────────────────────────────────
@@ -523,13 +528,13 @@ export async function GET(req: NextRequest) {
       queryParams = [...dateFilter.params, cleanCode, prev.start, prev.end]
       query = `
         WITH current_period AS (
-          SELECT broker_code, SUM(value)::DOUBLE AS net_val, MAX(broker_name) AS broker_name
+          SELECT broker_code, SUM(value)::FLOAT8 AS net_val, MAX(broker_name) AS broker_name
           FROM broker_activity
           WHERE ${dateFilter.clause} AND stock_code = $${codeIdx}
           GROUP BY broker_code
         ),
         prev_period AS (
-          SELECT broker_code, SUM(value)::DOUBLE AS net_val
+          SELECT broker_code, SUM(value)::FLOAT8 AS net_val
           FROM broker_activity
           WHERE CAST(date AS DATE) BETWEEN $${codeIdx + 1}::DATE AND $${codeIdx + 2}::DATE
             AND stock_code = $${codeIdx}
@@ -538,8 +543,8 @@ export async function GET(req: NextRequest) {
         SELECT
           COALESCE(c.broker_code, p.broker_code)     AS broker_code,
           COALESCE(c.broker_name, '')                 AS broker_name,
-          COALESCE(c.net_val, 0)::DOUBLE              AS current_net,
-          COALESCE(p.net_val, 0)::DOUBLE              AS prev_net,
+          COALESCE(c.net_val, 0)::FLOAT8              AS current_net,
+          COALESCE(p.net_val, 0)::FLOAT8              AS prev_net,
           CASE
             WHEN COALESCE(p.net_val,0) <= 0 AND COALESCE(c.net_val,0) > 500000000   THEN 'REVERSAL_BUY'
             WHEN COALESCE(p.net_val,0) >= 0 AND COALESCE(c.net_val,0) < -500000000  THEN 'REVERSAL_SELL'
@@ -551,7 +556,7 @@ export async function GET(req: NextRequest) {
         FROM current_period c
         FULL OUTER JOIN prev_period p ON c.broker_code = p.broker_code
         WHERE COALESCE(c.net_val, 0) <> 0
-        ORDER BY ABS(COALESCE(c.net_val, 0)) DESC
+        ORDER BY ABS(COALESCE(c.net_val, 0)) DESC NULLS LAST
         LIMIT 20`
 
     // ── 11. BROKER INTEL (FIXED) ───────────────────────────────────────────
@@ -576,31 +581,31 @@ export async function GET(req: NextRequest) {
             COUNT(*) AS total_days,
             SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END) AS net_buy_days,
             SUM(CASE WHEN net_val < 0 THEN 1 ELSE 0 END) AS net_sell_days,
-            (SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))::DOUBLE AS buy_consistency_pct,
-            SUM(buy_value)::DOUBLE AS total_buy,
-            SUM(sell_value)::DOUBLE AS total_sell,
-            SUM(net_val)::DOUBLE AS all_time_net
+            (SUM(CASE WHEN net_val > 0 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))::FLOAT8 AS buy_consistency_pct,
+            SUM(buy_value)::FLOAT8 AS total_buy,
+            SUM(sell_value)::FLOAT8 AS total_sell,
+            SUM(net_val)::FLOAT8 AS all_time_net
           FROM daily_net
           GROUP BY broker_code
         )
         SELECT
           bd.broker_code,
           bd.broker_name,
-          COALESCE(bd.buy_value, 0)::DOUBLE            AS buy_value,
-          COALESCE(bd.sell_value, 0)::DOUBLE           AS sell_value,
-          (COALESCE(bd.buy_value, 0) - COALESCE(bd.sell_value, 0))::DOUBLE AS net_value,
+          COALESCE(bd.buy_value, 0)::FLOAT8            AS buy_value,
+          COALESCE(bd.sell_value, 0)::FLOAT8           AS sell_value,
+          (COALESCE(bd.buy_value, 0) - COALESCE(bd.sell_value, 0))::FLOAT8 AS net_value,
           bd.stock_count::BIGINT                       AS stock_count,
           bd.transaction_count::BIGINT                 AS transaction_count,
           COALESCE(cc.buy_consistency_pct, 0.0)        AS buy_consistency_pct,
           COALESCE(cc.net_buy_days, 0)::BIGINT         AS net_buy_days,
           COALESCE(cc.total_days, 0)::BIGINT           AS total_days,
-          COALESCE(cc.total_buy, 0.0)::DOUBLE          AS all_time_buy,
-          COALESCE(cc.all_time_net, 0.0)::DOUBLE       AS all_time_net
+          COALESCE(cc.total_buy, 0.0)::FLOAT8          AS all_time_buy,
+          COALESCE(cc.all_time_net, 0.0)::FLOAT8       AS all_time_net
         FROM main.tb_broker_daily bd
         LEFT JOIN consistency_calc cc ON cc.broker_code = bd.broker_code
         CROSS JOIN latest_date ld
         WHERE bd.date = ld.max_date
-        ORDER BY ABS(COALESCE(bd.buy_value, 0) - COALESCE(bd.sell_value, 0)) DESC
+        ORDER BY ABS(COALESCE(bd.buy_value, 0) - COALESCE(bd.sell_value, 0)) DESC NULLS LAST
         LIMIT 30`
 
     // ── 12. BROKER BREADTH ─────────────────────────────────────────────────
@@ -611,13 +616,13 @@ export async function GET(req: NextRequest) {
           CAST(date AS VARCHAR)   AS date,
           broker_count::BIGINT    AS broker_count,
           stock_count::BIGINT     AS stock_count,
-          total_buy::DOUBLE       AS total_buy,
-          total_sell::DOUBLE      AS total_sell,
-          net_flow::DOUBLE        AS net_flow,
+          total_buy::FLOAT8       AS total_buy,
+          total_sell::FLOAT8      AS total_sell,
+          net_flow::FLOAT8        AS net_flow,
           buy_transactions::BIGINT  AS buy_transactions,
           sell_transactions::BIGINT AS sell_transactions
         FROM main.tb_broker_market_breadth
-        ORDER BY date DESC
+        ORDER BY date DESC NULLS LAST
         LIMIT 30`
 
     // ── 13. WHALE TIMING ───────────────────────────────────────────────────
@@ -633,18 +638,18 @@ export async function GET(req: NextRequest) {
           w.local_foreign,
           CAST(w.first_seen_date  AS VARCHAR) AS first_seen_date,
           CAST(w.latest_date      AS VARCHAR) AS latest_date,
-          w.first_percentage::DOUBLE          AS first_percentage,
-          w.latest_percentage::DOUBLE         AS latest_percentage,
+          w.first_percentage::FLOAT8          AS first_percentage,
+          w.latest_percentage::FLOAT8         AS latest_percentage,
           w.latest_shares::BIGINT             AS latest_shares,
-          w.est_entry_price::DOUBLE           AS est_entry_price,
-          w.current_price::DOUBLE             AS current_price,
-          w.return_since_entry::DOUBLE        AS return_since_entry,
+          w.est_entry_price::FLOAT8           AS est_entry_price,
+          w.current_price::FLOAT8             AS current_price,
+          w.return_since_entry::FLOAT8        AS return_since_entry,
           w.holding_days::INTEGER             AS holding_days,
           w.position_trend,
           w.whale_verdict
         FROM ksei.tb_whale_timing w
         WHERE w.share_code = $1
-        ORDER BY w.latest_percentage DESC
+        ORDER BY w.latest_percentage DESC NULLS LAST
         LIMIT 15`
 
     // ── 14. TACTICAL SIGNAL ────────────────────────────────────────────────
@@ -663,35 +668,35 @@ export async function GET(req: NextRequest) {
         SELECT
           stock_code,
           CAST(trading_date AS VARCHAR)         AS trading_date,
-          close::DOUBLE                         AS close,
-          change_percent::DOUBLE                AS change_percent,
-          net_foreign_1d::DOUBLE                AS net_foreign_1d,
-          (net_foreign_7d_miliar  * 1e9)::DOUBLE AS net_foreign_7d,
-          (broker_net_7d_miliar   * 1e9)::DOUBLE AS broker_net_7d,
-          (net_foreign_30d_miliar * 1e9)::DOUBLE AS net_foreign_30d,
+          close::FLOAT8                         AS close,
+          change_percent::FLOAT8                AS change_percent,
+          net_foreign_1d::FLOAT8                AS net_foreign_1d,
+          (net_foreign_7d_miliar  * 1e9)::FLOAT8 AS net_foreign_7d,
+          (broker_net_7d_miliar   * 1e9)::FLOAT8 AS broker_net_7d,
+          (net_foreign_30d_miliar * 1e9)::FLOAT8 AS net_foreign_30d,
           tactical_signal
         FROM market.tb_tactical_momentum_smart_money
         WHERE stock_code = $1
-        ORDER BY trading_date DESC
+        ORDER BY trading_date DESC NULLS LAST
         LIMIT 1`
       const stealthQuery = `
         SELECT
           Code                                AS stock_code,
           CAST(Date AS VARCHAR)               AS date,
-          Price::DOUBLE                       AS price,
-          CP_Flow_Miliar::DOUBLE              AS cp_flow_miliar,
-          Foreign_CP_Miliar::DOUBLE           AS foreign_cp_miliar,
+          Price::FLOAT8                       AS price,
+          CP_Flow_Miliar::FLOAT8              AS cp_flow_miliar,
+          Foreign_CP_Miliar::FLOAT8           AS foreign_cp_miliar,
           Signal                              AS stealth_signal
         FROM ksei.tb_stealth_accumulation
         WHERE Code = $1
-        ORDER BY Date DESC
+        ORDER BY Date DESC NULLS LAST
         LIMIT 1`
       const positionQuery = `
         SELECT
           stock_code,
-          total_inst_pct::DOUBLE              AS total_inst_pct,
-          prev_inst_pct::DOUBLE               AS prev_inst_pct,
-          mom_change_pct::DOUBLE              AS mom_change_pct,
+          total_inst_pct::FLOAT8              AS total_inst_pct,
+          prev_inst_pct::FLOAT8               AS prev_inst_pct,
+          mom_change_pct::FLOAT8              AS mom_change_pct,
           strategic_signal
         FROM ksei.tb_ksei_inst_positioning
         WHERE stock_code = $1
@@ -719,9 +724,9 @@ export async function GET(req: NextRequest) {
           investor_name,
           investor_type,
           nationality,
-          prev_percentage::DOUBLE             AS prev_percentage,
-          curr_percentage::DOUBLE             AS curr_percentage,
-          pct_point_change::DOUBLE            AS pct_point_change,
+          prev_percentage::FLOAT8             AS prev_percentage,
+          curr_percentage::FLOAT8             AS curr_percentage,
+          pct_point_change::FLOAT8            AS pct_point_change,
           share_change::BIGINT                AS share_change,
           action,
           alert_level
@@ -729,14 +734,14 @@ export async function GET(req: NextRequest) {
         WHERE share_code = $1
         ORDER BY
           CASE alert_level WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
-          report_date DESC
+          report_date DESC NULLS LAST
         LIMIT 10`
       const scoreQuery = `
         SELECT
           code,
-          corp_change::DOUBLE                 AS corp_change,
-          foreign_change::DOUBLE              AS foreign_change,
-          ind_change::DOUBLE                  AS ind_change,
+          corp_change::FLOAT8                 AS corp_change,
+          foreign_change::FLOAT8              AS foreign_change,
+          ind_change::FLOAT8                  AS ind_change,
           score::INTEGER                      AS insider_score,
           signals
         FROM ksei.tb_insider_screener
@@ -782,15 +787,15 @@ export async function GET(req: NextRequest) {
           AND buy_broker_count >= $${p + 5}
           AND composite_score >= $${p + 6}
           ${sectorClause} ${whaleClause}
-        ORDER BY composite_score DESC
+        ORDER BY composite_score DESC NULLS LAST
         LIMIT 100`
 
     // ── 17. CONVERGENCE & DIVERGENCE — smart money flow divergence signals ──
     } else if (action === 'convergence' || action === 'divergence') {
-      const convDays = parseInt(searchParams.get('conv_days') || '30')
+      const convDays = intParam(searchParams.get('conv_days'), 30, 1, 90)
       const validDays = [5, 14, 30, 60, 90].includes(convDays) ? convDays : 30
       const tbl = `market.tb_broker_accum_${validDays}d`
-      const limit = Math.min(50, parseInt(searchParams.get('limit') || '20'))
+      const limit = intParam(searchParams.get('limit'), 20, 1, 50)
       // NOTE: 'divergence' never reaches here — the branch at ~line 380 matches
       // it first. This arm is effectively convergence-only.
       const sectorFilter = sector ? `AND sector = $1` : ''
@@ -813,7 +818,7 @@ export async function GET(req: NextRequest) {
             AND net_miliar >= 0.5
             AND broker_count >= 3
             ${sectorFilter}
-          ORDER BY composite_score DESC, net_miliar DESC
+          ORDER BY composite_score DESC NULLS LAST, net_miliar DESC NULLS LAST
           LIMIT ${limit}`
       } else {
         query = `
@@ -829,7 +834,7 @@ export async function GET(req: NextRequest) {
           WHERE (foreign_net_miliar > 0.3 AND local_net_miliar < -0.3)
              OR (foreign_net_miliar < -0.3 AND local_net_miliar > 0.3)
             ${sectorFilter}
-          ORDER BY ABS(foreign_net_miliar - local_net_miliar) DESC
+          ORDER BY ABS(foreign_net_miliar - local_net_miliar) DESC NULLS LAST
           LIMIT ${limit}`
       }
 
@@ -844,9 +849,9 @@ export async function GET(req: NextRequest) {
             ba.broker_code,
             MAX(ba.broker_name) AS broker_name,
             ba.stock_code AS stock_code,
-            SUM(CASE WHEN ba.value > 0 THEN ba.value ELSE 0 END)::DOUBLE AS buy_val,
-            SUM(ba.value)::DOUBLE AS net_val,
-            AVG(dt.change_percent)::DOUBLE AS avg_return,
+            SUM(CASE WHEN ba.value > 0 THEN ba.value ELSE 0 END)::FLOAT8 AS buy_val,
+            SUM(ba.value)::FLOAT8 AS net_val,
+            AVG(dt.change_percent)::FLOAT8 AS avg_return,
             COUNT(DISTINCT ba.date) AS days_active
           FROM broker_activity ba
           JOIN market.daily_transactions dt 
@@ -862,13 +867,13 @@ export async function GET(req: NextRequest) {
           broker_code,
           MAX(broker_name) AS broker_name,
           COUNT(*) AS stocks_accumulated,
-          ROUND(AVG(avg_return), 2)::DOUBLE AS alpha_score,
-          SUM(buy_val)::DOUBLE AS total_accumulation,
-          SUM(net_val)::DOUBLE AS total_net
+          ROUND((AVG(avg_return))::NUMERIC, 2)::FLOAT8 AS alpha_score,
+          SUM(buy_val)::FLOAT8 AS total_accumulation,
+          SUM(net_val)::FLOAT8 AS total_net
         FROM broker_stock_perf
         GROUP BY broker_code
         HAVING COUNT(*) >= 3
-        ORDER BY alpha_score DESC
+        ORDER BY alpha_score DESC NULLS LAST
         LIMIT 25`
 
     } else {
@@ -884,7 +889,8 @@ export async function GET(req: NextRequest) {
     if (error instanceof BadRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
+    // Generic message — DB internals stay server-side.
     console.error('[broker-tracker]', { action, message: error.message })
-    return NextResponse.json({ error: error.message || 'Gagal mengambil data.' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 })
   }
 }

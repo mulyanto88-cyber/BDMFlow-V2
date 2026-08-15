@@ -1,4 +1,4 @@
-export const revalidate = 300
+export const revalidate = 3600
 
 // src/app/api/ksei-monthly/route.ts
 // KSEI Monthly Smart Money Tracker
@@ -13,6 +13,8 @@ export const revalidate = 300
 //    kalau total ownership berubah >1.67× atau <0.6× MoM, delta di-null-kan
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
+import { intParam, snapParam } from '@/lib/utils'
 
 // ── Volume expressions (lembar saham) ──
 const SMART         = `(Local_CP + Local_PF + Local_IB + Local_MF + Foreign_CP + Foreign_PF + Foreign_IB + Foreign_MF)::DOUBLE`
@@ -37,6 +39,9 @@ const TYPE_COLS = [
 ]
 
 export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: true })
+  if (guarded) return guarded
+
   const { searchParams } = new URL(req.url)
   const action = searchParams.get('action') || 'screener'
   const trend  = searchParams.get('trend') || ''
@@ -58,7 +63,7 @@ export async function GET(req: NextRequest) {
       const data = await run(`
         SELECT * FROM ksei.tb_ksei_monthly_scored
         WHERE ${conditions.join(' AND ')}
-        ORDER BY ABS(COALESCE(m0_smart,0)) DESC
+        ORDER BY ABS(COALESCE(m0_smart,0)) DESC NULLS LAST
         LIMIT 300
       `, params)
       return NextResponse.json({ data })
@@ -72,32 +77,32 @@ export async function GET(req: NextRequest) {
       const trend12 = await run(`
         SELECT
           Date::VARCHAR AS month,
-          Price::DOUBLE AS price,
-          ROUND((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Local_MF_Chg_Val +
-                 Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val + Foreign_MF_Chg_Val) / 1e9, 2) AS smart_flow,
-          ROUND((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Local_MF_Chg_Val) / 1e9, 2) AS local_flow,
-          ROUND((Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val + Foreign_MF_Chg_Val) / 1e9, 2) AS foreign_flow,
-          ROUND((Local_ID_Chg_Val + Foreign_ID_Chg_Val) / 1e9, 2) AS retail_flow,
-          ROUND(Total_Foreign / NULLIF(Total_Shares, 0) * 100, 2) AS foreign_own_pct,
+          Price::FLOAT8 AS price,
+          ROUND(((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Local_MF_Chg_Val +
+                 Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val + Foreign_MF_Chg_Val) / 1e9)::NUMERIC, 2) AS smart_flow,
+          ROUND(((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Local_MF_Chg_Val) / 1e9)::NUMERIC, 2) AS local_flow,
+          ROUND(((Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val + Foreign_MF_Chg_Val) / 1e9)::NUMERIC, 2) AS foreign_flow,
+          ROUND(((Local_ID_Chg_Val + Foreign_ID_Chg_Val) / 1e9)::NUMERIC, 2) AS retail_flow,
+          ROUND((Total_Foreign / NULLIF(Total_Shares, 0) * 100)::NUMERIC, 2) AS foreign_own_pct,
           -- Individual 18 flows
-          ROUND(Local_IS_Chg_Val / 1e9, 2) AS local_is_flow,
-          ROUND(Local_CP_Chg_Val / 1e9, 2) AS local_cp_flow,
-          ROUND(Local_PF_Chg_Val / 1e9, 2) AS local_pf_flow,
-          ROUND(Local_IB_Chg_Val / 1e9, 2) AS local_ib_flow,
-          ROUND(Local_ID_Chg_Val / 1e9, 2) AS local_id_flow,
-          ROUND(Local_MF_Chg_Val / 1e9, 2) AS local_mf_flow,
-          ROUND(Local_SC_Chg_Val / 1e9, 2) AS local_sc_flow,
-          ROUND(Local_FD_Chg_Val / 1e9, 2) AS local_fd_flow,
-          ROUND(Local_OT_Chg_Val / 1e9, 2) AS local_ot_flow,
-          ROUND(Foreign_IS_Chg_Val / 1e9, 2) AS foreign_is_flow,
-          ROUND(Foreign_CP_Chg_Val / 1e9, 2) AS foreign_cp_flow,
-          ROUND(Foreign_PF_Chg_Val / 1e9, 2) AS foreign_pf_flow,
-          ROUND(Foreign_IB_Chg_Val / 1e9, 2) AS foreign_ib_flow,
-          ROUND(Foreign_ID_Chg_Val / 1e9, 2) AS foreign_id_flow,
-          ROUND(Foreign_MF_Chg_Val / 1e9, 2) AS foreign_mf_flow,
-          ROUND(Foreign_SC_Chg_Val / 1e9, 2) AS foreign_sc_flow,
-          ROUND(Foreign_FD_Chg_Val / 1e9, 2) AS foreign_fd_flow,
-          ROUND(Foreign_OT_Chg_Val / 1e9, 2) AS foreign_ot_flow
+          ROUND((Local_IS_Chg_Val / 1e9)::NUMERIC, 2) AS local_is_flow,
+          ROUND((Local_CP_Chg_Val / 1e9)::NUMERIC, 2) AS local_cp_flow,
+          ROUND((Local_PF_Chg_Val / 1e9)::NUMERIC, 2) AS local_pf_flow,
+          ROUND((Local_IB_Chg_Val / 1e9)::NUMERIC, 2) AS local_ib_flow,
+          ROUND((Local_ID_Chg_Val / 1e9)::NUMERIC, 2) AS local_id_flow,
+          ROUND((Local_MF_Chg_Val / 1e9)::NUMERIC, 2) AS local_mf_flow,
+          ROUND((Local_SC_Chg_Val / 1e9)::NUMERIC, 2) AS local_sc_flow,
+          ROUND((Local_FD_Chg_Val / 1e9)::NUMERIC, 2) AS local_fd_flow,
+          ROUND((Local_OT_Chg_Val / 1e9)::NUMERIC, 2) AS local_ot_flow,
+          ROUND((Foreign_IS_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_is_flow,
+          ROUND((Foreign_CP_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_cp_flow,
+          ROUND((Foreign_PF_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_pf_flow,
+          ROUND((Foreign_IB_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_ib_flow,
+          ROUND((Foreign_ID_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_id_flow,
+          ROUND((Foreign_MF_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_mf_flow,
+          ROUND((Foreign_SC_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_sc_flow,
+          ROUND((Foreign_FD_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_fd_flow,
+          ROUND((Foreign_OT_Chg_Val / 1e9)::NUMERIC, 2) AS foreign_ot_flow
         FROM ksei.monthly_snapshot
         WHERE Code = $1
           AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code = $1) - INTERVAL '12 months'
@@ -108,13 +113,13 @@ export async function GET(req: NextRequest) {
       const composition = await run(`
         WITH latest AS (
           SELECT * FROM ksei.monthly_snapshot WHERE Code = $1
-          ORDER BY Date DESC LIMIT 1
+          ORDER BY Date DESC NULLS LAST LIMIT 1
         )
         SELECT
           t.tipe, t.kategori,
-          ROUND(t.shares / NULLIF(latest.Total_Shares, 0) * 100, 2) AS pct,
+          ROUND((t.shares / NULLIF(latest.Total_Shares, 0) * 100)::NUMERIC, 2) AS pct,
           t.shares,
-          ROUND(t.delta_shares / NULLIF(latest.Total_Shares, 0) * 100, 3) AS delta_pct,
+          ROUND((t.delta_shares / NULLIF(latest.Total_Shares, 0) * 100)::NUMERIC, 3) AS delta_pct,
           t.delta_shares
         FROM latest,
         (
@@ -138,21 +143,21 @@ export async function GET(req: NextRequest) {
           UNION ALL SELECT 'Foreign OT','Other',Foreign_OT,Foreign_OT_Chg_Vol
         ) t
         WHERE t.shares > 0
-        ORDER BY pct DESC
+        ORDER BY pct DESC NULLS LAST
       `, [code])
 
       // 3. Summary stats — using pre-calculated total_shares
       const summary = await run(`
         SELECT
-          Code AS stock_code, Date::VARCHAR AS latest_month, Price::DOUBLE AS price,
+          Code AS stock_code, Date::VARCHAR AS latest_month, Price::FLOAT8 AS price,
           Total_Shares AS total_shares,
-          ROUND(Total_Foreign / NULLIF(Total_Shares, 0) * 100, 2) AS foreign_pct,
-          ROUND(Total_Local / NULLIF(Total_Shares, 0) * 100, 2) AS local_pct,
+          ROUND((Total_Foreign / NULLIF(Total_Shares, 0) * 100)::NUMERIC, 2) AS foreign_pct,
+          ROUND((Total_Local / NULLIF(Total_Shares, 0) * 100)::NUMERIC, 2) AS local_pct,
           Top_Buyer AS top_buyer, Top_Seller AS top_seller,
           Is_Split_Suspect AS is_split, Is_Reverse_Suspect AS is_reverse
         FROM ksei.monthly_snapshot
         WHERE Code = $1
-        ORDER BY Date DESC LIMIT 1
+        ORDER BY Date DESC NULLS LAST LIMIT 1
       `, [code])
 
       // 4. Funds and ETFs holding this stock (latest month vs prev month) from 1% registry
@@ -196,7 +201,7 @@ export async function GET(req: NextRequest) {
            OR cur.investor_name ILIKE '%REKSA DANA%'
            OR cur.investor_name ILIKE '%MUTUAL FUND%'
            OR cur.investor_type IN ('Mutual Funds', 'MF', 'Exchange Traded Funds')
-        ORDER BY cur_pct DESC
+        ORDER BY cur_pct DESC NULLS LAST
       `, [code])
 
       return NextResponse.json({
@@ -225,13 +230,13 @@ export async function GET(req: NextRequest) {
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'stock_trend' && code) {
       const data = await run(`
-        SELECT Date::VARCHAR AS month, Price::DOUBLE AS price,
-          ROUND((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val) / 1e9, 2) AS net_smart,
-          ROUND(Local_CP_Chg_Val / 1e9, 2) AS cp_flow,
-          ROUND(Local_PF_Chg_Val / 1e9, 2) AS pf_flow,
-          ROUND(Local_IB_Chg_Val / 1e9, 2) AS ib_flow,
-          ROUND(Local_ID_Chg_Val / 1e9, 2) AS retail,
-          ROUND((Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val) / 1e9, 2) AS foreign_smart
+        SELECT Date::VARCHAR AS month, Price::FLOAT8 AS price,
+          ROUND(((Local_CP_Chg_Val + Local_PF_Chg_Val + Local_IB_Chg_Val + Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val) / 1e9)::NUMERIC, 2) AS net_smart,
+          ROUND((Local_CP_Chg_Val / 1e9)::NUMERIC, 2) AS cp_flow,
+          ROUND((Local_PF_Chg_Val / 1e9)::NUMERIC, 2) AS pf_flow,
+          ROUND((Local_IB_Chg_Val / 1e9)::NUMERIC, 2) AS ib_flow,
+          ROUND((Local_ID_Chg_Val / 1e9)::NUMERIC, 2) AS retail,
+          ROUND(((Foreign_CP_Chg_Val + Foreign_PF_Chg_Val + Foreign_IB_Chg_Val) / 1e9)::NUMERIC, 2) AS foreign_smart
         FROM ksei.monthly_snapshot
         WHERE Code = $1
           AND Date >= (SELECT MAX(Date) FROM ksei.monthly_snapshot WHERE Code = $1) - INTERVAL '12 months'
@@ -244,7 +249,8 @@ export async function GET(req: NextRequest) {
     // FLOWS — global net flow per investor type (market-wide, MoM), last N months
     // ════════════════════════════════════════════════════════════════════════
     if (action === 'flows') {
-      const months  = Math.min(12, Math.max(2, parseInt(searchParams.get('months') || '6')))
+      // Snap to the UI's own options (3/6/12) so cache keys converge.
+      const months  = snapParam(intParam(searchParams.get('months'), 6, 2, 12), [3, 6, 12], 6)
       const sumCols = TYPE_COLS.map(c =>
         `ROUND(SUM(COALESCE("${c}_Chg_Val", 0)) / 1e9, 1) AS "${c}"`
       ).join(',\n            ')
@@ -272,14 +278,14 @@ export async function GET(req: NextRequest) {
       const params    = monthOk ? [month] : []
       const detailSql = (dir: 'buy' | 'sell') => `
         SELECT l.Code AS stock_code, s.sector,
-          ROUND(COALESCE(l."${type}_Chg_Val", 0) / 1e9, 2) AS flow_m,
+          ROUND((COALESCE(l."${type}_Chg_Val", 0) / 1e9)::NUMERIC, 2) AS flow_m,
           COALESCE(l."${type}_Chg_Vol", 0) AS delta_shares,
-          l.Price::DOUBLE AS price
+          l.Price::FLOAT8 AS price
         FROM ksei.monthly_snapshot l
         LEFT JOIN ksei.tb_ksei_monthly_scored s ON s.stock_code = l.Code
         WHERE l.Date = ${monthExpr}
           AND COALESCE(l."${type}_Chg_Vol", 0) ${dir === 'buy' ? '> 0' : '< 0'}
-        ORDER BY flow_m ${dir === 'buy' ? 'DESC' : 'ASC'}
+        ORDER BY flow_m ${dir === 'buy' ? 'DESC' : 'ASC'} NULLS LAST
         LIMIT 25
       `
       const [buys, sells] = await Promise.all([run(detailSql('buy'), params), run(detailSql('sell'), params)])
@@ -288,6 +294,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    // Generic message — DB internals stay server-side.
+    console.error('[ksei-monthly]', { action, message: err?.message })
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 })
   }
 }

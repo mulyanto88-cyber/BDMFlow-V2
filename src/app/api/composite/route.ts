@@ -1,14 +1,19 @@
 // /api/composite — queries market.tb_broker_screener (materialized table)
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
+import { intParam } from '@/lib/utils'
 
 export const revalidate = 300
 
 export async function GET(request: NextRequest) {
+  const guarded = await guardApi(request, { pro: true })
+  if (guarded) return guarded
+
   try {
     const { searchParams } = new URL(request.url)
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
-    const pageSize = Math.min(50, Math.max(1, parseInt(searchParams.get('pageSize') ?? '25')))
+    const page = intParam(searchParams.get('page'), 1, 1, 100_000)
+    const pageSize = intParam(searchParams.get('pageSize'), 25, 1, 50)
     const sector = searchParams.get('sector')
     const offset = (page - 1) * pageSize
 
@@ -24,6 +29,8 @@ export async function GET(request: NextRequest) {
     const total = countResult[0]?.total ?? data.length
     return NextResponse.json({ data, total, page, pageSize })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message, data: [], total: 0, page: 1, pageSize: 25 }, { status: 500 })
+    // Generic message — DB internals stay server-side.
+    console.error('[composite]', err?.message)
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.', data: [], total: 0, page: 1, pageSize: 25 }, { status: 500 })
   }
 }

@@ -8,6 +8,7 @@ import { MetricCard } from '@/components/metric-card'
 import { TierBadge } from '@/components/score-gauge'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Shield, Star, TrendingUp, Users, AlertTriangle, Loader2, ArrowRight } from 'lucide-react'
+import { authFetch } from '@/lib/api'
 
 function fmtP(v: number) { if (v == null) return '—'; return `${v >= 0 ? '+' : ''}${v?.toFixed(2) ?? '0.00'}%` }
 
@@ -20,9 +21,9 @@ export default function BandarmologiPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/bandarmologi?action=prime').then(r => r.json()).catch(() => []),
-      fetch('/api/bandarmologi?action=convergence').then(r => r.json()).catch(() => []),
-      fetch('/api/bandarmologi?action=leaderboard').then(r => r.json()).catch(() => []),
+      authFetch('/api/bandarmologi?action=prime').then(r => r.json()).catch(() => []),
+      authFetch('/api/bandarmologi?action=convergence').then(r => r.json()).catch(() => []),
+      authFetch('/api/bandarmologi?action=leaderboard').then(r => r.json()).catch(() => []),
     ]).then(([p, c, l]) => {
       setPrime(Array.isArray(p) ? p : p.data ?? [])
       setConvergence(Array.isArray(c) ? c : c.data ?? [])

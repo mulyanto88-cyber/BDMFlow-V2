@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Shield, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { track } from '@/lib/analytics'
@@ -218,6 +219,11 @@ export default function AuthPage() {
 
         <p className="text-center text-xs text-muted-foreground mt-5">
           © 2026 BDMFlow · IDX Flow Intelligence
+        </p>
+        <p className="text-center text-[10px] text-muted-foreground/40 mt-2 flex items-center justify-center gap-3">
+          <Link href="/terms" className="hover:text-muted-foreground/70 transition-colors">Syarat &amp; Ketentuan</Link>
+          <Link href="/privacy" className="hover:text-muted-foreground/70 transition-colors">Privasi</Link>
+          <Link href="/contact" className="hover:text-muted-foreground/70 transition-colors">Kontak</Link>
         </p>
       </div>
     </div>

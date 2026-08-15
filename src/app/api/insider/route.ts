@@ -1,8 +1,10 @@
-export const revalidate = 1800
+export const revalidate = 3600
 
 // src/app/api/insider/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
+import { intParam, floatParam, snapParam } from '@/lib/utils'
 
 function safeRun(query: string, params: any[] = []): Promise<any[]> {
   return run(query, params).catch((err: any) => {
@@ -12,15 +14,19 @@ function safeRun(query: string, params: any[] = []): Promise<any[]> {
 }
 
 export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: true })
+  if (guarded) return guarded
+
   const { searchParams } = new URL(req.url)
   const action      = searchParams.get('action')       ?? ''
-  const days        = parseInt(searchParams.get('days') ?? '30', 10)
+  // Snap to the UI's own options so cache keys converge (9999 → 3650, 150 → 200, ...).
+  const days        = snapParam(intParam(searchParams.get('days'), 30, 1, 3650), [7, 30, 90, 180, 365, 730, 1095, 3650], 30)
   const actionType  = (searchParams.get('action_type') ?? '').replace(/[^A-Z]/gi, '')
   const insiderType = (searchParams.get('insider_type') ?? '').replace(/[^A-Z]/gi, '')
   const sourceType  = (searchParams.get('source_type') ?? '').replace(/[^A-Z]/gi, '')  // IDX | KSEI | ''
   const realOnly    = searchParams.get('real_only') === 'true'  // exclude MAJOR HOLDER type
-  const minPct      = parseFloat(searchParams.get('min_pct') ?? '0')
-  const limit       = parseInt(searchParams.get('limit')     ?? '100', 10)
+  const minPct      = floatParam(searchParams.get('min_pct'), 0, 0, 100)
+  const limit       = snapParam(intParam(searchParams.get('limit'), 100, 1, 1000), [25, 50, 100, 200, 500, 1000], 100)
 
   // Insider type derivation — pakai badges karena is_direksi/komisaris/pengendali tidak reliable
   // Returns: 'PENGENDALI' | 'DIREKSI' | 'KOMISARIS' | 'MAJOR HOLDER'
@@ -57,8 +63,8 @@ export async function GET(req: NextRequest) {
           COUNT(CASE WHEN action_type = 'SELL' THEN 1 END)::BIGINT  AS total_sell,
           COUNT(DISTINCT stock_code)::BIGINT                         AS unique_stocks,
           COUNT(DISTINCT insider_name)::BIGINT                       AS unique_insiders,
-          SUM(CASE WHEN action_type = 'BUY'  THEN est_value_miliar ELSE 0 END)::DOUBLE  AS total_buy_value,
-          SUM(CASE WHEN action_type = 'SELL' THEN est_value_miliar ELSE 0 END)::DOUBLE  AS total_sell_value,
+          SUM(CASE WHEN action_type = 'BUY'  THEN est_value_miliar ELSE 0 END)::FLOAT8  AS total_buy_value,
+          SUM(CASE WHEN action_type = 'SELL' THEN est_value_miliar ELSE 0 END)::FLOAT8  AS total_sell_value,
           COUNT(CASE WHEN derived_type != 'MAJOR HOLDER' THEN 1 END)::BIGINT AS internal_tx,
           COUNT(CASE WHEN derived_type = 'PENGENDALI' THEN 1 END)::BIGINT   AS pengendali_tx,
           COUNT(CASE WHEN derived_type = 'DIREKSI' THEN 1 END)::BIGINT      AS direksi_tx,
@@ -93,10 +99,10 @@ export async function GET(req: NextRequest) {
           ${DERIVE_TYPE}                     AS insider_type,
           action_type,
           shares_change::BIGINT              AS shares_change,
-          pct_change::DOUBLE                 AS pct_change,
-          pct_previous::DOUBLE               AS pct_previous,
-          pct_current::DOUBLE                AS pct_current,
-          price_formatted::DOUBLE            AS price_formatted,
+          pct_change::FLOAT8                 AS pct_change,
+          pct_previous::FLOAT8               AS pct_previous,
+          pct_current::FLOAT8                AS pct_current,
+          price_formatted::FLOAT8            AS price_formatted,
           broker_code,
           broker_group,
           source_type,
@@ -104,7 +110,7 @@ export async function GET(req: NextRequest) {
           (is_pengendali OR badges ILIKE '%PENGENDALI%') AS is_pengendali,
           (is_komisaris  OR badges ILIKE '%KOMISARIS%')  AS is_komisaris,
           (is_direksi    OR badges ILIKE '%DIREKTUR%' OR badges ILIKE '%DIREKSI%') AS is_direksi,
-          est_value_miliar::DOUBLE           AS est_value_miliar,
+          est_value_miliar::FLOAT8           AS est_value_miliar,
           days_ago::INTEGER                  AS days_ago,
           recency_label
         FROM main.tb_insider_activity_feed
@@ -113,7 +119,7 @@ export async function GET(req: NextRequest) {
           ${insideClause}
           ${stockClause}
           ${srcFilter} ${realFilter}
-        ORDER BY transaction_date DESC, ABS(pct_change) DESC
+        ORDER BY transaction_date DESC NULLS LAST, ABS(pct_change) DESC NULLS LAST
         LIMIT ${limit}
       `)
       return NextResponse.json({ data })
@@ -125,7 +131,7 @@ export async function GET(req: NextRequest) {
           iw.stock_code,
           cp.group_name                       AS company_name,
           cp.sector,
-          iw.conviction_score::DOUBLE        AS conviction_score,
+          iw.conviction_score::FLOAT8        AS conviction_score,
           iw.insider_signal,
           CAST(iw.last_insider_date AS VARCHAR) AS last_insider_date,
           iw.insider_tx_count::BIGINT        AS insider_tx_count,
@@ -135,18 +141,18 @@ export async function GET(req: NextRequest) {
           iw.fresh_internal_sell::INTEGER    AS fresh_internal_sell,
           iw.overall_direction,
           iw.direction_30d,
-          iw.buy_pressure_pct::DOUBLE        AS buy_pressure_pct,
-          iw.net_pct_alltime::DOUBLE         AS net_pct_alltime,
-          iw.net_pct_30d::DOUBLE             AS net_pct_30d,
+          iw.buy_pressure_pct::FLOAT8        AS buy_pressure_pct,
+          iw.net_pct_alltime::FLOAT8         AS net_pct_alltime,
+          iw.net_pct_30d::FLOAT8             AS net_pct_30d,
           iw.unique_insiders::BIGINT         AS unique_insiders,
           iw.tx_last30d::BIGINT              AS tx_last30d,
           iw.tx_last7d::BIGINT               AS tx_last7d,
-          iw.current_price::DOUBLE           AS current_price,
-          iw.price_change_pct::DOUBLE        AS price_change_pct,
+          iw.current_price::FLOAT8           AS current_price,
+          iw.price_change_pct::FLOAT8        AS price_change_pct,
           iw.whale_signal,
           iw.market_signal,
           iw.composite_signal,
-          iw.free_float::DOUBLE              AS free_float,
+          iw.free_float::FLOAT8              AS free_float,
           iw.group_name,
           nf.buy_30d::BIGINT                 AS buy_count_30d,
           nf.sell_30d::BIGINT                AS sell_count_30d
@@ -180,14 +186,14 @@ export async function GET(req: NextRequest) {
           cs.total_tx::BIGINT                AS total_tx,
           cs.internal_buy::BIGINT            AS internal_buy,
           cs.internal_sell::BIGINT           AS internal_sell,
-          cs.score_alltime::DOUBLE           AS score_alltime,
-          cs.score_30d::DOUBLE               AS score_30d,
-          cs.conviction_score::DOUBLE        AS conviction_score,
+          cs.score_alltime::FLOAT8           AS score_alltime,
+          cs.score_30d::FLOAT8               AS score_30d,
+          cs.conviction_score::FLOAT8        AS conviction_score,
           cs.insider_signal,
           cs.fresh_internal_buy::INTEGER     AS fresh_internal_buy,
           cs.fresh_internal_sell::INTEGER    AS fresh_internal_sell,
-          sml.close::DOUBLE                  AS current_price,
-          sml.change_percent::DOUBLE         AS price_change_pct
+          sml.close::FLOAT8                  AS current_price,
+          sml.change_percent::FLOAT8         AS price_change_pct
         FROM main.tb_insider_conviction_score cs
         LEFT JOIN market.company_profile  cp  ON cp.stock_code  = cs.stock_code
         LEFT JOIN market.tb_stock_latest  sml ON sml.stock_code = cs.stock_code
@@ -199,7 +205,7 @@ export async function GET(req: NextRequest) {
             WHEN (CURRENT_DATE - cs.latest_tx) <= 90 THEN 3
             ELSE 4
           END ASC,
-          cs.conviction_score DESC
+          cs.conviction_score DESC NULLS LAST
         LIMIT 100
       `)
       return NextResponse.json({ data })
@@ -214,22 +220,22 @@ export async function GET(req: NextRequest) {
           insider_type,
           action_type,
           shares_change::BIGINT              AS shares_change,
-          pct_change::DOUBLE                 AS pct_change,
-          pct_previous::DOUBLE               AS pct_previous,
-          pct_current::DOUBLE                AS pct_current,
-          price_formatted::DOUBLE            AS price_formatted,
+          pct_change::FLOAT8                 AS pct_change,
+          pct_previous::FLOAT8               AS pct_previous,
+          pct_current::FLOAT8                AS pct_current,
+          price_formatted::FLOAT8            AS price_formatted,
           broker_code,
           broker_group,
           alert_level,
-          est_value_miliar::DOUBLE           AS est_value_miliar,
+          est_value_miliar::FLOAT8           AS est_value_miliar,
           days_ago::INTEGER                  AS days_ago,
-          current_price::DOUBLE              AS current_price,
+          current_price::FLOAT8              AS current_price,
           sector,
           market_signal,
           group_name
         FROM main.tb_insider_alert_feed
         WHERE days_ago <= ${days}
-        ORDER BY alert_level DESC, transaction_date DESC
+        ORDER BY alert_level DESC NULLS LAST, transaction_date DESC NULLS LAST
         LIMIT ${limit}
       `)
       return NextResponse.json({ data })
@@ -244,11 +250,11 @@ export async function GET(req: NextRequest) {
           insider_name,
           CAST(last_transaction_date AS VARCHAR) AS last_transaction_date,
           last_action,
-          current_pct_holding::DOUBLE        AS current_pct_holding,
+          current_pct_holding::FLOAT8        AS current_pct_holding,
           current_shares::BIGINT             AS current_shares,
-          last_pct_change::DOUBLE            AS last_pct_change,
+          last_pct_change::FLOAT8            AS last_pct_change,
           last_shares_change::BIGINT         AS last_shares_change,
-          last_price::DOUBLE                 AS last_price,
+          last_price::FLOAT8                 AS last_price,
           is_pengendali,
           is_komisaris,
           is_direksi,
@@ -259,7 +265,7 @@ export async function GET(req: NextRequest) {
           days_since_last_tx::INTEGER        AS days_since_last_tx
         FROM main.tb_insider_latest_position
         ${codeClause}
-        ORDER BY days_since_last_tx ASC, ABS(last_pct_change) DESC
+        ORDER BY days_since_last_tx ASC, ABS(last_pct_change) DESC NULLS LAST
         LIMIT ${limit}
       `)
       return NextResponse.json({ data })
@@ -273,13 +279,13 @@ export async function GET(req: NextRequest) {
             insider_name,
             iaf.stock_code,
             action_type,
-            pct_change::DOUBLE AS pct_change,
+            pct_change::FLOAT8 AS pct_change,
             transaction_date,
             ${DERIVE_TYPE} AS derived_type,
             cp.group_name,
             cp.sector,
-            l.close::DOUBLE AS current_price,
-            l.change_percent::DOUBLE AS price_change_pct
+            l.close::FLOAT8 AS current_price,
+            l.change_percent::FLOAT8 AS price_change_pct
           FROM main.tb_insider_activity_feed iaf
           LEFT JOIN market.company_profile cp ON cp.stock_code = iaf.stock_code
           LEFT JOIN market.tb_stock_latest l  ON l.stock_code  = iaf.stock_code
@@ -298,8 +304,8 @@ export async function GET(req: NextRequest) {
             STRING_AGG(DISTINCT stock_code, ', ' ORDER BY stock_code) AS stocks,
             STRING_AGG(DISTINCT group_name, ', ' ORDER BY group_name) AS groups,
             STRING_AGG(DISTINCT sector, ', ' ORDER BY sector)         AS sectors,
-            ROUND(SUM(CASE WHEN action_type = 'BUY'  THEN pct_change ELSE 0 END)::DOUBLE, 2) AS total_pct_buy,
-            ROUND(SUM(CASE WHEN action_type = 'SELL' THEN ABS(pct_change) ELSE 0 END)::DOUBLE, 2) AS total_pct_sell,
+            ROUND((SUM(CASE WHEN action_type = 'BUY'  THEN pct_change ELSE 0 END)::FLOAT8)::NUMERIC, 2) AS total_pct_buy,
+            ROUND((SUM(CASE WHEN action_type = 'SELL' THEN ABS(pct_change) ELSE 0 END)::FLOAT8)::NUMERIC, 2) AS total_pct_sell,
             MAX(transaction_date)::VARCHAR                            AS last_tx,
             MIN(transaction_date)::VARCHAR                            AS first_tx,
             CAST(MAX(transaction_date) - MIN(transaction_date) AS INTEGER) AS span_days
@@ -316,7 +322,7 @@ export async function GET(req: NextRequest) {
             ELSE 'MIXED'
           END AS cluster_signal
         FROM clusters
-        ORDER BY stock_count DESC, tx_count DESC
+        ORDER BY stock_count DESC NULLS LAST, tx_count DESC NULLS LAST
         LIMIT 50
       `)
       return NextResponse.json({ data })
@@ -327,7 +333,8 @@ export async function GET(req: NextRequest) {
 
   } catch (err: any) {
     const msg = err.message || String(err)
+    // Generic message — DB internals stay server-side.
     console.error('[insider]', { action, message: msg })
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 })
   }
 }

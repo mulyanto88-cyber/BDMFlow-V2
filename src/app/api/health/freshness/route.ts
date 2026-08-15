@@ -9,13 +9,18 @@
 //
 // The manifest only exists once the updated ETL has run, so its absence is
 // reported as "unknown", never as an error.
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
 import { expectedTradingDate, lagInDays, classify } from '@/lib/freshness'
 
 export const revalidate = 900   // 15 min — cheap query, no need to re-ask often
 
-export async function GET() {
+// Public infrastructure status — rate-limited but never Pro-gated.
+export async function GET(req: NextRequest) {
+  const guarded = await guardApi(req, { pro: false })
+  if (guarded) return guarded
+
   try {
     const [latest, manifest] = await Promise.all([
       run(`SELECT MAX(trading_date)::VARCHAR AS data_trading_date FROM market.daily_transactions`)

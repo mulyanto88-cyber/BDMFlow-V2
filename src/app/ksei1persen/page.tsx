@@ -2,7 +2,9 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { mdQuery } from '@/lib/api'
+import { mdQuery, authFetch, UpgradeRequiredError } from '@/lib/api'
+import { TIPE_COLOR, TIPE_GLOSS, KSEI_BUCKETS } from '@/lib/ksei-constants'
+import { UpgradePrompt } from '@/components/upgrade-prompt'
 import { formatShares, formatPercent, formatRupiah } from '@/lib/utils'
 import {
   Eye, Search, TrendingUp, TrendingDown,
@@ -136,28 +138,7 @@ const KAT_COLOR: Record<string, string> = {
   Other:  '#94a3b8',
 }
 
-const TIPE_COLOR: Record<string, string> = {
-  'Local CP': '#16a34a', 'Local PF': '#22c55e', 'Local IB': '#4ade80', 'Local MF': '#86efac',
-  'Local ID': '#ef4444', 'Local IS': '#3b82f6', 'Local SC': '#64748b', 'Local FD': '#94a3b8', 'Local OT': '#cbd5e1',
-  'Foreign CP': '#0d9488', 'Foreign PF': '#14b8a6', 'Foreign IB': '#2dd4bf', 'Foreign MF': '#5eead4',
-  'Foreign ID': '#f87171', 'Foreign IS': '#60a5fa', 'Foreign SC': '#475569', 'Foreign FD': '#78716c', 'Foreign OT': '#a8a29e',
-}
-
-const TIPE_GLOSS: Record<string, string> = {
-  CP: 'Corporate', PF: 'Pension Fund', IB: 'Insurance/Bank', MF: 'Mutual Fund',
-  ID: 'Individual', IS: 'Insurance', SC: 'Securities', FD: 'Foundation', OT: 'Others',
-}
-
-const BUCKET_KAT: Record<string, string> = {
-  CP: 'Smart', PF: 'Smart', IB: 'Smart', MF: 'Smart',
-  ID: 'Retail', IS: 'Inst', SC: 'Other', FD: 'Other', OT: 'Other',
-}
-
-const KSEI_BUCKETS = (['Local', 'Foreign'] as const).flatMap(side =>
-  ['CP', 'PF', 'IB', 'MF', 'ID', 'IS', 'SC', 'FD', 'OT'].map(code => ({
-    key: `${side}_${code}`, label: `${side} ${code}`, code, side, kat: BUCKET_KAT[code],
-  }))
-)
+// Warna/glosarium/bucket KSEI terpusat di @/lib/ksei-constants (shared dengan ksei-monthly).
 
 const VERDICT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   'STRONG HOLD': { color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30', icon: '💎' },
@@ -235,6 +216,8 @@ function SignalBadge({ signal }: { signal: string }) {
 export default function InsiderPage() {
   const [activeTab, setActiveTab] = useState<Tab>('screener')
   const [loading, setLoading] = useState(true)
+  // All eleven queries behind this page are paid-tier.
+  const [blocked, setBlocked] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [searchStock, setSearchStock] = useState('')
@@ -250,7 +233,7 @@ export default function InsiderPage() {
     if (!code) return
     setDdLoading(true); setDdData(null); setDdError(null)
     try {
-      const res = await fetch(`/api/ksei-monthly?action=deepdive&code=${code.toUpperCase()}`)
+      const res = await authFetch(`/api/ksei-monthly?action=deepdive&code=${code.toUpperCase()}`)
       const json = await res.json()
       if (json.error) throw new Error(json.error)
       setDdData(json)
@@ -321,7 +304,8 @@ export default function InsiderPage() {
         signals: d.signals || '',
       })))
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch screener')
+      if (err instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(err.message || 'Failed to fetch screener')
     } finally {
       setLoading(false)
     }
@@ -627,6 +611,17 @@ export default function InsiderPage() {
   ]
 
   // ─── Render ────────────────────────────────────────────────────────────────
+  if (blocked) {
+    return (
+      <div className="w-full animate-fade-in pb-10 pt-6">
+        <UpgradePrompt
+          feature="KSEI > 1%"
+          detail="Kepemilikan investor di atas 1%, perubahan bulanannya, dan siapa yang masuk atau keluar — data pemilik sebenarnya, bukan tebakan dari tape."
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4 animate-fade-in pb-12">
 

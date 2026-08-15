@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import { authFetch } from '@/lib/api';
 import {
   Globe, Search, AlertTriangle, AlertCircle, CheckCircle2, Info,
   Loader2, Upload, Target, Trash2, Activity,
@@ -141,7 +142,7 @@ export default function FTSEScreenerPage() {
   useEffect(() => {
     setLoading(true);
     const url = asOfDate ? `/api/ftse-screener?date=${asOfDate}` : '/api/ftse-screener';
-    fetch(url).then(r => r.json()).then(json => {
+    authFetch(url).then(r => r.json()).then(json => {
       if (json.error) { setError(json.error); setLoading(false); return; }
       setData(json.data || []);
       if (json.target_date && !asOfDate)

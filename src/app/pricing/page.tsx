@@ -81,6 +81,17 @@ export default function PricingPage() {
       <div className="text-center">
         <Link href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground transition-colors">← Kembali ke Dashboard</Link>
       </div>
+      <div className="border-t border-border/20 pt-5 text-center space-y-2">
+        <p className="text-[10px] text-muted-foreground/40">
+          Pembayaran diproses melalui payment gateway pihak ketiga. Harga belum termasuk pajak yang berlaku.
+        </p>
+        <p className="text-[10px] text-muted-foreground/40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <Link href="/terms" className="underline hover:text-muted-foreground/70 transition-colors">Syarat &amp; Ketentuan</Link>
+          <Link href="/privacy" className="underline hover:text-muted-foreground/70 transition-colors">Kebijakan Privasi</Link>
+          <Link href="/contact" className="underline hover:text-muted-foreground/70 transition-colors">Kontak</Link>
+          <a href="mailto:mulyanto.my88@gmail.com" className="hover:text-muted-foreground/70 transition-colors">mulyanto.my88@gmail.com</a>
+        </p>
+      </div>
     </div>
   )
 }

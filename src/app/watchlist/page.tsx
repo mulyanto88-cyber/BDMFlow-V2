@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { Star, Trash2, Plus, Bell, Lock, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { mdQuery } from '@/lib/api'
+import { mdQuery, UpgradeRequiredError } from '@/lib/api'
+import { UpgradePrompt } from '@/components/upgrade-prompt'
 
 interface WatchlistItem {
   id: string; stock_code: string; alert_score: number | null
@@ -24,6 +25,8 @@ export default function WatchlistPage() {
   const [newCode, setNewCode] = useState('')
   const [newScore, setNewScore] = useState<string>('')
   const [error, setError]     = useState<string | null>(null)
+  /** Market enrichment was withheld; the saved list itself is still shown. */
+  const [enrichBlocked, setEnrichBlocked] = useState(false)
 
   // Auth check
   useEffect(() => {
@@ -57,8 +60,14 @@ export default function WatchlistPage() {
 
       // Enrich with current market data
       if (list.length > 0) {
+        // Enrichment is paid-tier, the saved list is not. Falling back to an
+        // empty map keeps the user's own data visible; the flag lets the page
+        // say why the market columns are blank instead of looking broken.
         const rows = await mdQuery('watchlist.radarByCodes', [list.map(i => i.stock_code)])
-          .catch(() => [] as Record<string, any>[])
+          .catch((err: unknown) => {
+            if (err instanceof UpgradeRequiredError) setEnrichBlocked(true)
+            return [] as Record<string, any>[]
+          })
 
         const mktMap: Record<string,any> = {}
         for (const row of rows as Record<string, any>[]) mktMap[row.stock_code as string] = row
@@ -121,6 +130,15 @@ export default function WatchlistPage() {
 
   return (
     <div className="w-full py-6 space-y-5 animate-fade-in pb-12">
+      {/* Sits above the list rather than replacing it: the saved stocks belong to
+          the user and stay visible, only the market columns are withheld. */}
+      {enrichBlocked && (
+        <UpgradePrompt
+          feature="Data pasar untuk watchlist"
+          detail="Harga, skor radar, dan sinyal untuk saham simpanan Anda. Daftar watchlist tetap tersimpan dan bisa Anda ubah kapan saja."
+        />
+      )}
+
       {/* ── Header ─────────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"

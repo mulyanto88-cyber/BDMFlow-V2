@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import { authFetch } from '@/lib/api';
 import {
   Shield, Settings, Search, AlertTriangle, AlertCircle,
   CheckCircle2, XCircle, Info, Calculator,
@@ -210,7 +211,7 @@ export default function MSCIScreenerPage() {
   useEffect(() => {
     setLoading(true);
     const url = asOfDate ? `/api/msci-screener?date=${asOfDate}` : '/api/msci-screener';
-    fetch(url).then(r => r.json()).then(json => {
+    authFetch(url).then(r => r.json()).then(json => {
       if (json.error) { setError(json.error); setLoading(false); return; }
       setData(json.data || []);
       if (json.target_date && !asOfDate)

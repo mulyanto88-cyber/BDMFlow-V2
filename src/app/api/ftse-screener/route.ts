@@ -1,13 +1,17 @@
-export const revalidate = 1800
+export const revalidate = 3600
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
+import { guardApi } from '@/lib/guard'
 
 // FTSE GEIS liquidity test = median daily TRADING VOLUME per month ÷ free-float shares.
 // Entry (non-constituent) bar 0.05% for ≥10/12 months; retention bar 0.04% for ≥8/12 months.
 // We count, per stock, how many of the last 12 calendar months clear each bar; the page applies
 // the months-required test + free-float + size. (free-float shares = total shares × free_float%.)
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const guarded = await guardApi(request, { pro: true })
+  if (guarded) return guarded
+
   try {
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
@@ -37,7 +41,9 @@ export async function GET(request: Request) {
       month_vol AS (
         SELECT d.stock_code,
                date_trunc('month', d.trading_date) AS mth,
-               median(d.volume)::DOUBLE AS med_vol
+               -- percentile_cont is the SQL-standard spelling; DuckDB accepts
+               -- it too, while Postgres has no median().
+               (percentile_cont(0.5) WITHIN GROUP (ORDER BY d.volume))::FLOAT8 AS med_vol
         FROM market.daily_transactions d, td
         WHERE d.trading_date <= td.target_date
           AND d.trading_date >= date_trunc('month', td.target_date) - INTERVAL '11 months'
@@ -45,16 +51,18 @@ export async function GET(request: Request) {
       ),
       liq AS (
         SELECT mv.stock_code,
-               CAST(COUNT(*) AS DOUBLE) AS n_months,
-               CAST(COUNT(*) FILTER (WHERE mv.med_vol >= 0.0005 * f.ff_shares) AS DOUBLE) AS months_entry,
-               CAST(COUNT(*) FILTER (WHERE mv.med_vol >= 0.0004 * f.ff_shares) AS DOUBLE) AS months_retain,
-               median(mv.med_vol / NULLIF(f.ff_shares, 0) * 100) AS median_daily_pct
+               CAST(COUNT(*) AS FLOAT8) AS n_months,
+               CAST(COUNT(*) FILTER (WHERE mv.med_vol >= 0.0005 * f.ff_shares) AS FLOAT8) AS months_entry,
+               CAST(COUNT(*) FILTER (WHERE mv.med_vol >= 0.0004 * f.ff_shares) AS FLOAT8) AS months_retain,
+               percentile_cont(0.5) WITHIN GROUP (
+                 ORDER BY mv.med_vol / NULLIF(f.ff_shares, 0) * 100
+               ) AS median_daily_pct
         FROM month_vol mv
         JOIN ffs f ON f.stock_code = mv.stock_code
         GROUP BY mv.stock_code
       ),
       hsc AS (
-        SELECT share_code, SUM(percentage)::DOUBLE AS top_holders_pct
+        SELECT share_code, SUM(percentage)::FLOAT8 AS top_holders_pct
         FROM ksei.tb_ownership_1pct_latest
         GROUP BY share_code
       )
@@ -62,9 +70,9 @@ export async function GET(request: Request) {
         b.stock_code,
         cp.group_name    AS company_name,
         cp.sector,
-        b.close::DOUBLE  AS close,
+        b.close::FLOAT8  AS close,
         b.tradeable_shares::BIGINT AS tradeable_shares,
-        cp.free_float::DOUBLE      AS free_float,
+        cp.free_float::FLOAT8      AS free_float,
         COALESCE(l.n_months, 0)         AS n_months,
         COALESCE(l.months_entry, 0)     AS months_entry,
         COALESCE(l.months_retain, 0)    AS months_retain,
@@ -85,6 +93,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ data, target_date: data.length > 0 ? data[0].target_date : null });
   } catch (err: any) {
     console.error('[ftse-screener]', err.message);
-    return NextResponse.json({ error: err.message ?? 'Gagal mengambil data.' }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 });
   }
 }

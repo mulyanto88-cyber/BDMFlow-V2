@@ -8,6 +8,7 @@ import {
   AlertTriangle, Activity, Globe, Building2,
 } from 'lucide-react'
 import Link from 'next/link'
+import { authFetch } from '@/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface RadarRow {
@@ -47,7 +48,7 @@ type SortKey = 'radar_score' | 'change_percent' | 'foreign_broker_net_7d' |
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 async function apiFetch(params: Record<string, string | number>) {
   const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()
-  const res = await fetch(`/api/radar?${qs}`)
+  const res = await authFetch(`/api/radar?${qs}`)
   const json = await res.json()
   if (json.error) throw new Error(json.error)
   return json.data ?? []
