@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { Crown } from 'lucide-react'
+import CheckoutButton from '@/components/checkout-button'
+import PaidBanner from '@/components/paid-banner'
 
 const PLANS = [
   {
@@ -37,6 +39,7 @@ const PLANS = [
 export default function PricingPage() {
   return (
     <div className="space-y-10 animate-fade-in pb-10">
+      <PaidBanner />
       <div className="text-center space-y-3">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-yellow-600 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
           <Crown className="w-8 h-8 text-navy-900" />
@@ -69,12 +72,16 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <Link
-              href={p.href}
-              className={`w-full py-3 rounded-xl text-sm transition-all text-center block ${p.ctaStyle}`}
-            >
-              {p.cta}
-            </Link>
+            {p.name === 'Pro' ? (
+              <CheckoutButton />
+            ) : (
+              <Link
+                href={p.href}
+                className={`w-full py-3 rounded-xl text-sm transition-all text-center block ${p.ctaStyle}`}
+              >
+                {p.cta}
+              </Link>
+            )}
           </div>
         ))}
       </div>

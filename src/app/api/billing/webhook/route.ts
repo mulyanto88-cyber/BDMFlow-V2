@@ -1,28 +1,49 @@
-// /api/billing/webhook — gateway payment callback.
+// /api/billing/webhook — payment-gateway callback.
 //
-// Xendit POSTs the invoice event to this URL. Security model:
-//   1. The `x-callback-token` header must match XENDIT_WEBHOOK_TOKEN
-//      (constant-time compare).
-//   2. Identity comes from billing_invoices (external_id → user), which
+// Two gateways share this endpoint; the incoming request shape decides
+// which verifier runs:
+//   Xendit   : POSTs with an `x-callback-token` header that must match
+//              XENDIT_WEBHOOK_TOKEN (constant-time compare).
+//   Midtrans : POSTs a JSON notification signed with
+//              SHA512(order_id + status_code + gross_amount + server_key).
+//
+// Shared security model:
+//   1. Identity comes from billing_invoices (external_id → user), which
 //      only this app can write — never from the gateway payload.
-//   3. billing_webhooks is the idempotency ledger: the same event id is
+//   2. billing_webhooks is the idempotency ledger: the same event id is
 //      processed exactly once, so a retried callback can't double-extend
 //      a subscription.
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdmin } from '@/lib/auth-server'
-import { verifyCallbackToken, parseWebhookEvent } from '@/lib/billing'
+import {
+  verifyCallbackToken,
+  verifyMidtransSignature,
+  parseWebhookEvent,
+  parseMidtransNotification,
+} from '@/lib/billing'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  const token = req.headers.get('x-callback-token')
-  if (!verifyCallbackToken(token, process.env.XENDIT_WEBHOOK_TOKEN ?? null)) {
-    console.warn('[billing] webhook rejected: invalid or missing callback token')
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const body = await req.json().catch(() => null)
+
+  // ── Dispatch on the gateway's auth scheme ──────────────────────────────
+  const xenditToken = req.headers.get('x-callback-token')
+  let ev
+  if (xenditToken) {
+    if (!verifyCallbackToken(xenditToken, process.env.XENDIT_WEBHOOK_TOKEN ?? null)) {
+      console.warn('[billing] xendit webhook rejected: invalid callback token')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    ev = parseWebhookEvent(body)
+  } else {
+    if (!verifyMidtransSignature(body, process.env.MIDTRANS_SERVER_KEY ?? null)) {
+      console.warn('[billing] midtrans webhook rejected: invalid signature')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    ev = parseMidtransNotification(body)
   }
 
-  const body = await req.json().catch(() => null)
-  const ev = parseWebhookEvent(body)
   if (!ev) {
     console.warn('[billing] webhook payload not recognized:', JSON.stringify(body).slice(0, 300))
     return NextResponse.json({ error: 'Bad payload' }, { status: 400 })
@@ -76,7 +97,7 @@ export async function POST(req: NextRequest) {
     // from now. SQL-side so retries can't double-extend.
     const { error: updErr } = await admin
       .from('billing_invoices')
-      .update({ status: 'PAID', paid_at: new Date().toISOString(), gateway_invoice_id: ev.eventId })
+      .update({ status: 'PAID', paid_at: new Date().toISOString(), gateway_invoice_id: ev.gatewayRef ?? ev.eventId })
       .eq('external_id', ev.externalId)
     if (updErr) {
       console.error('[billing] invoice update failed:', updErr.message)
@@ -93,12 +114,16 @@ export async function POST(req: NextRequest) {
     }
     void rows
   } else {
-    // EXPIRED / FAILED — just record the terminal state on the invoice.
-    await admin
-      .from('billing_invoices')
-      .update({ status: ev.status })
-      .eq('external_id', ev.externalId)
-      .neq('status', 'PAID')
+    // EXPIRED / FAILED / CANCELED — record the terminal state on the invoice.
+    // PENDING (Midtrans non-terminal callbacks) is recorded by the ledger
+    // only; the invoice row stays PENDING until a terminal state arrives.
+    if (ev.status !== 'PENDING') {
+      await admin
+        .from('billing_invoices')
+        .update({ status: ev.status })
+        .eq('external_id', ev.externalId)
+        .neq('status', 'PAID')
+    }
   }
 
   return NextResponse.json({ ok: true })

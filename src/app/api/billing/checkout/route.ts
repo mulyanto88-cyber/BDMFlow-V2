@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getViewer, getAdmin } from '@/lib/auth-server'
 import { rateLimit, clientKey } from '@/lib/rate-limit'
-import { createXenditInvoice, PRO_PLAN } from '@/lib/billing'
+import { createPayment, PRO_PLAN } from '@/lib/billing'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   const origin = new URL(req.url).origin
-  const result = await createXenditInvoice({
+  const result = await createPayment({
     externalId,
     email,
     successRedirectUrl: `${origin}/pricing?paid=1`,
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({
-    invoiceUrl: result.invoiceUrl,
+    paymentUrl: result.paymentUrl,
     amount: PRO_PLAN.priceIdr,
     planLabel: PRO_PLAN.label,
   })
