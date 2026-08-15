@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
+import { authFetch } from '@/lib/api'
 
 // ─── Broker DNA (tab: broker) ─────────────────────────────────────────────
 async function fetchBrokerDNA(code: string) {
-  const res = await fetch(`/api/radar?action=broker_breakdown&code=${code}`)
+  const res = await authFetch(`/api/radar?action=broker_breakdown&code=${code}`)
   const json = await res.json().catch(() => ({}))
   return {
     rolling: json.rolling || null,
@@ -22,7 +23,7 @@ export function useBrokerDNA(code: string | null) {
 
 // ─── KSEI Trend (tab: ksei) ───────────────────────────────────────────────
 async function fetchKSEITrend(code: string) {
-  const res = await fetch(`/api/ksei-monthly?action=stock_trend&code=${code}`)
+  const res = await authFetch(`/api/ksei-monthly?action=stock_trend&code=${code}`)
   const json = await res.json().catch(() => ({}))
   return json.data || []
 }
@@ -39,8 +40,8 @@ export function useKSEITrend(code: string | null) {
 // ─── Insider Data (tab: insider) ──────────────────────────────────────────
 async function fetchInsiderData(code: string) {
   const [feedRes, scoreRes] = await Promise.all([
-    fetch(`/api/insider?action=feed&code=${code}&days=730&limit=25`).then(r => r.json()).catch(() => ({})),
-    fetch(`/api/stock-detail?action=insider_signal&code=${code}`).then(r => r.json()).catch(() => ({})),
+    authFetch(`/api/insider?action=feed&code=${code}&days=730&limit=25`).then(r => r.json()).catch(() => ({})),
+    authFetch(`/api/stock-detail?action=insider_signal&code=${code}`).then(r => r.json()).catch(() => ({})),
   ])
   return {
     feed: feedRes.data || [],

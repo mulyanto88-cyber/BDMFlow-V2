@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatRupiah, fmtRpShort, formatPercent, formatNumber, formatShares, cn } from '@/lib/utils'
+import { formatRupiah, fmtRpShort, formatPercent, formatNumber, formatShares, cn, intParam, floatParam, snapParam } from '@/lib/utils'
 
 describe('formatRupiah', () => {
   it('returns "5.8 T" for 5,823,000,000,000', () => {
@@ -91,5 +91,70 @@ describe('cn', () => {
   it('handles conditional class names', () => {
     const result = cn('base', true && 'active', false && 'inactive')
     expect(result).toBe('base active')
+  })
+})
+
+describe('intParam', () => {
+  it('returns the fallback for missing/NaN input', () => {
+    expect(intParam(null, 7)).toBe(7)
+    expect(intParam(undefined, 7)).toBe(7)
+    expect(intParam('abc', 7)).toBe(7)
+    expect(intParam('', 7)).toBe(7)
+  })
+
+  it('parses valid integers', () => {
+    expect(intParam('30', 7)).toBe(30)
+    expect(intParam('-5', 7)).toBe(-5)
+  })
+
+  it('clamps to [min, max]', () => {
+    expect(intParam('999', 7, 1, 90)).toBe(90)
+    expect(intParam('0', 7, 1, 90)).toBe(1)
+    expect(intParam('-50', 7, 1, 90)).toBe(1)
+  })
+
+  it('NaN can never escape the fallback/clamp (SQL-literal safety)', () => {
+    expect(Number.isFinite(intParam('NaN', 7, 1, 90))).toBe(true)
+    expect(Number.isFinite(intParam('Infinity', 7, 1, 90))).toBe(true)
+  })
+})
+
+describe('floatParam', () => {
+  it('returns the fallback for missing/NaN input', () => {
+    expect(floatParam(null, 0.5)).toBe(0.5)
+    expect(floatParam('abc', 0.5)).toBe(0.5)
+  })
+
+  it('parses valid floats', () => {
+    expect(floatParam('2.75', 0.5)).toBe(2.75)
+  })
+
+  it('clamps to [min, max]', () => {
+    expect(floatParam('200', 0, 0, 100)).toBe(100)
+    expect(floatParam('-1', 0, 0, 100)).toBe(0)
+  })
+})
+
+describe('snapParam', () => {
+  const DAYS = [1, 5, 7, 14, 30]
+
+  it('keeps values already in the whitelist', () => {
+    expect(snapParam(7, DAYS, 7)).toBe(7)
+    expect(snapParam(30, DAYS, 7)).toBe(30)
+  })
+
+  it('snaps free-form values to the nearest option', () => {
+    expect(snapParam(6, DAYS, 7)).toBe(5)
+    expect(snapParam(8, DAYS, 7)).toBe(7)
+    expect(snapParam(999, DAYS, 7)).toBe(30)
+  })
+
+  it('ties resolve to the lower option', () => {
+    expect(snapParam(4, [1, 7], 1)).toBe(1)
+  })
+
+  it('returns fallback for non-finite input', () => {
+    expect(snapParam(NaN, DAYS, 7)).toBe(7)
+    expect(snapParam(Infinity, DAYS, 7)).toBe(7)
   })
 })

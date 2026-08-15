@@ -10,10 +10,11 @@ import ThemeToggle from './theme-toggle'
 import InlineActionCenter from './inline-action-center'
 import DataFreshnessBanner from './data-freshness-banner'
 import Sidebar from './sidebar'
+import SignupNudge from './signup-nudge'
 import { ChevronRight, Bell } from 'lucide-react'
 
-// Bare pages (no shell): landing, auth, pricing.
-const PUBLIC_ROUTES = ['/', '/auth', '/pricing']
+// Bare pages (no shell): landing, auth, pricing, and the compliance pages.
+const PUBLIC_ROUTES = ['/', '/auth', '/pricing', '/terms', '/privacy', '/contact']
 // Always-free pages (full shell, no account, no expiry) — the advertised Free tier.
 const FREE_ROUTES = ['/dashboard', '/sector', '/groups']
 // Everything else = Pro: open during a 7-day guest trial, then requires a (free) signup.
@@ -227,9 +228,30 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <main id="main-content" className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-4 pb-20 md:pb-8">
           {children}
         </main>
+
+        {/* ═══ COMPLIANCE FOOTER ═══
+            T&C, privacy and contact must be reachable from every app page —
+            payment-gateway reviews check exactly this. */}
+        <footer className="border-t border-border/10">
+          <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-muted-foreground/40">
+            <span className="flex items-center gap-2 flex-wrap justify-center">
+              <span className="font-bold text-muted-foreground/50">© 2026 BDMFlow — IDX Flow Intelligence</span>
+              <span className="text-muted-foreground/20">·</span>
+              <a href="mailto:mulyanto.my88@gmail.com" className="hover:text-muted-foreground/70 transition-colors">mulyanto.my88@gmail.com</a>
+              <span className="text-muted-foreground/20">·</span>
+              <a href="tel:+6285782672208" className="hover:text-muted-foreground/70 transition-colors">+62 857-8267-2208</a>
+            </span>
+            <span className="flex items-center gap-4">
+              <Link href="/terms" className="hover:text-muted-foreground/70 transition-colors">Syarat &amp; Ketentuan</Link>
+              <Link href="/privacy" className="hover:text-muted-foreground/70 transition-colors">Kebijakan Privasi</Link>
+              <Link href="/contact" className="hover:text-muted-foreground/70 transition-colors">Kontak</Link>
+            </span>
+          </div>
+        </footer>
       </div>
 
       <InlineActionCenter />
+      <SignupNudge />
     </div>
   )
 }

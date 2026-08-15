@@ -42,6 +42,42 @@ export function formatShares(value: number): string {
   return value.toLocaleString('id-ID')
 }
 
+// ── Query-string number parsing (API route guards) ─────────────────────────
+// NaN from parseInt('abc') must never reach an interpolated SQL literal —
+// `INTERVAL 'NaN days'` is a 500 for everyone and a fingerprint for scanners.
+
+/** Parse a query-string integer safely: NaN → fallback, then clamped to [min, max]. */
+export function intParam(raw: string | null | undefined, fallback: number, min = -Infinity, max = Infinity): number {
+  const n = parseInt(raw ?? '', 10)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(Math.max(n, min), max)
+}
+
+/** Parse a query-string float safely: NaN → fallback, then clamped to [min, max]. */
+export function floatParam(raw: string | null | undefined, fallback: number, min = -Infinity, max = Infinity): number {
+  const n = parseFloat(raw ?? '')
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(Math.max(n, min), max)
+}
+
+/**
+ * Snap an arbitrary number to the nearest value in an ordered whitelist.
+ *
+ * Edge-cache keys are the full URL: every distinct query value (days=6 vs
+ * days=7 vs days=9) used to be a separate cache key and therefore a separate
+ * MotherDuck computation. Snapping free-form params onto the fixed set the UI
+ * already offers converges those keys — same data, far fewer compute hits.
+ * Ties resolve to the lower option.
+ */
+export function snapParam(value: number, options: readonly number[], fallback: number): number {
+  if (!Number.isFinite(value)) return fallback
+  let best = options[0] ?? fallback
+  for (const o of options) {
+    if (Math.abs(o - value) < Math.abs(best - value)) best = o
+  }
+  return best
+}
+
 // ── Timeframe Labels ───────────────────────────────────────────────────────
 export const TIMEFRAME_LABELS: Record<string, string> = {
   '1D': 'Intraday',

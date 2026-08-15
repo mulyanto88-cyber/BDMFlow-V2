@@ -36,6 +36,26 @@ async function authHeaders(): Promise<Record<string, string>> {
 }
 
 /**
+ * Like fetch(), but attaches the Supabase bearer token when a session exists.
+ *
+ * Direct-fetch API routes (radar, broker-tracker, stock-detail, ...) resolve
+ * the caller's plan server-side the same way /api/motherduck does. Pages and
+ * hooks must use this wrapper so that when ENFORCE_PRO_GATING is switched on,
+ * signed-in Pro users still pass the server-side gate.
+ */
+export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const headers = new Headers(init?.headers)
+  try {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`)
+  } catch {
+    // Not signed in, or auth unavailable — proceed anonymously.
+  }
+  return fetch(input, { ...init, headers })
+}
+
+/**
  * Run a named server-side query.
  *
  * The SQL lives in src/lib/query-registry.ts; callers pass its id and params.

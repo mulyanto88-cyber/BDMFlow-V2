@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { track } from '@/lib/analytics'
+import { isPlanActive } from '@/lib/billing'
 
 type AuthState = {
   user: User | null
@@ -28,6 +30,23 @@ const AuthContext = createContext<AuthState>({
   signInWithGoogle: async () => ({ error: null }),
 })
 
+/**
+ * Funnel event: a verified account just became visible to us.
+ * Fired at most once per user per browser (localStorage flag) so page
+ * revisits don't inflate the signup_verified count in analytics.
+ */
+function trackVerifiedOnce(user: User) {
+  if (!user.email_confirmed_at) return
+  try {
+    const key = `bdmflow_verified:${user.id}`
+    if (localStorage.getItem(key)) return
+    localStorage.setItem(key, '1')
+    track('signup_verified', { provider: String(user.app_metadata?.provider ?? 'email') })
+  } catch {
+    // localStorage unavailable (private mode) — skip, never break auth.
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -46,7 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         setSession(session)
         setUser(session?.user ?? null)
-        if (session?.user) checkPlan(session.user.id)
+        if (session?.user) {
+          trackVerifiedOnce(session.user)
+          checkPlan(session.user.id)
+        }
       })
       .catch((err) => {
         console.warn('[auth] getSession failed:', err?.message)
@@ -62,7 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return
       setSession(session)
       setUser(session?.user ?? null)
-      if (session?.user) checkPlan(session.user.id)
+      if (session?.user) {
+        trackVerifiedOnce(session.user)
+        checkPlan(session.user.id)
+      }
       else { setIsPro(false); setTrialDaysLeft(null) }
     })
 
@@ -77,11 +102,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await supabase
         .from('profiles')
-        .select('plan, trial_ends_at')
+        .select('plan, trial_ends_at, plan_expires_at')
         .eq('id', userId)
         .single()
 
-      setIsPro(data?.plan === 'pro')
+      // plan='pro' only counts while the window is unexpired (NULL expiry =
+      // legacy manual grant, still active). Mirrors src/lib/auth-server.ts.
+      const planActive = isPlanActive(data?.plan, data?.plan_expires_at)
+      setIsPro(planActive)
 
       // trial_ends_at may be absent until migration 001 has been applied.
       const ends = data?.trial_ends_at ? new Date(data.trial_ends_at).getTime() : null

@@ -32,7 +32,7 @@ export type QueryDef = {
 export const QUERIES = {
   // ── Sector ────────────────────────────────────────────────────────────────
   'sector.analytics': {
-    sql: `SELECT * FROM market.tb_sector_analytics ORDER BY momentum_score DESC`,
+    sql: `SELECT * FROM market.tb_sector_analytics ORDER BY momentum_score DESC NULLS LAST`,
   },
   'sector.stocks': {
     sql: `
@@ -40,37 +40,37 @@ export const QUERIES = {
              whale_signal, big_player_anomaly, aov_ratio_ma20, volume, ma20_volume
       FROM market.tb_stock_latest
       WHERE sector = $1
-      ORDER BY value DESC LIMIT 50`,
+      ORDER BY value DESC NULLS LAST LIMIT 50`,
     params: 1,
   },
 
   // ── Smart Money ───────────────────────────────────────────────────────────
   'smartMoney.instPositioning': {
-    sql: `SELECT * FROM ksei.tb_ksei_inst_positioning ORDER BY mom_change_pct DESC LIMIT 50`,
+    sql: `SELECT * FROM ksei.tb_ksei_inst_positioning ORDER BY mom_change_pct DESC NULLS LAST LIMIT 50`,
     pro: true,
   },
   'smartMoney.scores': {
     sql: `
       SELECT s.stock_code, s.sector, s.close, s.change_percent, s.foreign_30d, s.broker_net,
              s.whale_signal, s.big_player_anomaly, s.aov_ratio_ma20,
-             ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) AS smart_money_score,
+             ROUND((COALESCE(v2.v2_score,0) / 73.0 * 100)::NUMERIC, 0) AS smart_money_score,
              CASE
-               WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 70 THEN '🚀 STRONG BUY'
-               WHEN ROUND(COALESCE(v2.v2_score,0) / 73.0 * 100, 0) >= 45 THEN '👀 WATCH'
+               WHEN ROUND((COALESCE(v2.v2_score,0) / 73.0 * 100)::NUMERIC, 0) >= 70 THEN '🚀 STRONG BUY'
+               WHEN ROUND((COALESCE(v2.v2_score,0) / 73.0 * 100)::NUMERIC, 0) >= 45 THEN '👀 WATCH'
                ELSE '➖ NEUTRAL'
              END AS signal
       FROM market.tb_smart_money_score s
       LEFT JOIN market.tb_composite_v2 v2 ON v2.stock_code = s.stock_code
-      ORDER BY smart_money_score DESC, s.aov_ratio_ma20 DESC
+      ORDER BY smart_money_score DESC NULLS LAST, s.aov_ratio_ma20 DESC NULLS LAST
       LIMIT 50`,
     pro: true,
   },
   'smartMoney.tactical': {
     sql: `
       SELECT * FROM market.tb_tactical_momentum_smart_money
-      WHERE ABS(net_foreign_7d_miliar * 1e9) > CAST($1 AS DOUBLE)
-         OR ABS(broker_net_7d_miliar * 1e9)  > CAST($1 AS DOUBLE)
-      ORDER BY ABS(net_foreign_7d_miliar) DESC, ABS(broker_net_7d_miliar) DESC
+      WHERE ABS(net_foreign_7d_miliar * 1e9) > CAST($1 AS FLOAT8)
+         OR ABS(broker_net_7d_miliar * 1e9)  > CAST($1 AS FLOAT8)
+      ORDER BY ABS(net_foreign_7d_miliar) DESC NULLS LAST, ABS(broker_net_7d_miliar) DESC NULLS LAST
       LIMIT 50`,
     params: 1,
     pro: true,
@@ -114,8 +114,8 @@ export const QUERIES = {
   // Was string-interpolating stock codes into an IN (...) list; now a bound array.
   'watchlist.radarByCodes': {
     sql: `
-      SELECT stock_code, close::DOUBLE AS close,
-             ROUND(change_percent::DOUBLE,2) AS change_percent,
+      SELECT stock_code, close::FLOAT8 AS close,
+             ROUND((change_percent::FLOAT8)::NUMERIC,2) AS change_percent,
              composite_signal, radar_score::INTEGER AS radar_score
       FROM market.tb_radar
       WHERE stock_code = ANY($1::VARCHAR[])`,
@@ -126,7 +126,7 @@ export const QUERIES = {
 
   // ── Groups ────────────────────────────────────────────────────────────────
   'groups.leaderLaggard': {
-    sql: `SELECT * FROM market.tb_group_leader_laggard WHERE group_name = $1 ORDER BY relative_perf DESC`,
+    sql: `SELECT * FROM market.tb_group_leader_laggard WHERE group_name = $1 ORDER BY relative_perf DESC NULLS LAST`,
     params: 1,
   },
   'groups.brokerStance': {
@@ -135,20 +135,20 @@ export const QUERIES = {
              stocks_7d, buy_consensus_pct, broker_consensus, rotation_signal
       FROM (
         SELECT *,
-          ROW_NUMBER() OVER (PARTITION BY broker_code ORDER BY net_7d_miliar DESC) AS rn
+          ROW_NUMBER() OVER (PARTITION BY broker_code ORDER BY net_7d_miliar DESC NULLS LAST) AS rn
         FROM market.tb_group_broker_stance
         WHERE group_name = $1
       ) t
       WHERE rn = 1
-      ORDER BY net_7d_miliar DESC`,
+      ORDER BY net_7d_miliar DESC NULLS LAST`,
     params: 1,
   },
   'groups.kseiMonthly': {
     sql: `
       SELECT TO_CHAR(Date,'Mon') AS bulan,
-        ROUND((SUM(Local_CP_Chg_Val)+SUM(Local_PF_Chg_Val)+SUM(Local_IB_Chg_Val))/1e9,2) AS local_smart,
-        ROUND((SUM(Foreign_CP_Chg_Val)+SUM(Foreign_PF_Chg_Val)+SUM(Foreign_IB_Chg_Val))/1e9,2) AS foreign_smart,
-        ROUND(SUM(Local_ID_Chg_Val)/1e9,2) AS retail
+        ROUND(((SUM(Local_CP_Chg_Val)+SUM(Local_PF_Chg_Val)+SUM(Local_IB_Chg_Val))/1e9)::NUMERIC,2) AS local_smart,
+        ROUND(((SUM(Foreign_CP_Chg_Val)+SUM(Foreign_PF_Chg_Val)+SUM(Foreign_IB_Chg_Val))/1e9)::NUMERIC,2) AS foreign_smart,
+        ROUND((SUM(Local_ID_Chg_Val)/1e9)::NUMERIC,2) AS retail
       FROM ksei.monthly_snapshot ms
       JOIN market.company_profile cp ON ms.Code = cp.stock_code
       WHERE cp.group_name = $1
@@ -196,8 +196,8 @@ export const QUERIES = {
       group_avg AS (
         SELECT
           group_name,
-          ROUND(AVG(change_percent), 2)  AS grp_avg_chg,
-          ROUND(AVG(aov_ratio_ma20), 2)  AS grp_avg_aov,
+          ROUND((AVG(change_percent))::NUMERIC, 2)  AS grp_avg_chg,
+          ROUND((AVG(aov_ratio_ma20))::NUMERIC, 2)  AS grp_avg_aov,
           COUNT(*)                        AS grp_stocks
         FROM stock_daily
         GROUP BY group_name
@@ -205,7 +205,7 @@ export const QUERIES = {
       group_perf_20d AS (
         SELECT
           cp.group_name,
-          ROUND(AVG(d.change_percent), 2) AS perf_20d
+          ROUND((AVG(d.change_percent))::NUMERIC, 2) AS perf_20d
         FROM market.daily_transactions d
         JOIN market.company_profile cp ON d.stock_code = cp.stock_code
         WHERE d.trading_date >= (SELECT max_date FROM latest) - INTERVAL '30 days'
@@ -215,9 +215,9 @@ export const QUERIES = {
       ksei_sm AS (
         SELECT
           ms.Code,
-          ROUND((ms.Local_CP_Chg_Val + ms.Local_PF_Chg_Val + ms.Local_IB_Chg_Val
+          ROUND(((ms.Local_CP_Chg_Val + ms.Local_PF_Chg_Val + ms.Local_IB_Chg_Val
                + ms.Foreign_CP_Chg_Val + ms.Foreign_PF_Chg_Val + ms.Foreign_IB_Chg_Val)
-               / 1e9, 2) AS ksei_smart_miliar
+               / 1e9)::NUMERIC, 2) AS ksei_smart_miliar
         FROM ksei.monthly_snapshot ms
         WHERE ms.Date = (SELECT MAX(Date) FROM ksei.monthly_snapshot)
       ),
@@ -226,7 +226,7 @@ export const QUERIES = {
         -- SUM(value) over ALL brokers ≈ 0 (zero-sum tape) — was meaningless.
         SELECT
           ba.stock_code AS stock_code,
-          ROUND(SUM(ba.value) / 1e9, 2)
+          ROUND((SUM(ba.value) / 1e9)::NUMERIC, 2)
             AS broker_net_miliar
         FROM main.broker_activity ba
         JOIN main.broker_classification bc ON bc.broker_code = ba.broker_code
@@ -239,11 +239,11 @@ export const QUERIES = {
         s.stock_code,
         s.sector,
         s.close,
-        ROUND(s.change_percent, 2)              AS change_pct,
+        ROUND((s.change_percent)::NUMERIC, 2)              AS change_pct,
         g.grp_avg_chg,
-        ROUND(s.change_percent - g.grp_avg_chg, 2) AS relative_perf,
+        ROUND((s.change_percent - g.grp_avg_chg)::NUMERIC, 2) AS relative_perf,
         s.whale_signal,
-        ROUND(s.net_foreign_value / 1e6, 2)     AS net_foreign_juta,
+        ROUND((s.net_foreign_value / 1e6)::NUMERIC, 2)     AS net_foreign_juta,
         s.free_float,
         s.group_name,
         g.grp_stocks,
@@ -323,12 +323,12 @@ export const QUERIES = {
         COALESCE(pc.group_top_buyer, '')           AS group_top_buyer
       FROM market.tb_group_multi_period_perf mp
       LEFT JOIN market.tb_group_phase_composite pc ON mp.group_name = pc.group_name
-      ORDER BY mp.foreign_net_1d_miliar DESC`,
+      ORDER BY mp.foreign_net_1d_miliar DESC NULLS LAST`,
   },
 
   // ── KSEI >1% ──────────────────────────────────────────────────────────────
   'ksei.insiderScreener': {
-    sql: `SELECT * FROM ksei.tb_insider_screener ORDER BY score DESC`,
+    sql: `SELECT * FROM ksei.tb_insider_screener ORDER BY score DESC NULLS LAST`,
     pro: true,
   },
   'ksei.individualChanges': {
@@ -337,12 +337,12 @@ export const QUERIES = {
              nationality, prev_percentage, curr_percentage, pct_point_change,
              share_change, action, alert_level
       FROM ksei.tb_ksei_individual_changes
-      ORDER BY report_date DESC, ABS(pct_point_change) DESC
+      ORDER BY report_date DESC NULLS LAST, ABS(pct_point_change) DESC NULLS LAST
       LIMIT 500`,
     pro: true,
   },
   'ksei.whaleTiming': {
-    sql: `SELECT * FROM ksei.tb_whale_timing ORDER BY ABS(return_since_entry) DESC LIMIT 100`,
+    sql: `SELECT * FROM ksei.tb_whale_timing ORDER BY ABS(return_since_entry) DESC NULLS LAST LIMIT 100`,
     pro: true,
   },
   // Latest KSEI month only, with corporate-action months excluded — see the note
@@ -362,27 +362,27 @@ export const QUERIES = {
       LEFT JOIN shares sh ON sh.Code = sa.Code AND sh.Date = sa.Date
       WHERE sa.Date = l.d
         AND (sh.prev_shares IS NULL OR sh.prev_shares = 0
-             OR ABS(sh.Total_Shares::DOUBLE / sh.prev_shares - 1) <= 0.05)
+             OR ABS(sh.Total_Shares::FLOAT8 / sh.prev_shares - 1) <= 0.05)
         AND (sh.Price IS NULL OR sh.Total_Shares IS NULL OR sh.Total_Shares = 0
              OR ABS(sa.CP_Flow_Miliar) * 1e9 <= sh.Price * sh.Total_Shares)
-      ORDER BY ABS(sa.CP_Flow_Miliar) DESC LIMIT 100`,
+      ORDER BY ABS(sa.CP_Flow_Miliar) DESC NULLS LAST LIMIT 100`,
     pro: true,
   },
   'ksei.topInvestors': {
-    sql: `SELECT * FROM ksei.tb_top_investors ORDER BY total_saham DESC LIMIT 50`,
+    sql: `SELECT * FROM ksei.tb_top_investors ORDER BY total_saham DESC NULLS LAST LIMIT 50`,
     pro: true,
   },
   'ksei.monthlySnapshotLatest': {
     sql: `
-      SELECT Code, Date::VARCHAR AS Date, Price::DOUBLE AS Price, Total_Shares::BIGINT AS Total_Shares,
-             Top_Buyer, ROUND((Top_Buyer_Val/1e9)::DOUBLE,3) AS Top_Buyer_Miliar,
-             Top_Seller, ROUND((Top_Seller_Val/1e9)::DOUBLE,3) AS Top_Seller_Miliar,
-             ROUND((Local_CP_Chg_Val/1e9)::DOUBLE,3) AS CP_Flow_Miliar,
-             ROUND(((Foreign_CP_Chg_Val+Foreign_IB_Chg_Val+Foreign_PF_Chg_Val)/1e9)::DOUBLE,3) AS Foreign_Flow_Miliar
+      SELECT Code, Date::VARCHAR AS Date, Price::FLOAT8 AS Price, Total_Shares::BIGINT AS Total_Shares,
+             Top_Buyer, ROUND(((Top_Buyer_Val/1e9)::FLOAT8)::NUMERIC,3) AS Top_Buyer_Miliar,
+             Top_Seller, ROUND(((Top_Seller_Val/1e9)::FLOAT8)::NUMERIC,3) AS Top_Seller_Miliar,
+             ROUND(((Local_CP_Chg_Val/1e9)::FLOAT8)::NUMERIC,3) AS CP_Flow_Miliar,
+             ROUND((((Foreign_CP_Chg_Val+Foreign_IB_Chg_Val+Foreign_PF_Chg_Val)/1e9)::FLOAT8)::NUMERIC,3) AS Foreign_Flow_Miliar
       FROM ksei.monthly_snapshot
       WHERE Date = (SELECT MAX(Date) FROM ksei.monthly_snapshot)
         AND (ABS(Local_CP_Chg_Val) > 1e9 OR ABS(Foreign_CP_Chg_Val) > 1e9)
-      ORDER BY ABS(Local_CP_Chg_Val) DESC LIMIT 50`,
+      ORDER BY ABS(Local_CP_Chg_Val) DESC NULLS LAST LIMIT 50`,
     pro: true,
   },
   'ksei.ownershipByCode': {
@@ -390,12 +390,12 @@ export const QUERIES = {
       SELECT investor_name, investor_type, local_foreign, percentage, total_holding_shares
       FROM ksei.ownership_1pct
       WHERE share_code = $1 AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
-      ORDER BY percentage DESC`,
+      ORDER BY percentage DESC NULLS LAST`,
     params: 1,
     pro: true,
   },
   'ksei.changesByCode': {
-    sql: `SELECT * FROM ksei.tb_ksei_individual_changes WHERE share_code = $1 ORDER BY ABS(pct_point_change) DESC LIMIT 50`,
+    sql: `SELECT * FROM ksei.tb_ksei_individual_changes WHERE share_code = $1 ORDER BY ABS(pct_point_change) DESC NULLS LAST LIMIT 50`,
     params: 1,
     pro: true,
   },
@@ -422,7 +422,7 @@ export const QUERIES = {
       FROM ksei.ownership_1pct
       WHERE investor_name = $1
         AND date = (SELECT MAX(date) FROM ksei.ownership_1pct)
-      ORDER BY percentage DESC`,
+      ORDER BY percentage DESC NULLS LAST`,
     params: 1,
     pro: true,
   },
@@ -482,14 +482,14 @@ export const QUERIES = {
       SELECT
         stock_code,
         trading_date::VARCHAR                  AS event_date,
-        prev_close::DOUBLE                     AS prev_close,
-        close::DOUBLE                          AS close,
-        ROUND(close / NULLIF(prev_close,0), 4) AS close_ratio,
+        prev_close::FLOAT8                     AS prev_close,
+        close::FLOAT8                          AS close,
+        ROUND((close / NULLIF(prev_close,0))::NUMERIC, 4) AS close_ratio,
         CASE WHEN close < prev_close THEN 'SPLIT_OR_BONUS' ELSE 'REVERSE_SPLIT' END AS action_kind
       FROM d
       WHERE prev_close > 0
         AND ABS((close / prev_close - 1) * 100 - change_percent) > 40
-      ORDER BY trading_date DESC`,
+      ORDER BY trading_date DESC NULLS LAST`,
   },
 
   // ── Shared chrome (ticker, search) ────────────────────────────────────────
@@ -498,7 +498,7 @@ export const QUERIES = {
       SELECT stock_code, close, change_percent
       FROM market.tb_stock_latest
       WHERE value > 1000000000
-      ORDER BY ABS(change_percent) DESC
+      ORDER BY ABS(change_percent) DESC NULLS LAST
       LIMIT 20`,
   },
   'search.stocks': {
@@ -506,7 +506,7 @@ export const QUERIES = {
       SELECT stock_code, sector, close, change_percent
       FROM market.tb_stock_latest
       WHERE stock_code ILIKE $1
-      ORDER BY value DESC
+      ORDER BY value DESC NULLS LAST
       LIMIT 8`,
     params: 1,
   },

@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { authFetch } from '@/lib/api'
 
 async function fetchStockDetail(code: string, days: number) {
-  const res = await fetch(`/api/stock-detail?code=${code}&days=${days}`)
+  const res = await authFetch(`/api/stock-detail?code=${code}&days=${days}`)
   const json = await res.json()
   if (!res.ok || json.error) throw new Error(json.error || 'Failed to fetch stock detail')
   

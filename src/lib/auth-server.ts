@@ -8,6 +8,7 @@
 // ============================================================
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
+import { isEntitled } from '@/lib/billing'
 
 export type Plan = 'free' | 'pro'
 
@@ -39,6 +40,11 @@ function admin(): SupabaseClient | null {
   return _admin
 }
 
+/** Exposed for billing routes that need service-role access. */
+export function getAdmin(): SupabaseClient | null {
+  return admin()
+}
+
 function bearer(req: NextRequest): string | null {
   const header = req.headers.get('authorization')
   if (!header?.startsWith('Bearer ')) return null
@@ -64,7 +70,7 @@ export async function getViewer(req: NextRequest): Promise<Viewer> {
 
     const { data: profile } = await sb
       .from('profiles')
-      .select('plan, trial_ends_at')
+      .select('plan, trial_ends_at, plan_expires_at')
       .eq('id', user.id)
       .single()
 
@@ -76,7 +82,11 @@ export async function getViewer(req: NextRequest): Promise<Viewer> {
       userId: user.id,
       plan,
       trialActive,
-      entitled: plan === 'pro' || trialActive,
+      entitled: isEntitled(
+        profile?.plan,
+        profile?.trial_ends_at,
+        profile?.plan_expires_at,
+      ),
     }
   } catch (err) {
     console.warn('[auth-server] viewer lookup failed:', (err as Error)?.message)
