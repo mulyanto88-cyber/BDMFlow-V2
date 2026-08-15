@@ -18,8 +18,17 @@ import { ChevronRight, Bell } from 'lucide-react'
 const PUBLIC_ROUTES = ['/', '/auth', '/pricing', '/terms', '/privacy', '/contact']
 // Always-free pages (full shell, no account, no expiry) — the advertised Free tier.
 const FREE_ROUTES = ['/dashboard', '/sector', '/groups']
-// Everything else = Pro: open during a 7-day guest trial, then requires a (free) signup.
-const TRIAL_DAYS = 7
+// Everything else = Pro: open during a guest trial of NEXT_PUBLIC_TRIAL_DAYS
+// (0 = guests are sent straight to /auth for Pro pages), then requires a
+// (free) signup. The value is baked at build time (NEXT_PUBLIC_*), so changing
+// it in Vercel needs a redeploy — but no code edit.
+const DEFAULT_TRIAL_DAYS = 7
+const TRIAL_DAYS = (() => {
+  const raw = process.env.NEXT_PUBLIC_TRIAL_DAYS
+  if (raw === undefined || raw === '') return DEFAULT_TRIAL_DAYS
+  const n = Number(raw)
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_TRIAL_DAYS
+})()
 const TRIAL_KEY = 'bdmflow_trial_start'
 
 const isPublic = (p: string) => PUBLIC_ROUTES.includes(p)
