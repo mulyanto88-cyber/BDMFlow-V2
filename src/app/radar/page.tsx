@@ -440,7 +440,7 @@ export default function RadarPage() {
                     <td className="px-3 py-3 text-right" data-label="Harga">
                       <div className="font-semibold counter text-sm">{r.close.toLocaleString('id-ID')}</div>
                       <div className={`text-xs font-medium ${r.change_percent > 0 ? 'text-emerald-400' : r.change_percent < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
-                        {r.change_percent > 0 ? '+' : ''}{r.change_percent?.toFixed(2)}%
+                        {Number(r.change_percent || 0) > 0 ? '+' : ''}{Number(r.change_percent || 0).toFixed(2)}%
                       </div>
                     </td>
 

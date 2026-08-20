@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
         SELECT
           f.stock_code, f.fg_net, f.inst_net, f.retail_net, f.prime_net, f.total_net,
           f.fg_buyers, f.broker_count,
-          s.close::FLOAT8 AS close, ROUND((s.change_percent::FLOAT8)::NUMERIC,2) AS change_percent,
+          s.close::FLOAT8 AS close, ROUND(s.change_percent::FLOAT8,2) AS change_percent,
           s.sector, s.group_name, s.signal, s.whale_signal::BOOLEAN AS whale_signal
         FROM flow f
         LEFT JOIN market.tb_stock_latest s ON f.stock_code = s.stock_code
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
                ROUND((SUM(ba.value)/1e9)::NUMERIC,3) AS net_miliar,
                ROUND((SUM(CASE WHEN ba.side='BUY' THEN ba.value ELSE 0 END)/1e9)::NUMERIC,3) AS buy_miliar,
                ROUND((SUM(CASE WHEN ba.side='SELL' THEN ABS(ba.value) ELSE 0 END)/1e9)::NUMERIC,3) AS sell_miliar,
-               s.close::FLOAT8 AS close, ROUND((s.change_percent::FLOAT8)::NUMERIC,2) AS change_percent, s.sector
+               s.close::FLOAT8 AS close, ROUND(s.change_percent::FLOAT8,2) AS change_percent, s.sector
         FROM main.broker_activity ba
         LEFT JOIN market.tb_stock_latest s ON ba.stock_code = s.stock_code
         WHERE ba.broker_code = $1

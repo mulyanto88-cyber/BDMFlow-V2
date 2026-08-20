@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       `),
       run(`
         SELECT r.stock_code, r.sector, r.group_name, s.close::FLOAT8 AS close,
-               ROUND((r.change_percent::FLOAT8)::NUMERIC,2) AS change_percent, r.radar_score::INTEGER AS radar_score,
+               ROUND(r.change_percent::FLOAT8,2) AS change_percent, r.radar_score::INTEGER AS radar_score,
                r.composite_signal, ROUND((r.foreign_broker_net_7d::FLOAT8)::NUMERIC,2) AS fg_broker_7d,
                ROUND((r.local_inst_net_7d::FLOAT8)::NUMERIC,2) AS inst_7d,
                ROUND((r.ksei_net_smart_miliar::FLOAT8)::NUMERIC,2) AS ksei_smart,

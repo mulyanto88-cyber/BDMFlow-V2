@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
           sector,
           group_name,
           close::FLOAT8                           AS close,
-          ROUND((change_percent::FLOAT8)::NUMERIC, 2)        AS change_percent,
+          ROUND(change_percent::FLOAT8, 2)        AS change_percent,
           radar_score::INTEGER                    AS radar_score,
           composite_signal,
           market_signal,
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
               SELECT
                 stock_code, sector, group_name,
                 close::FLOAT8 AS close,
-                ROUND((change_percent::FLOAT8)::NUMERIC,2) AS change_percent,
+                ROUND(change_percent::FLOAT8,2) AS change_percent,
                 radar_score::INTEGER AS radar_score,
                 composite_signal, market_signal,
                 ROUND((foreign_broker_net_7d::FLOAT8)::NUMERIC,2) AS foreign_broker_net_7d,
