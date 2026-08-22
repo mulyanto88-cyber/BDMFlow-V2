@@ -30,6 +30,14 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800' },
         ],
       },
+      {
+        // Company logos are static files that essentially never change. Immutable
+        // caching means a browser/CDN downloads each logo once, forever.
+        source: '/logos/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
     ];
   },
 };

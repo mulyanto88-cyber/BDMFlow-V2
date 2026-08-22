@@ -53,10 +53,10 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Inter as the single source of truth for UI text
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        // JetBrains Mono for numbers, ticker, timestamps, codes
-        mono: ['var(--font-mono)', 'JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        // Geist as the single source of truth for UI text
+        sans: ['var(--font-geist)', 'Geist', 'system-ui', 'sans-serif'],
+        // Geist Mono for numbers, ticker, timestamps, codes
+        mono: ['var(--font-geist-mono)', 'Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
         // Keep existing scale, add a few useful additions
@@ -76,6 +76,10 @@ const config: Config = {
         'glass-sm':      '0 2px 10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
         'glass-md':      '0 8px 32px rgba(0, 0, 0, 0.37), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         'glass-lg':      '0 16px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        'premium':     '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+        'floating':    '0 30px 60px -20px rgba(0, 0, 0, 0.08), 0 0 20px 0 rgba(0, 0, 0, 0.02)',
+        'card-hover':  '0 12px 24px -8px rgba(0, 0, 0, 0.06), 0 4px 8px -4px rgba(0, 0, 0, 0.04)',
+        'inner-soft':  'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
         'glow-emerald': '0 0 25px rgba(16, 185, 129, 0.25)',
         'glow-rose':    '0 0 25px rgba(244, 63, 94, 0.25)',
         'glow-primary': '0 0 30px rgba(var(--primary-glow-rgb), 0.28)',
