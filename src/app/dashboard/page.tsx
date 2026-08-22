@@ -8,6 +8,7 @@ import {
   Zap, TrendingUp, TrendingDown, Shield, Globe, Building2,
   AlertTriangle, Activity, ArrowRight, Eye, BarChart2,
 } from 'lucide-react'
+import CompanyLogo from '@/components/company-logo'
 
 // Data is T+1 (changes once a day, ~20:00 WIB). Re-rendering every 60s burned
 // ~7K MotherDuck queries/day for nothing and ate into the plan's daily compute
@@ -378,7 +379,10 @@ export default async function MorningBrief() {
                 )}
 
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-mono font-bold text-sm">{s.stock_code}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <CompanyLogo code={s.stock_code} sector={s.sector} size={28} />
+                    <span className="font-mono font-bold text-sm truncate">{s.stock_code}</span>
+                  </div>
                   <ScoreBadge score={s.radar_score} />
                 </div>
 
@@ -445,9 +449,11 @@ export default async function MorningBrief() {
                   href={`/stock/${a.stock_code}`}
                   className="flex items-center justify-between p-2.5 rounded-xl glass card-hover"
                 >
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-xs">{a.stock_code}</span>
+                  <div className="flex items-center gap-2">
+                    <CompanyLogo code={a.stock_code} sector={a.sector} size={22} />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-xs">{a.stock_code}</span>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold ${
                         a.alert_level === 'HIGH'
                           ? 'bg-red-500/15 text-red-400 border-red-500/25'
@@ -458,6 +464,7 @@ export default async function MorningBrief() {
                     </div>
                     <div className="text-[10px] text-muted-foreground truncate max-w-[130px] mt-0.5">
                       {a.insider_name}
+                    </div>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">

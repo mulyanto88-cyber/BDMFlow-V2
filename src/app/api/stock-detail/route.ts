@@ -160,18 +160,25 @@ export async function GET(req: NextRequest) {
 
   // ── Latest stock info ─────────────────────────────────────────────────────
   if (action === 'latest') {
-    const rows = await run(`
-      SELECT stock_code, trading_date::VARCHAR AS trading_date, close::FLOAT8 AS close, change_percent::FLOAT8 AS change_percent,
-             previous::FLOAT8 AS previous, high::FLOAT8 AS high, low::FLOAT8 AS low, open_price::FLOAT8 AS open_price,
-             volume::BIGINT AS volume, value::FLOAT8 AS value, net_foreign_value::FLOAT8 AS net_foreign_value,
-             vwma_20d::FLOAT8 AS vwma_20d, aov_ratio_ma20::FLOAT8 AS aov_ratio_ma20,
-             whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly, signal,
-             sector, free_float::FLOAT8 AS free_float, group_name, tradeable_shares::BIGINT AS tradeable_shares
-      FROM market.tb_stock_detail
-      WHERE stock_code = $1
-      ORDER BY trading_date DESC NULLS LAST LIMIT 1
-    `, [code]).catch(() => [])
-    return NextResponse.json({ data: rows[0] ?? null })
+    const [rows, nameRows] = await Promise.all([
+      run(`
+        SELECT stock_code, trading_date::VARCHAR AS trading_date, close::FLOAT8 AS close, change_percent::FLOAT8 AS change_percent,
+               previous::FLOAT8 AS previous, high::FLOAT8 AS high, low::FLOAT8 AS low, open_price::FLOAT8 AS open_price,
+               volume::BIGINT AS volume, value::FLOAT8 AS value, net_foreign_value::FLOAT8 AS net_foreign_value,
+               vwma_20d::FLOAT8 AS vwma_20d, aov_ratio_ma20::FLOAT8 AS aov_ratio_ma20,
+               whale_signal::BOOLEAN AS whale_signal, big_player_anomaly::BOOLEAN AS big_player_anomaly, signal,
+               sector, free_float::FLOAT8 AS free_float, group_name, tradeable_shares::BIGINT AS tradeable_shares
+        FROM market.tb_stock_detail
+        WHERE stock_code = $1
+        ORDER BY trading_date DESC NULLS LAST LIMIT 1
+      `, [code]).catch(() => []),
+      // Nama emiten dibaca terpisah: kalau kolom company_name belum ada di
+      // company_profile (sebelum pipeline pertama dijalankan), query ini gagal
+      // sendirian tanpa merusak data utama.
+      run(`SELECT company_name FROM market.company_profile WHERE stock_code = $1 LIMIT 1`, [code]).catch(() => []),
+    ])
+    const row = rows[0] ?? null
+    return NextResponse.json({ data: row ? { ...row, company_name: nameRows[0]?.company_name ?? null } : null })
   }
 
   // ── Price chart history ───────────────────────────────────────────────────
