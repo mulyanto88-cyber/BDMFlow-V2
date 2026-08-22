@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Clock, Shield, Loader2, AlertTriangle } from 'lucide-react'
 import { formatRupiah, formatNumber, formatShares } from '@/lib/utils'
+import CompanyLogo from '@/components/company-logo'
+import { COMPANY_NAMES } from '@/lib/company-names'
 import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
 
@@ -79,6 +81,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
     </div>
   )
 
+  const companyName  = stockData?.company_name || COMPANY_NAMES[code] || ''
   const publicShares  = (stockData.tradeable_shares || 0) * ((stockData.free_float || 0) / 100)
   const floatCap      = publicShares * stockData.close
   const dailyTurnover = publicShares > 0 ? ((stockData.volume || 0) / publicShares) * 100 : 0
@@ -107,9 +110,17 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Price block */}
         <div className="lg:col-span-4 flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-3xl lg:text-4xl font-black font-mono tracking-tight gradient-gold">{code}</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-surface-4 text-muted-foreground border border-line-4 text-[10px] font-bold uppercase tracking-wider">{stockData.sector || 'Stock'}</span>
+          <div className="flex items-center gap-3">
+            <CompanyLogo code={code} sector={stockData.sector} size={48} eager />
+            <div>
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h1 className="text-3xl lg:text-4xl font-black font-mono tracking-tight gradient-gold">{code}</h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-surface-4 text-muted-foreground border border-line-4 text-[10px] font-bold uppercase tracking-wider">{stockData.sector || 'Stock'}</span>
+              </div>
+              {companyName && (
+                <p className="text-xs font-semibold text-muted-foreground -mt-0.5 leading-snug">{companyName}</p>
+              )}
+            </div>
           </div>
           <div className="flex items-baseline gap-3 mt-1">
             <span className="text-4xl lg:text-5xl font-black tracking-tighter">{formatRupiah(stockData.close)}</span>

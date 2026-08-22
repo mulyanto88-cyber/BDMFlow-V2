@@ -18,13 +18,13 @@ export default function SectionHeader({
   subtitle,
   action,
   lastUpdated,
-  iconColor = 'text-emerald-400',
+  iconColor = 'text-primary',
 }: SectionHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <Icon className={`w-4 h-4 ${iconColor}`} />
-        <h2 className="text-sm font-black text-white uppercase tracking-widest">{label}</h2>
+        <h2 className="text-sm font-black text-foreground uppercase tracking-widest">{label}</h2>
         {subtitle && (
           <span className="text-[9px] text-muted-foreground/40 hidden sm:inline">· {subtitle}</span>
         )}
@@ -37,7 +37,7 @@ export default function SectionHeader({
       {action && (
         <Link
           href={action.href}
-          className="text-[9px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest"
+          className="text-[9px] font-black text-primary hover:opacity-70 transition-opacity uppercase tracking-widest"
         >
           {action.label} →
         </Link>

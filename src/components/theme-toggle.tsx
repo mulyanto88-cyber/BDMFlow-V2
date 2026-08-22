@@ -21,6 +21,15 @@ interface ThemeConfig {
 
 const THEMES: ThemeConfig[] = [
   {
+    key: 'light',
+    label: 'Geist Light',
+    desc: 'Swiss minimal · Grid engineering',
+    icon: <Sun size={14} className="text-amber-500" />,
+    preview: '#f8fafc',
+    bg: 'bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]',
+    accent: '#0f172a',
+  },
+  {
     key: 'dark',
     label: 'Dark Obsidian',
     desc: 'Deep navy · Gold accents',
@@ -28,15 +37,6 @@ const THEMES: ThemeConfig[] = [
     preview: '#030712',
     bg: 'bg-gradient-to-br from-[#030712] via-[#090e1a] to-[#1e293b]',
     accent: '#fbbf24',
-  },
-  {
-    key: 'light',
-    label: 'Putih Pearl',
-    desc: 'Clean silver · Gold accents',
-    icon: <Sun size={14} className="text-amber-500" />,
-    preview: '#f8fafc',
-    bg: 'bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]',
-    accent: '#f59e0b',
   },
   {
     key: 'blue',
@@ -86,7 +86,7 @@ export default function ThemeToggle() {
       // is migrated to 'dark'.
       const saved = localStorage.getItem('bdmflow-theme') as Theme
       const valid: Theme[] = ['dark', 'light', 'purple', 'blue']
-      const t = saved && valid.includes(saved) ? saved : 'dark'
+      const t = saved && valid.includes(saved) ? saved : 'light'
       if (t !== saved) localStorage.setItem('bdmflow-theme', t)
       applyTheme(t)
     }

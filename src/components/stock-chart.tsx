@@ -21,12 +21,22 @@ export function StockChart({ data, height = 500 }: { data: OHLCV[]; height?: num
     if (!containerRef.current || data.length === 0) return
     const container = containerRef.current
 
+    // Palet mengikuti tema aktif (light default → Geist Light).
+    const rootCls = document.documentElement.classList
+    const isDark = rootCls.contains('dark') || rootCls.contains('theme-purple') || rootCls.contains('theme-blue')
+    const C = {
+      grid: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.06)',
+      text: isDark ? '#71717a' : '#64748b',
+      border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)',
+      crosshair: isDark ? '#3b82f6' : '#4f46e5',
+    }
+
     const chart = createChart(container, {
-      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#71717a', fontSize: 11 },
-      grid: { vertLines: { color: '#1e1e2e' }, horzLines: { color: '#1e1e2e' } },
-      crosshair: { mode: 0, vertLine: { color: '#3b82f6', style: 2, width: 1, labelBackgroundColor: '#3b82f6' }, horzLine: { color: '#3b82f6', style: 2, width: 1, labelBackgroundColor: '#3b82f6' } },
-      rightPriceScale: { borderColor: '#1e1e2e', scaleMargins: { top: 0.05, bottom: 0.25 } },
-      timeScale: { borderColor: '#1e1e2e', timeVisible: false },
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: C.text, fontSize: 11 },
+      grid: { vertLines: { color: C.grid }, horzLines: { color: C.grid } },
+      crosshair: { mode: 0, vertLine: { color: C.crosshair, style: 2, width: 1, labelBackgroundColor: C.crosshair }, horzLine: { color: C.crosshair, style: 2, width: 1, labelBackgroundColor: C.crosshair } },
+      rightPriceScale: { borderColor: C.border, scaleMargins: { top: 0.05, bottom: 0.25 } },
+      timeScale: { borderColor: C.border, timeVisible: false },
       width: container.clientWidth, height,
     })
 

@@ -20,13 +20,7 @@ export default function KpiCard({
   subtitle,
 }: KpiCardProps) {
   return (
-    <div className="relative group overflow-hidden rounded-xl p-4 transition-all duration-300 backdrop-blur-xl border border-line-4 hover:border-amber-500/30 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_24px_rgba(196,154,26,0.12)] bg-gradient-to-b from-white/[0.04] to-white/[0.01]">
-      {/* Top edge glass reflection line */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-60" />
-      
-      {/* Ambient background hover glow */}
-      <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-amber-500/5 blur-2xl group-hover:bg-amber-500/15 transition-all duration-500 pointer-events-none" />
-
+    <div className="neo-card relative group overflow-hidden rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           {label}
@@ -37,7 +31,7 @@ export default function KpiCard({
       </div>
 
       <div className="mt-1">
-        <p className="text-2xl font-black font-mono tracking-tight text-foreground group-hover:text-amber-400 transition-colors">
+        <p className="text-2xl font-black font-mono tracking-tight text-foreground">
           {value}
         </p>
       </div>

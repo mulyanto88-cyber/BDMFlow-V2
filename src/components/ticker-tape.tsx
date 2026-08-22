@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { mdQuery } from '@/lib/api'
+import CompanyLogo from '@/components/company-logo'
 
 interface TickerItem {
   stock_code:     string
@@ -115,6 +116,7 @@ export default function TickerTape() {
                     href={`/stock/${item.stock_code}`}
                     className="ticker-item hover:bg-black/5 dark:hover:bg-surface-3 transition-colors cursor-pointer h-full items-center px-3 border-r border-border/40"
                   >
+                    <CompanyLogo code={item.stock_code} size={18} className="rounded-md" />
                     <span className="font-mono font-black text-[11px] text-foreground tracking-wide">
                       {item.stock_code}
                     </span>

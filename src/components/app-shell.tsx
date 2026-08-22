@@ -70,6 +70,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [trialLeft, setTrialLeft]   = useState<number | null>(null)
   const [trialReady, setTrialReady] = useState(false)
 
+  // Geist frame backdrop (engineering grid) hanya untuk halaman ber-shell.
+  useEffect(() => {
+    if (publicPage) return
+    document.body.classList.add('app-page')
+    return () => document.body.classList.remove('app-page')
+  }, [publicPage])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (user) { setTrialReady(true); return }
@@ -117,7 +124,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         : '⏳ Trial habis.'
 
   return (
-    <div className="flex min-h-screen text-foreground selection:bg-primary/20" style={{ background: 'hsl(var(--background))' }}>
+    <div className="app-frame flex min-h-[calc(100vh_-_1.5rem)] text-foreground selection:bg-primary/20" style={{ background: 'hsl(var(--background))' }}>
       
       <Sidebar />
 
@@ -125,7 +132,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* ═══ HEADER ═══ */}
         <header
-          className="sticky top-0 z-30 flex items-center h-14 px-4 lg:px-5 gap-4 backdrop-blur-xl"
+          className="sticky top-3 z-30 flex items-center h-14 px-4 lg:px-5 gap-4 backdrop-blur-xl"
           style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--header-border)' }}
         >
           {/* Mobile logo */}
