@@ -43,12 +43,14 @@ function ScoreKPI({
   val, 
   pos, 
   sub, 
+  badgeColor,
   icon: Icon 
 }: { 
   label: string
   val: string
   pos?: boolean
   sub?: string
+  badgeColor?: string
   icon?: React.ElementType 
 }) {
   const c = pos === undefined 
@@ -57,14 +59,14 @@ function ScoreKPI({
       ? 'text-emerald-600 dark:text-emerald-400' 
       : 'text-rose-600 dark:text-rose-400'
 
-  const badgeStyle = pos === undefined
+  const badgeStyle = badgeColor || (pos === undefined
     ? 'bg-surface-3 text-muted-foreground border-border/40'
     : pos
       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
-      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25'
+      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25')
 
   return (
-    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-line-3 hover:border-line-5 hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
+    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-line-2 hover:border-line-4 hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
       <div className="flex items-center justify-between gap-1 mb-1.5">
         <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-wider truncate">{label}</span>
         {Icon && <Icon className={`w-3.5 h-3.5 ${pos === undefined ? 'text-muted-foreground/60' : pos ? 'text-emerald-500' : 'text-rose-500'}`} />}
@@ -157,7 +159,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                     label="AOV Ratio"   
                     val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`}
                     sub={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? 'WHALE' : 'NORMAL'}
-                    pos={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? true : undefined}
+                    badgeColor={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25' : 'bg-surface-3 text-muted-foreground border-border/40'}
                     icon={Zap}
                   />
                   <ScoreKPI 
