@@ -656,7 +656,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
   }
 
   return (
-    <div className="w-full py-6 space-y-6 pb-16 animate-fade-in max-w-7xl mx-auto px-2 sm:px-4">
+    <div className="w-full py-6 space-y-6 pb-16 animate-fade-in max-w-[1720px] mx-auto px-3 sm:px-6">
 
       {/* ── Header & Main Navigation Tabs ── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/75 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-line-3 shadow-xs">

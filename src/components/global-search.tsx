@@ -36,6 +36,7 @@ const PAGES: PageItem[] = [
   { href: '/radar',           label: 'Watchlist Radar',     icon: Activity,        section: 'Screeners' },
   { href: '/msci-screener',   label: 'MSCI Screener',       icon: Shield,          section: 'Screeners' },
   { href: '/ftse-screener',   label: 'FTSE Screener',       icon: Globe,           section: 'Screeners' },
+  { href: '/backtest',        label: 'Backtest Lab',        icon: Calculator,      section: 'Screeners' },
   { href: '/foreign-flow',    label: 'Foreign Flow',        icon: Globe,           section: 'Aliran Dana' },
   { href: '/broker-flow',     label: 'Broker Flow Harian',  icon: Activity,        section: 'Aliran Dana' },
   { href: '/broker-tracker',  label: 'Broker Summary',      icon: BarChart2,       section: 'Aliran Dana' },
@@ -43,7 +44,6 @@ const PAGES: PageItem[] = [
   { href: '/ksei1persen',     label: 'KSEI > 1%',           icon: Eye,             section: 'KSEI' },
   { href: '/insider',         label: 'Insider Radar',       icon: Search,          section: 'KSEI' },
   { href: '/watchlist',       label: 'Watchlist & Alerts',  icon: Bell,            section: 'Tools' },
-  { href: '/backtest',        label: 'Backtest Lab',        icon: Calculator,      section: 'Tools' },
   { href: '/right-issue-calc',label: 'Right Issue Calc',    icon: TrendingUpIcon,  section: 'Tools' },
 ]
 

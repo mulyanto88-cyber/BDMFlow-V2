@@ -31,6 +31,7 @@ const navGroups = [
       { href: '/radar',         label: 'Watchlist Radar',     icon: Activity,  badge: null },
       { href: '/msci-screener', label: 'MSCI Screener',       icon: Shield,    badge: null },
       { href: '/ftse-screener', label: 'FTSE Screener',       icon: Globe,     badge: null },
+      { href: '/backtest',      label: 'Backtest Lab',        icon: Calculator, badge: 'HOT' },
     ]
   },
   {
@@ -53,7 +54,6 @@ const navGroups = [
     title: 'Tools',
     items: [
       { href: '/watchlist',        label: 'Watchlist & Alerts',  icon: Bell,       badge: null },
-      { href: '/backtest',         label: 'Backtest Lab',         icon: Calculator, badge: 'BETA' },
       { href: '/right-issue-calc', label: 'Right Issue Calc',    icon: TrendingUp, badge: null },
     ]
   }

@@ -482,25 +482,27 @@ export const QUERIES = {
         SELECT
           dt.stock_code,
           dt.trading_date,
-          dt.open_price,
-          dt.high,
-          dt.low,
+          (CASE WHEN COALESCE(dt.open_price, 0) > 0 THEN dt.open_price WHEN COALESCE(dt.previous, 0) > 0 THEN dt.previous ELSE dt.close END) AS open_price,
+          (CASE WHEN COALESCE(dt.high, 0) > 0 THEN dt.high WHEN COALESCE(dt.previous, 0) > 0 THEN GREATEST(dt.close, dt.previous) ELSE dt.close END) AS high,
+          (CASE WHEN COALESCE(dt.low, 0) > 0 THEN dt.low WHEN COALESCE(dt.previous, 0) > 0 THEN LEAST(dt.close, dt.previous) ELSE dt.close END) AS low,
           dt.close,
           ROW_NUMBER() OVER (PARTITION BY dt.stock_code ORDER BY dt.trading_date ASC) AS day_num,
           ROW_NUMBER() OVER (PARTITION BY dt.stock_code ORDER BY dt.trading_date DESC) AS rn_latest
         FROM market.daily_transactions dt
         JOIN t0_stocks t0 ON t0.stock_code = dt.stock_code
         WHERE dt.trading_date >= CAST($1 AS DATE)
+          AND dt.close > 0
       ),
       stock_aggregates AS (
         SELECT
           fp.stock_code,
-          MAX(fp.high) AS max_high,
-          MIN(fp.low) AS min_low,
+          MAX(CASE WHEN fp.high > 0 THEN fp.high ELSE fp.close END) AS max_high,
+          MIN(CASE WHEN fp.low > 0 THEN fp.low ELSE fp.close END) AS min_low,
           COUNT(*) AS trading_days_count,
           MAX(CASE WHEN fp.rn_latest = 1 THEN fp.close ELSE NULL END) AS latest_close,
           MAX(CASE WHEN fp.rn_latest = 1 THEN CAST(fp.trading_date AS VARCHAR) ELSE NULL END) AS latest_date
         FROM forward_prices fp
+        WHERE fp.close > 0
         GROUP BY fp.stock_code
       )
       SELECT
