@@ -128,14 +128,14 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-4 items-stretch">
         
         {/* 1. Left Price Block */}
-        <div className="lg:col-span-4 flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-surface-1/80 dark:bg-surface-2/40 border border-border/60 dark:border-white/[0.06]">
+        <div className="lg:col-span-4 flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-surface-1/80 dark:bg-surface-2/40 border border-line-3">
           <div>
             <div className="flex items-center gap-3">
               <CompanyLogo code={code} sector={stockData.sector} size={52} eager className="drop-shadow-sm" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono tracking-tight text-foreground">{code}</h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-surface-3 text-muted-foreground border border-border/50 dark:border-white/[0.08] text-[9.5px] font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-0.5 rounded-full bg-surface-3 text-muted-foreground border border-line-2 text-[9.5px] font-bold uppercase tracking-wider">
                     {stockData.sector || 'Stock'}
                   </span>
                 </div>
@@ -158,7 +158,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             </div>
           </div>
 
-          <div className="text-[11px] sm:text-xs text-muted-foreground mt-3 font-medium flex flex-wrap items-center gap-x-2.5 gap-y-1 bg-surface-2/80 dark:bg-white/[0.04] px-3 py-1.5 rounded-xl border border-border/50 dark:border-white/[0.05] w-fit">
+          <div className="text-[11px] sm:text-xs text-muted-foreground mt-3 font-medium flex flex-wrap items-center gap-x-2.5 gap-y-1 bg-surface-2/80 dark:bg-white/[0.04] px-3 py-1.5 rounded-xl border border-line-2 w-fit">
             <span>H: <span className="text-foreground font-mono font-bold">{formatNumber(stockData.high)}</span></span>
             <span>L: <span className="text-foreground font-mono font-bold">{formatNumber(stockData.low)}</span></span>
             <span>O: <span className="text-foreground font-mono font-bold">{formatNumber(stockData.open_price)}</span></span>
@@ -221,7 +221,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             return (
               <div 
                 key={i} 
-                className={`group relative p-2.5 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col justify-between bg-surface-1/90 dark:bg-surface-2/50 border border-border/70 dark:border-white/[0.06] border-l-[3px] ${m.accent} hover:border-border hover:shadow-md transition-all duration-200 ${m.span || ''}`}
+                className={`group relative p-2.5 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col justify-between bg-surface-1/90 dark:bg-surface-2/50 border border-line-3 border-l-[3px] ${m.accent} hover:border-line-5 hover:shadow-md transition-all duration-200 ${m.span || ''}`}
               >
                 <div className="flex items-center justify-between gap-1 mb-1.5">
                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{m.l}</span>
@@ -253,7 +253,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             <p className={`text-base font-black ${verdict.color} mb-3 tracking-tight leading-snug`}>{verdict.label}</p>
             <div className="space-y-1.5">
               {verdict.evidence.map((e, i) => (
-                <div key={i} className="flex items-center gap-2 bg-card/60 dark:bg-black/30 px-2.5 py-1.5 rounded-xl border border-border/40 dark:border-white/[0.04] shadow-xs">
+                <div key={i} className="flex items-center gap-2 bg-card/60 dark:bg-black/30 px-2.5 py-1.5 rounded-xl border border-line-2 shadow-xs">
                   <span className={`text-[11px] font-black shrink-0 ${
                     e.sign === '+' ? 'text-emerald-500 dark:text-emerald-400' : e.sign === '−' ? 'text-rose-500 dark:text-rose-400' : 'text-muted-foreground'
                   }`}>{e.sign}</span>
@@ -267,7 +267,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
       </div>
 
       {/* BOTTOM SECTION: 6 Executive Financial KPI Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-border/60 dark:border-white/[0.06]">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-line-3">
         {[
           { 
             l: 'Conviction',   
@@ -324,7 +324,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             barColor: 'bg-cyan-500'
           },
         ].map((m, i) => (
-          <div key={i} className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-border/70 dark:border-white/[0.05] hover:border-border hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
+          <div key={i} className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-line-3 hover:border-line-5 hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
             <div className="flex items-center justify-between gap-1 mb-1.5">
               <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-wider truncate">{m.l}</span>
               <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border leading-none tracking-wider ${m.badgeBg}`}>

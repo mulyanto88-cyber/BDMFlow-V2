@@ -64,7 +64,7 @@ function ScoreKPI({
       : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25'
 
   return (
-    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-border/70 dark:border-white/[0.06] hover:border-border hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
+    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-line-3 hover:border-line-5 hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
       <div className="flex items-center justify-between gap-1 mb-1.5">
         <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-wider truncate">{label}</span>
         {Icon && <Icon className={`w-3.5 h-3.5 ${pos === undefined ? 'text-muted-foreground/60' : pos ? 'text-emerald-500' : 'text-rose-500'}`} />}
@@ -138,7 +138,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
               {scorecard && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-border/60 dark:border-white/[0.06]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-line-3">
                   <ScoreKPI 
                     label="Return 5D"   
                     val={`${Number(scorecard.return_5d ?? 0) >= 0 ? '+' : ''}${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        
@@ -177,7 +177,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               )}
             </div>
             {scorecard && (
-              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-border/60 dark:border-white/[0.08] lg:pl-6 pt-4 lg:pt-0">
+              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-line-3 lg:pl-6 pt-4 lg:pt-0">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="text-[9px] text-muted-foreground uppercase tracking-[0.14em] font-bold">Composite V2</div>
@@ -189,7 +189,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                     {scorecard.tier_v2}
                   </span>
                 </div>
-                <div className="space-y-2 bg-surface-1/90 dark:bg-surface-2/50 p-2.5 rounded-xl border border-border/50 dark:border-white/[0.04]">
+                <div className="space-y-2 bg-surface-1/90 dark:bg-surface-2/50 p-2.5 rounded-xl border border-line-2">
                   <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
                   <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
                   <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
