@@ -105,11 +105,9 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
   const volumeLot     = Math.round((stockData.volume || 0) / 100)
 
   return (
-    <div className="rounded-2xl p-4 sm:p-5 lg:p-6 border border-border/80 dark:border-white/[0.08] bg-card/95 dark:bg-gradient-to-b dark:from-surface-2/90 dark:via-surface-1/95 dark:to-background/95 shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] relative overflow-hidden backdrop-blur-2xl">
-      {/* Ambient background glows */}
-      <div className="absolute top-0 right-1/4 -mt-20 w-80 h-80 bg-amber-500/[0.03] blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-0 -mr-20 -mb-20 w-80 h-80 bg-primary/[0.03] blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/80 dark:via-white/[0.15] to-transparent pointer-events-none" />
+    <div className="rounded-2xl p-4 sm:p-5 lg:p-6 border border-line-3 bg-card shadow-sm relative overflow-hidden">
+      {/* Top hairline — satu-satunya aksen, tanpa glow */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/50 dark:via-white/[0.08] to-transparent pointer-events-none" />
 
       {/* Data-quality banner */}
       {dataQuality?.returnsUnreliable && dataQuality.unadjustedAction && (

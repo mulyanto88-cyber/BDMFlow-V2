@@ -134,14 +134,14 @@
     --input:                217 33% 14%;
     --ring:                 43  96% 56%;
 
-    /* Glass — sophisticated obsidian glass */
-    --glass-bg:           rgba(9, 14, 26, 0.75);
-    --glass-border:       rgba(255, 255, 255, 0.08);
-    --glass-border-top:   rgba(255, 255, 255, 0.18);
-    --glass-shadow:       0 8px 32px rgba(0, 0, 0, 0.55);
+    /* Glass — obsidian yang memanjakan: highlight atas, kedalaman, glow emas lembut */
+    --glass-bg:           rgba(11, 17, 30, 0.72);
+    --glass-border:       rgba(255, 255, 255, 0.10);
+    --glass-border-top:   rgba(255, 255, 255, 0.24);
+    --glass-shadow:       0 1px 0 rgba(255,255,255,0.03), 0 10px 36px rgba(0, 0, 0, 0.50), 0 2px 8px rgba(0, 0, 0, 0.35);
     --glass-hover-bg:     rgba(15, 23, 42, 0.92);
-    --glass-hover-border: rgba(251, 191, 36, 0.35);
-    --glass-hover-shadow: 0 16px 48px rgba(0,0,0,0.70), 0 0 18px rgba(251,191,36,0.10);
+    --glass-hover-border: rgba(251, 191, 36, 0.42);
+    --glass-hover-shadow: 0 16px 48px rgba(0,0,0,0.70), 0 0 28px rgba(251,191,36,0.16);
 
     /* Panel */
     --panel-bg:     rgba(7, 11, 20, 0.82);
@@ -166,8 +166,8 @@
     --shadow-md:   0 6px 16px rgba(0,0,0,0.52);
     --shadow-lg:   0 16px 48px rgba(0,0,0,0.65);
     --shadow-xl:   0 32px 72px rgba(0,0,0,0.78);
-    --shadow-gold: 0 0 24px rgba(251,191,36,0.16);
-    --shadow-glow: 0 0 18px rgba(var(--primary-glow-rgb),0.16);
+    --shadow-gold: 0 0 28px rgba(251,191,36,0.22);
+    --shadow-glow: 0 0 20px rgba(var(--primary-glow-rgb),0.20);
 
     /* Scrollbar */
     --scrollbar-thumb: rgba(255, 255, 255, 0.12);
@@ -187,9 +187,9 @@
        override layer for light mode. These flip per theme instead.
        Light values keep the tuning the old overrides had: black reads
        heavier than white at equal alpha, and hairlines use slate. */
-    --surface-1: rgba(255,255,255,0.02);
-    --surface-2: rgba(255,255,255,0.03);
-    --surface-3: rgba(255,255,255,0.05);
+    --surface-1: rgba(255,255,255,0.025);
+    --surface-2: rgba(255,255,255,0.045);
+    --surface-3: rgba(255,255,255,0.07);
     --surface-4: rgba(255,255,255,0.08);
     --surface-5: rgba(255,255,255,0.10);
     --line-1:    rgba(255,255,255,0.04);
@@ -276,9 +276,9 @@
        override layer for light mode. These flip per theme instead.
        Light values keep the tuning the old overrides had: black reads
        heavier than white at equal alpha, and hairlines use slate. */
-    --surface-1: rgba(255,255,255,0.02);
-    --surface-2: rgba(255,255,255,0.03);
-    --surface-3: rgba(255,255,255,0.05);
+    --surface-1: rgba(255,255,255,0.025);
+    --surface-2: rgba(255,255,255,0.045);
+    --surface-3: rgba(255,255,255,0.07);
     --surface-4: rgba(255,255,255,0.08);
     --surface-5: rgba(255,255,255,0.10);
     --line-1:    rgba(255,255,255,0.04);
@@ -353,9 +353,9 @@
     --ticker-border:rgba(255, 255, 255, 0.06);
 
     /* Dark-family overlays — identical ladder to .dark */
-    --surface-1: rgba(255,255,255,0.02);
-    --surface-2: rgba(255,255,255,0.03);
-    --surface-3: rgba(255,255,255,0.05);
+    --surface-1: rgba(255,255,255,0.025);
+    --surface-2: rgba(255,255,255,0.045);
+    --surface-3: rgba(255,255,255,0.07);
     --surface-4: rgba(255,255,255,0.08);
     --surface-5: rgba(255,255,255,0.10);
     --line-1:    rgba(255,255,255,0.04);
@@ -420,7 +420,16 @@
     background-attachment: fixed;
     transition: background-color 0.3s ease;
   }
-  html.dark body.app-page,
+  html.dark body.app-page {
+    background-color: #020409;
+    background-image:
+      radial-gradient(ellipse 90% 55% at 15% -10%, rgba(251, 191, 36, 0.05), transparent 60%),
+      radial-gradient(ellipse 70% 45% at 95% 0%, rgba(99, 102, 241, 0.06), transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 110%, rgba(16, 185, 129, 0.03), transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  }
   html.theme-purple body.app-page,
   html.theme-blue body.app-page {
     background-color: #01030a;
@@ -480,6 +489,54 @@
     input::placeholder {
       color: #64748b !important;
     }
+  }
+
+  /* ── Light-safe remaps for hardcoded dark-only utilities ─────────────
+     Komponen lama memakai text-white / bg-black / border-white yang hanya
+     benar di atas permukaan gelap. Remap massal di sini hanya untuk HALAMAN
+     APP (body.app-page) dan hanya saat tema terang — jadi landing page dan
+     tema gelap tidak terpengaruh. Komponen tidak perlu diedit satu per satu. */
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-white"] {
+    color: #0f172a !important;
+  }
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-black/"] {
+    background-color: rgba(15, 23, 42, 0.05) !important;
+  }
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="border-white/"] {
+    border-color: rgba(15, 23, 42, 0.08) !important;
+  }
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="from-white/"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="via-white/"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="to-white/"] {
+    --tw-gradient-from: rgb(15 23 42 / 0.05) !important;
+    --tw-gradient-via:   rgb(15 23 42 / 0.04) !important;
+    --tw-gradient-to:    rgb(15 23 42 / 0.06) !important;
+  }
+  /* Pengecualian: teks putih di atas tombol solid (auth) tetap putih */
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-purple-600"][class*="text-white"] {
+    color: #ffffff !important;
+  }
+
+  /* Slate/gray/zinc gelap-total → aman untuk light */
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-slate-100"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-gray-100"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-zinc-100"] { color: #0f172a !important; }
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-slate-200"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-gray-200"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-zinc-200"] { color: #1e293b !important; }
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-slate-300"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-gray-300"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="text-zinc-300"] { color: #334155 !important; }
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-slate-800"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-slate-900"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-slate-950"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-gray-800"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-gray-900"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-zinc-800"],
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="bg-zinc-900"] { background-color: #f1f5f9 !important; }
+  /* Form kontrol dipaksa gelap oleh [color-scheme:dark] → kembalikan ke light */
+  html:not(.dark):not(.theme-purple):not(.theme-blue) body.app-page [class*="color-scheme:dark"] {
+    color-scheme: light !important;
   }
 
   /* ── Gauge Track Color (tema-aware) ──────────────────────── */
@@ -699,6 +756,28 @@
 .neo-card:hover {
   box-shadow: 0 0 0 1px var(--line-4), var(--shadow-md);
   transform: translateY(-1px);
+}
+
+/* ── Mode gelap yang memanjakan: glow halus hanya di tema gelap ─── */
+.dark .neo-card:hover,
+.theme-purple .neo-card:hover,
+.theme-blue .neo-card:hover {
+  box-shadow: 0 0 0 1px var(--line-4), var(--shadow-md), 0 0 20px rgba(var(--primary-glow-rgb), 0.10);
+}
+.dark .card-hover:hover,
+.theme-purple .card-hover:hover,
+.theme-blue .card-hover:hover {
+  box-shadow: var(--shadow-lg), 0 0 22px rgba(var(--primary-glow-rgb), 0.12);
+}
+.dark .metric-card:hover,
+.theme-purple .metric-card:hover,
+.theme-blue .metric-card:hover {
+  box-shadow: var(--shadow-md), 0 0 18px rgba(var(--primary-glow-rgb), 0.12);
+}
+.dark .section-heading::before,
+.theme-purple .section-heading::before,
+.theme-blue .section-heading::before {
+  box-shadow: 0 0 8px rgba(var(--primary-glow-rgb), 0.30);
 }
 
 

@@ -99,7 +99,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
     <div className="space-y-4">
       {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
       {(scorecard || scVerdict) && (
-        <div className="rounded-2xl p-4 sm:p-5 border border-border/80 dark:border-white/[0.08] bg-card/95 dark:bg-gradient-to-b dark:from-surface-2/90 dark:via-surface-1/95 dark:to-background/95 shadow-sm dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] relative overflow-hidden backdrop-blur-2xl">
+        <div className="rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent pointer-events-none" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
             <div className="lg:col-span-7 xl:col-span-8 min-w-0">
@@ -149,7 +149,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
       {/* 3 Signal Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Smart Money Index */}
-        <div className="group relative rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-purple-500/30 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+        <div className="group relative rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm hover:border-purple-500/40 hover:shadow-md transition-all duration-200 overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
           <div className="flex items-center gap-2 mb-3.5">
             <div className="w-6 h-6 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
@@ -180,7 +180,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
         </div>
 
         {/* Broker Activity */}
-        <div className="group relative rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+        <div className="group relative rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm hover:border-blue-500/40 hover:shadow-md transition-all duration-200 overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
           <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
         </div>
 
         {/* Foreign Flow — mini card */}
-        <div className="group relative rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-teal-500/30 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col">
+        <div className="group relative rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm hover:border-teal-500/40 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
           <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-teal-500/40 to-transparent" />
           <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2">
@@ -265,7 +265,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                 <div className="h-[56px] -mx-0.5">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={miniFlowData} barCategoryGap="10%" margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
-                      <ReferenceLine y={0} stroke="rgba(255,255,255,0.08)" />
+                      <ReferenceLine y={0} stroke="rgba(148,163,184,0.3)" />
                       <Bar dataKey="net" radius={[1, 1, 0, 0]}>
                         {miniFlowData.map((d: any, i: number) => (
                           <Cell key={i} fill={d.net >= 0 ? '#10b981' : '#ef4444'} opacity={0.8} />
@@ -325,7 +325,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
 
                 if (conflict) return (
                   <div className="p-2.5 rounded-lg bg-amber-500/[0.06] border border-amber-500/[0.18]">
-                    <p className="text-[10px] text-amber-200/85 leading-relaxed flex items-start gap-1.5">
+                    <p className="text-[10px] text-amber-700 dark:text-amber-200/85 leading-relaxed flex items-start gap-1.5">
                       <span className="shrink-0 mt-0.5">⚖️</span>
                       <span>
                         Sinyal 30D ({dv.replace(/_/g, ' ').toLowerCase()}) dan tren 20D ({tr.replace(/_/g, ' ').toLowerCase()}) sedang
@@ -337,7 +337,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
 
                 return foreignDivergence.interpretation ? (
                   <div className="p-2.5 rounded-lg bg-teal-500/[0.05] border border-teal-500/[0.12]">
-                    <p className="text-[10px] text-teal-200/80 leading-relaxed flex items-start gap-1.5">
+                    <p className="text-[10px] text-teal-700 dark:text-teal-200/80 leading-relaxed flex items-start gap-1.5">
                       <span className="shrink-0 mt-0.5">💡</span>
                       <span>{foreignDivergence.interpretation}</span>
                     </p>
