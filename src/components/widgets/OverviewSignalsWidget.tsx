@@ -11,31 +11,39 @@ import { ResponsiveContainer, BarChart, Bar, ReferenceLine, Cell } from 'rechart
 // ─── Scorecard helpers ──────────────────────────────────────────────────────
 function tierCls(t: string): string {
   switch (t) {
-    case 'STRONG_BUY': return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-    case 'BUY':        return 'bg-green-500/15 text-green-400 border border-green-500/30'
-    case 'ACCUMULATE': return 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-    case 'WATCH':      return 'bg-slate-500/15 text-slate-300 border border-slate-500/20'
-    default:           return 'bg-slate-500/10 text-muted-foreground border border-line-5'
+    case 'STRONG_BUY': return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+    case 'BUY':        return 'bg-green-500/20 text-green-400 border border-green-500/40 shadow-[0_0_10px_rgba(34,197,94,0.15)]'
+    case 'ACCUMULATE': return 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+    case 'WATCH':      return 'bg-slate-500/20 text-slate-300 border border-slate-500/30'
+    default:           return 'bg-surface-3 text-muted-foreground border border-white/[0.06]'
   }
 }
 function ScoreBar({ label, v, max }: { label: string; v: number; max: number }) {
   const pct = Math.max(0, Math.min(100, (Number(v || 0) / max) * 100))
+  const isFull = pct >= 100
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[9px] text-muted-foreground w-12 flex-shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-surface-4 overflow-hidden">
-        <div className="h-full rounded-full bg-gold-400/70" style={{ width: `${pct}%` }} />
+    <div className="flex items-center gap-2.5">
+      <span className="text-[9.5px] font-bold text-muted-foreground/80 w-12 flex-shrink-0 tracking-wide">{label}</span>
+      <div className="flex-1 h-2 rounded-full bg-surface-4/80 border border-white/[0.04] overflow-hidden p-0.5">
+        <div 
+          className={`h-full rounded-full transition-all duration-500 ${
+            isFull 
+              ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.5)]' 
+              : 'bg-gradient-to-r from-amber-500/80 to-amber-400/90'
+          }`} 
+          style={{ width: `${pct}%` }} 
+        />
       </div>
-      <span className="text-[9px] font-mono text-muted-foreground w-9 text-right">{Number(v || 0)}/{max}</span>
+      <span className="text-[10px] font-mono font-bold text-foreground/90 w-10 text-right tabular-nums">{Number(v || 0)}<span className="text-muted-foreground/50 text-[8.5px]">/{max}</span></span>
     </div>
   )
 }
 function ScoreKPI({ label, val, pos }: { label: string; val: string; pos?: boolean }) {
   const c = pos === undefined ? 'text-foreground' : pos ? 'text-emerald-400' : 'text-red-400'
   return (
-    <div className="flex flex-col">
-      <span className="text-[8px] text-muted-foreground uppercase tracking-wider">{label}</span>
-      <span className={`font-bold ${c}`}>{val}</span>
+    <div className="flex flex-col justify-center p-2 rounded-xl bg-surface-2/70 border border-white/[0.05] transition-all hover:bg-surface-2">
+      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-0.5">{label}</span>
+      <span className={`font-black font-mono text-xs sm:text-[13px] tracking-tight ${c}`}>{val}</span>
     </div>
   )
 }
@@ -87,16 +95,17 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
     <div className="space-y-4">
       {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
       {(scorecard || scVerdict) && (
-        <div className="glass rounded-2xl p-4 border border-line-3">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+        <div className="rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent pointer-events-none" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
             <div className="lg:col-span-7 xl:col-span-8 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">{scVerdict?.emoji}</span>
-                <h3 className="font-black text-sm text-foreground">{scVerdict?.headline}</h3>
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <span className="text-xl filter drop-shadow">{scVerdict?.emoji}</span>
+                <h3 className="font-black text-sm sm:text-base text-foreground tracking-tight">{scVerdict?.headline}</h3>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{scVerdict?.detail}</p>
+              <p className="text-xs text-muted-foreground/90 leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
               {scorecard && (
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-3.5 pt-3 border-t border-line-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-white/[0.06]">
                   <ScoreKPI label="Return 5D"   val={`${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        pos={Number(scorecard.return_5d) >= 0} />
                   <ScoreKPI label="Return 20D"  val={`${Number(scorecard.return_20d ?? 0).toFixed(1)}%`}       pos={Number(scorecard.return_20d) >= 0} />
                   <ScoreKPI label="AOV Ratio"   val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`} />
@@ -106,21 +115,25 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               )}
             </div>
             {scorecard && (
-              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-line-3 lg:pl-5 pt-3 lg:pt-0">
-                <div className="flex items-center justify-between mb-2.5">
+              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-white/[0.08] lg:pl-6 pt-4 lg:pt-0">
+                <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold">Composite V2</div>
-                    <div className="text-2xl font-black font-mono leading-none">{scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span></div>
+                    <div className="text-[9px] text-muted-foreground/80 uppercase tracking-[0.14em] font-bold">Composite V2</div>
+                    <div className="text-2xl sm:text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400 leading-none mt-0.5">
+                      {scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span>
+                    </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${tierCls(scorecard.tier_v2)}`}>{scorecard.tier_v2}</span>
+                  <span className={`px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider backdrop-blur-md ${tierCls(scorecard.tier_v2)}`}>
+                    {scorecard.tier_v2}
+                  </span>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2 bg-surface-2/50 p-2.5 rounded-xl border border-white/[0.04]">
                   <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
                   <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
                   <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
                   <ScoreBar label="Foreign" v={scorecard.foreign_pts} max={6} />
                 </div>
-                <div className="text-[9px] font-mono text-muted-foreground/80 mt-2 truncate">
+                <div className="text-[9px] font-mono text-muted-foreground/70 mt-2 truncate">
                   v1: {scorecard.v1_tier} ({scorecard.v1_score}) · flow: {scorecard.flow_context}
                 </div>
               </div>
@@ -132,10 +145,13 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
       {/* 3 Signal Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Smart Money Index */}
-        <div className="glass rounded-2xl p-4 border border-line-3 card-hover">
-          <div className="flex items-center gap-2 mb-3">
-            <Target className="w-4 h-4 text-purple-400" />
-            <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Smart Money Index</h3>
+        <div className="group relative rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-purple-500/30 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
+          <div className="flex items-center gap-2 mb-3.5">
+            <div className="w-6 h-6 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+              <Target className="w-3.5 h-3.5 text-purple-400" />
+            </div>
+            <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.16em]">Smart Money Index</h3>
           </div>
           {smartMoneyIndex ? (
             <div className="space-y-3">
@@ -146,38 +162,43 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                   { l: 'Broker Net', v: formatRupiah(smartMoneyIndex.broker_net || 0), c: (smartMoneyIndex.broker_net || 0) >= 0 ? 'text-emerald-400' : 'text-red-400' },
                   { l: 'Foreign 30D',v: formatRupiah(smartMoneyIndex.foreign_30d || 0),c: (smartMoneyIndex.foreign_30d || 0) >= 0 ? 'text-emerald-400' : 'text-red-400' },
                 ].map((m, i) => (
-                  <div key={i} className="p-2 rounded-lg bg-surface-2 border border-line-2">
-                    <p className="text-[8px] text-muted-foreground uppercase">{m.l}</p>
-                    <p className={`text-xs font-black ${m.c}`}>{m.v}</p>
+                  <div key={i} className="p-2.5 rounded-xl bg-surface-2/70 border border-white/[0.04]">
+                    <p className="text-[8px] font-bold text-muted-foreground/80 uppercase tracking-wider mb-0.5">{m.l}</p>
+                    <p className={`text-xs font-black font-mono tracking-tight ${m.c}`}>{m.v}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-[9px] text-muted-foreground font-mono leading-relaxed">{smartMoneyIndex.signal || '--'}</p>
+              <div className="p-2 rounded-xl bg-black/20 border border-white/[0.03]">
+                <p className="text-[9.5px] text-muted-foreground font-mono leading-relaxed">{smartMoneyIndex.signal || '--'}</p>
+              </div>
             </div>
           ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
         </div>
 
         {/* Broker Activity */}
-        <div className="glass rounded-2xl p-4 border border-line-3 card-hover">
-          <div className="flex items-center justify-between mb-3">
+        <div className="group relative rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+          <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-blue-400" />
-              <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Broker Activity</h3>
+              <div className="w-6 h-6 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <Building2 className="w-3.5 h-3.5 text-blue-400" />
+              </div>
+              <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.16em]">Broker Activity</h3>
             </div>
             <Link href={`/broker-tracker?code=${stockCode}`} prefetch={false}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-bold hover:bg-blue-500/20 transition-all">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-bold hover:bg-blue-500/20 transition-all active:scale-95">
               <ExternalLink className="w-3 h-3" /> Full
             </Link>
           </div>
           {brokerData.length > 0 ? (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {brokerData.map((b: any, i: number) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-line-1 last:border-0">
+                <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-surface-2/50 border border-white/[0.03] transition-colors hover:bg-surface-2/80">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-foreground truncate">{b.kode_broker}</p>
-                    <p className="text-[8px] text-muted-foreground truncate max-w-[120px]">{b.nama_broker}</p>
+                    <p className="text-[10.5px] font-bold text-foreground font-mono truncate">{b.kode_broker}</p>
+                    <p className="text-[8px] text-muted-foreground truncate max-w-[130px]">{b.nama_broker}</p>
                   </div>
-                  <span className={`text-[10px] font-black shrink-0 ml-2 ${Number(b.net_value) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className={`text-[10.5px] font-black font-mono shrink-0 ml-2 ${Number(b.net_value) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {formatRupiah(Number(b.net_value))}
                   </span>
                 </div>
@@ -192,43 +213,44 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
         </div>
 
         {/* Foreign Flow — mini card */}
-        <div className="glass rounded-2xl p-4 border border-line-3 card-hover flex flex-col">
-          <div className="flex items-center justify-between mb-3">
+        <div className="group relative rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:border-teal-500/30 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col">
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-teal-500/40 to-transparent" />
+          <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-teal-400" />
-              <h3 className="text-[10px] font-black text-teal-400 uppercase tracking-widest">Foreign Flow</h3>
+              <div className="w-6 h-6 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                <Globe className="w-3.5 h-3.5 text-teal-400" />
+              </div>
+              <h3 className="text-[10px] font-black text-teal-400 uppercase tracking-[0.16em]">Foreign Flow</h3>
             </div>
             <Link href={`/foreign-flow?action=stock_chart&code=${stockCode}`} prefetch={false}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-teal-500/10 border border-teal-500/25 text-teal-400 text-[9px] font-bold hover:bg-teal-500/20 transition-all">
-              <ExternalLink className="w-3 h-3" /> Intelligence
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/25 text-teal-400 text-[9px] font-bold hover:bg-teal-500/20 transition-all active:scale-95">
+              <ExternalLink className="w-3 h-3" /> Intel
             </Link>
           </div>
 
           {foreignDivergence ? (
             <div className="space-y-2.5 flex-1">
-              {/* Window is part of the claim: this badge is computed from the 30-day
-                  net vs the latest 1-day move, nothing else. */}
-              <div className={`px-3 py-2 rounded-xl text-center border ${
+              <div className={`px-3 py-2 rounded-xl text-center border shadow-sm ${
                 foreignDivergence.divergence_type?.includes('STEALTH') || foreignDivergence.divergence_type?.includes('BULLISH')
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   : foreignDivergence.divergence_type?.includes('BEARISH') || foreignDivergence.divergence_type?.includes('DISTRIBUTION')
                     ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                    : 'bg-surface-2 text-muted-foreground border-line-3'
+                    : 'bg-surface-2/70 text-muted-foreground border-white/[0.05]'
               }`}>
-                <div className="text-[8px] uppercase tracking-widest opacity-60 mb-0.5">Sinyal 30D</div>
-                <div className="text-[11px] font-black">{foreignDivergence.divergence_type || 'NEUTRAL'}</div>
+                <div className="text-[8px] font-bold uppercase tracking-[0.14em] opacity-70 mb-0.5">Sinyal 30D</div>
+                <div className="text-[11px] font-black tracking-wide">{foreignDivergence.divergence_type || 'NEUTRAL'}</div>
               </div>
 
-              <div className="grid grid-cols-4 gap-1">
+              <div className="grid grid-cols-4 gap-1.5">
                 {([
                   { l: '1D',  v: stockData.net_foreign_value },
                   { l: '7D',  v: flow7d  },
                   { l: '30D', v: flow30d },
                   { l: '60D', v: flow60d },
                 ] as { l: string; v: number }[]).map(({ l, v }) => (
-                  <div key={l} className="text-center py-1.5 px-1 rounded-lg bg-surface-2 border border-line-2">
-                    <div className="text-[8px] text-muted-foreground uppercase mb-0.5">{l}</div>
-                    <div className={`text-[10px] font-black leading-none ${v >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div key={l} className="text-center py-1.5 px-1 rounded-xl bg-surface-2/70 border border-white/[0.04]">
+                    <div className="text-[8px] font-bold text-muted-foreground uppercase mb-0.5">{l}</div>
+                    <div className={`text-[10px] font-black font-mono leading-none ${v >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {fmtFlow(v)}
                     </div>
                   </div>
@@ -250,29 +272,27 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                <div className="p-2 rounded-lg bg-surface-1 border border-line-2">
-                  {/* The SQL behind this is a 20-day rolling sum (ROWS 19 PRECEDING);
-                      it was mislabeled "60D" because the series spans 60 days. */}
-                  <span className="text-muted-foreground block text-[8px] mb-0.5">TREND 20D</span>
-                  <span className={`font-bold ${
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div className="p-2 rounded-xl bg-surface-2/70 border border-white/[0.04]">
+                  <span className="text-muted-foreground/80 block text-[8px] font-bold tracking-wider mb-0.5">TREND 20D</span>
+                  <span className={`font-black font-mono text-[10.5px] ${
                     latestTrend?.trend?.includes('ACCUMULATION') ? 'text-emerald-400' :
                     latestTrend?.trend?.includes('DISTRIBUTION') ? 'text-red-400' : 'text-muted-foreground'
                   }`}>{String(latestTrend?.trend || 'NEUTRAL').replace(/_/g, ' ')}</span>
                 </div>
-                <div className="p-2 rounded-lg bg-surface-1 border border-line-2">
-                  <span className="text-muted-foreground block text-[8px] mb-0.5">SIGNAL</span>
-                  <span className={`font-bold ${
+                <div className="p-2 rounded-xl bg-surface-2/70 border border-white/[0.04]">
+                  <span className="text-muted-foreground/80 block text-[8px] font-bold tracking-wider mb-0.5">SIGNAL</span>
+                  <span className={`font-black text-[10.5px] ${
                     foreignDivergence.signal_strength === 'STRONG' ? 'text-emerald-400' :
                     foreignDivergence.signal_strength === 'MODERATE' ? 'text-amber-400' : 'text-muted-foreground'
-                  }`}>{foreignDivergence.signal_strength || 'WEAK'}</span>
+                  }`}>{foreignDivergence.signal_strength || 'NEUTRAL'}</span>
                 </div>
               </div>
 
               {latestTrend && (
-                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-surface-1 border border-line-2 text-[9px]">
-                  <span className="text-muted-foreground">MA5 vs MA20</span>
-                  <span className={`font-black ${Number(latestTrend.flow_ma5) >= Number(latestTrend.flow_ma20) ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-surface-2/70 border border-white/[0.04] text-[9.5px]">
+                  <span className="text-muted-foreground/80 font-bold text-[8.5px] uppercase">MA5 vs MA20</span>
+                  <span className={`font-black font-mono ${Number(latestTrend.flow_ma5) >= Number(latestTrend.flow_ma20) ? 'text-emerald-400' : 'text-red-400'}`}>
                     {Number(latestTrend.flow_ma5) >= Number(latestTrend.flow_ma20) ? '↑ Accumulation' : '↓ Distribution'}
                   </span>
                 </div>
