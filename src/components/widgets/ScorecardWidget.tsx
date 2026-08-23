@@ -175,7 +175,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
           </div>
         </div>
 
-        {/* 2. Middle 5 Financial Metric Cards (High-Precision Stat Tiles) */}
+        {/* 2. Middle 5 Financial Metric Cards (High-Precision Jewel-Toned Stat Tiles) */}
         <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2.5">
           {[
             { 
@@ -183,30 +183,45 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
               v: formatRupiah(marketCap), 
               sub: 'Total Valuasi IDX',
               icon: Coins, 
+              color: 'text-amber-600 dark:text-amber-300',
+              iconStyle: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
+              glowBorder: 'hover:border-amber-500/40'
             },
             { 
               l: 'Float Cap', 
               v: formatRupiah(floatCap), 
               sub: `${stockData.free_float?.toFixed(1) || 0}% Free Float`,
               icon: PieChart, 
+              color: 'text-sky-600 dark:text-sky-300',
+              iconStyle: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25',
+              glowBorder: 'hover:border-sky-500/40'
             },
             { 
               l: 'Public Shr', 
               v: formatShares(publicShares), 
               sub: 'Saham di Publik',
               icon: Users, 
+              color: 'text-indigo-600 dark:text-indigo-300',
+              iconStyle: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
+              glowBorder: 'hover:border-indigo-500/40'
             },
             { 
               l: 'Volume', 
               v: formatShares(stockData.volume), 
               sub: `${formatShares(volumeLot)} Lot`,
               icon: BarChart3, 
+              color: 'text-teal-600 dark:text-teal-300',
+              iconStyle: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/25',
+              glowBorder: 'hover:border-teal-500/40'
             },
             { 
               l: 'Value', 
               v: formatRupiah(stockData.value), 
               sub: 'Nilai Transaksi 1D',
               icon: Wallet, 
+              color: 'text-emerald-600 dark:text-emerald-300',
+              iconStyle: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
+              glowBorder: 'hover:border-emerald-500/40',
               span: 'col-span-2 sm:col-span-1 lg:col-span-2 xl:col-span-1'
             },
           ].map((m, i) => {
@@ -214,16 +229,16 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             return (
               <div 
                 key={i} 
-                className={`group relative p-3 sm:p-3.5 rounded-2xl flex flex-col justify-between bg-gradient-to-b from-surface-1/90 via-surface-1/60 to-surface-2/40 dark:from-white/[0.035] dark:via-white/[0.02] dark:to-transparent border border-border/60 dark:border-white/[0.07] hover:border-amber-500/40 dark:hover:border-amber-500/30 hover:shadow-md transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] ${m.span || ''}`}
+                className={`group relative p-3 sm:p-3.5 rounded-2xl flex flex-col justify-between bg-gradient-to-b from-surface-1/90 via-surface-1/60 to-surface-2/40 dark:from-white/[0.035] dark:via-white/[0.02] dark:to-transparent border border-border/60 dark:border-white/[0.07] ${m.glowBorder} hover:shadow-md transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] ${m.span || ''}`}
               >
                 <div className="flex items-center justify-between gap-1 mb-2">
                   <span className="text-[9px] font-black uppercase tracking-[0.14em] text-muted-foreground/75">{m.l}</span>
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-surface-2/80 dark:bg-white/[0.04] text-muted-foreground/60 border border-border/40 dark:border-white/[0.06] group-hover:text-amber-400 group-hover:border-amber-500/30 group-hover:bg-amber-500/10 transition-all">
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center border shadow-2xs ${m.iconStyle}`}>
                     <Icon className="w-3.5 h-3.5" />
                   </div>
                 </div>
                 <div>
-                  <div className="text-base sm:text-[17px] font-black font-mono tracking-tight text-foreground group-hover:text-amber-500 dark:group-hover:text-amber-300 transition-colors">
+                  <div className={`text-base sm:text-[17px] font-black font-mono tracking-tight ${m.color}`}>
                     {m.v}
                   </div>
                   <span className="text-[9.5px] text-muted-foreground/70 font-medium font-mono truncate block mt-0.5">
@@ -277,6 +292,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             l: 'Conviction',   
             v: `${convictionScore}`,                           
             status: convictionScore >= 80 ? 'HIGH' : convictionScore >= 60 ? 'MED' : 'LOW',
+            valColor: convictionScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' : convictionScore >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400',
             badgeBg: convictionScore >= 80 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : convictionScore >= 60 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
             barPct: Math.min(100, convictionScore),
             barColor: convictionScore >= 80 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : convictionScore >= 60 ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
@@ -285,6 +301,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             l: 'Smart Money',  
             v: `${Math.round(smiScore)}`,                      
             status: smiScore >= 60 ? 'ACCUM' : smiScore >= 30 ? 'NEUTRAL' : 'DISTRIB',
+            valColor: smiScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : smiScore >= 30 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400',
             badgeBg: smiScore >= 60 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : smiScore >= 30 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
             barPct: Math.min(100, Math.round(smiScore)),
             barColor: smiScore >= 60 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : smiScore >= 30 ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
@@ -302,6 +319,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             l: 'AOV Ratio',    
             v: `${(stockData.aov_ratio_ma20||1).toFixed(2)}x`, 
             status: stockData.aov_ratio_ma20 >= 1.5 ? 'WHALE' : 'NORMAL',
+            valColor: stockData.aov_ratio_ma20 >= 1.5 ? 'text-purple-600 dark:text-purple-300' : 'text-amber-600 dark:text-amber-300',
             badgeBg: stockData.aov_ratio_ma20 >= 1.5 ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 shadow-[0_0_8px_rgba(168,85,247,0.2)]' : 'bg-surface-3 text-muted-foreground/80 border-border/40',
             barPct: Math.min(100, (stockData.aov_ratio_ma20 || 1) * 50),
             barColor: stockData.aov_ratio_ma20 >= 1.5 ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-muted-foreground/30'
@@ -310,6 +328,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             l: 'Turnover',     
             v: `${dailyTurnover.toFixed(2)}%`,                 
             status: dailyTurnover > 5 ? 'HIGH VOL' : dailyTurnover < 1 ? 'LOW VOL' : 'NORMAL',
+            valColor: 'text-teal-600 dark:text-teal-300',
             badgeBg: dailyTurnover > 5 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : dailyTurnover < 1 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-surface-3 text-muted-foreground/80 border-border/40',
             barPct: Math.min(100, dailyTurnover * 10),
             barColor: dailyTurnover > 5 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : dailyTurnover < 1 ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-muted-foreground/30'
@@ -318,6 +337,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
             l: 'Free Float',   
             v: `${stockData.free_float?.toFixed(1)||'--'}%`,   
             status: (stockData.free_float || 0) > 30 ? 'LIQUID' : 'TIGHT',
+            valColor: 'text-sky-600 dark:text-sky-300',
             badgeBg: (stockData.free_float || 0) > 30 ? 'bg-surface-3 text-muted-foreground/80 border-border/40' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
             barPct: Math.min(100, stockData.free_float || 0),
             barColor: (stockData.free_float || 0) > 30 ? 'bg-muted-foreground/30' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
@@ -331,7 +351,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
               </span>
             </div>
             <div>
-              <div className={`text-base sm:text-[17px] font-black font-mono tracking-tight ${m.valColor || 'text-foreground'}`}>
+              <div className={`text-base sm:text-[17px] font-black font-mono tracking-tight ${m.valColor}`}>
                 {m.v}
               </div>
               {/* Sleek pill progress track */}
