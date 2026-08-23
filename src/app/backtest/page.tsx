@@ -1004,7 +1004,6 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                         <th className="py-2.5 px-3 text-right">Max High (MFE)</th>
                         <th className="py-2.5 px-3 text-right">Max Low (MAE)</th>
                         <th className="py-2.5 px-3 text-center">Status</th>
-                        <th className="py-2.5 px-3 text-center">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line-2 font-mono">
@@ -1016,13 +1015,18 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             {/* Number */}
                             <td className="py-2.5 px-3 text-muted-foreground font-bold">{idx + 1}</td>
 
-                            {/* Stock info */}
+                            {/* Stock info (Clickable to /stock/[code]) */}
                             <td className="py-2.5 px-3 font-sans">
-                              <div className="flex items-center gap-2.5">
+                              <Link
+                                href={`/stock/${s.stock_code}`}
+                                className="flex items-center gap-2.5 group hover:opacity-95 transition-all"
+                              >
                                 <CompanyLogo code={s.stock_code} sector={s.sector} size={30} />
                                 <div>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="font-black font-mono text-xs sm:text-sm text-foreground">{s.stock_code}</span>
+                                    <span className="font-black font-mono text-xs sm:text-sm text-foreground group-hover:text-amber-500 group-hover:underline underline-offset-2 transition-colors">
+                                      {s.stock_code}
+                                    </span>
                                     {s.entry_whale && (
                                       <span className="text-[7.5px] px-1 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/30">
                                         WHALE
@@ -1033,7 +1037,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                                     {s.company_name || s.sector}
                                   </span>
                                 </div>
-                              </div>
+                              </Link>
                             </td>
 
                             {/* T0 Signal Conditions Badges */}
@@ -1109,16 +1113,6 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                                 {isWin ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                                 {isWin ? 'WIN' : 'LOSS'}
                               </span>
-                            </td>
-
-                            {/* Action Link */}
-                            <td className="py-2.5 px-3 text-center">
-                              <Link
-                                href={`/stock/${s.stock_code}`}
-                                className="p-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-muted-foreground hover:text-foreground inline-flex items-center justify-center border border-line-2 transition-colors"
-                              >
-                                <ArrowUpRight className="w-3.5 h-3.5" />
-                              </Link>
                             </td>
 
                           </tr>
