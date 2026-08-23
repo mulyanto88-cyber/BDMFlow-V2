@@ -7,11 +7,9 @@ import {
   Target, Clock, AlertTriangle, X, BarChart3,
   Zap, Calendar, RefreshCw, Info, Share2, Copy, Check,
   ExternalLink, Shield, Award, Sparkles, Layers, Flame,
-  Coins, ArrowUpRight, Activity, Globe, Users, PieChart
+  Coins, ArrowUpRight, Activity, Globe, Users, PieChart,
+  CheckCircle2, XCircle
 } from 'lucide-react'
-import {
-  ResponsiveContainer, ReferenceLine, Cell
-} from 'recharts'
 import { formatRupiah, formatNumber, formatShares } from '@/lib/utils'
 import { mdQuery, UpgradeRequiredError } from '@/lib/api'
 import { UpgradePrompt } from '@/components/upgrade-prompt'
@@ -113,43 +111,121 @@ interface StratResult {
   equityCurve: { date: string; equity: number; drawdown: number }[]
 }
 
-const SIGNAL_PRESETS = [
+// ─── Comprehensive Signal Groups across the Platform ──────────────────────────
+const SIGNAL_CATEGORIES = [
   {
-    id: 'AOV_SURGE',
-    label: 'AOV Volume Surge',
-    icon: Flame,
-    color: 'text-amber-500',
-    desc: 'AOV Ratio ≥ 1.5x (Lonjakan rata-rata volume per transaksi)',
+    category: 'Daily Tape & Flow Anomaly',
+    presets: [
+      {
+        id: 'AOV_SURGE',
+        label: 'AOV Volume Surge',
+        badge: '1.5x+',
+        icon: Flame,
+        color: 'text-amber-500',
+        bgIcon: 'bg-amber-500/10 text-amber-500 border-amber-500/25',
+        accentBorder: 'border-l-amber-500',
+        desc: 'AOV Ratio ≥ 1.5x (Lonjakan rata-rata volume per transaksi)',
+      },
+      {
+        id: 'AOV_EXTREME',
+        label: 'AOV Extreme Spike',
+        badge: '2.5x+',
+        icon: Zap,
+        color: 'text-orange-500',
+        bgIcon: 'bg-orange-500/10 text-orange-500 border-orange-500/25',
+        accentBorder: 'border-l-orange-500',
+        desc: 'AOV Ratio ≥ 2.5x (Anomali lonjakan transaksi super masif)',
+      },
+      {
+        id: 'WHALE_ALERT',
+        label: 'Whale Flow Alert',
+        badge: 'Whale',
+        icon: Shield,
+        color: 'text-purple-500',
+        bgIcon: 'bg-purple-500/10 text-purple-500 border-purple-500/25',
+        accentBorder: 'border-l-purple-500',
+        desc: 'Akumulasi bandar & anomali big player di transaksi harian',
+      },
+      {
+        id: 'BIG_PLAYER',
+        label: 'Big Player Tape Anomaly',
+        badge: 'Big Player',
+        icon: Target,
+        color: 'text-fuchsia-500',
+        bgIcon: 'bg-fuchsia-500/10 text-fuchsia-500 border-fuchsia-500/25',
+        accentBorder: 'border-l-fuchsia-500',
+        desc: 'Anomali transaksi volume investor institusi / smart money',
+      },
+      {
+        id: 'FOREIGN_INFLOW',
+        label: 'Foreign Net Inflow 1D',
+        badge: 'Net Buy',
+        icon: Globe,
+        color: 'text-teal-500',
+        bgIcon: 'bg-teal-500/10 text-teal-500 border-teal-500/25',
+        accentBorder: 'border-l-teal-500',
+        desc: 'Top akumulasi net foreign buy harian terbesar di bursa',
+      },
+    ]
   },
   {
-    id: 'WHALE_ALERT',
-    label: 'Whale / Big Player',
-    icon: Zap,
-    color: 'text-purple-500',
-    desc: 'Sinyal akumulasi bandar & anomali big player',
-  },
-  {
-    id: 'FOREIGN_INFLOW',
-    label: 'Foreign Net Inflow 1D',
-    icon: Globe,
-    color: 'text-teal-500',
-    desc: 'Top akumulasi net buy asing harian',
-  },
-  {
-    id: 'COMBINED',
-    label: 'Power Signal (Whale + Asing)',
-    icon: Sparkles,
-    color: 'text-emerald-500',
-    desc: 'Kombinasi Whale/AOV Surge + Asing Net Buy',
-  },
-  {
-    id: 'ALL',
-    label: 'Top Active Market Value',
-    icon: Activity,
-    color: 'text-blue-500',
-    desc: 'Top saham paling likuid di bursa pada tanggal tersebut',
-  },
+    category: 'High-Conviction & Multi-Factor Combos',
+    presets: [
+      {
+        id: 'COMBINED_WHALE_FOREIGN',
+        label: 'Whale + Asing Net Buy',
+        badge: 'Power Combo',
+        icon: Sparkles,
+        color: 'text-emerald-500',
+        bgIcon: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25',
+        accentBorder: 'border-l-emerald-500',
+        desc: 'Kombinasi Whale/AOV Surge + Akumulasi Asing Positif',
+      },
+      {
+        id: 'TRIPLE_POWER',
+        label: 'Triple Combo (Whale+AOV+Asing)',
+        badge: 'Max Conviction',
+        icon: Award,
+        color: 'text-yellow-500',
+        bgIcon: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/25',
+        accentBorder: 'border-l-yellow-500',
+        desc: 'Whale Signal + AOV ≥ 1.5x + Asing Net Buy (Triple Filter)',
+      },
+      {
+        id: 'RADAR_MOMENTUM',
+        label: 'Radar Price Momentum',
+        badge: 'Momentum',
+        icon: TrendingUp,
+        color: 'text-cyan-500',
+        bgIcon: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/25',
+        accentBorder: 'border-l-cyan-500',
+        desc: 'AOV ≥ 1.2x + Price Naik ≥ +1.5% + Asing Akumulasi',
+      },
+      {
+        id: 'ACCUM_BREAKOUT',
+        label: 'Accumulation Breakout',
+        badge: 'Breakout',
+        icon: ArrowUpRight,
+        color: 'text-blue-500',
+        bgIcon: 'bg-blue-500/10 text-blue-500 border-blue-500/25',
+        accentBorder: 'border-l-blue-500',
+        desc: 'Candle hijau (Close ≥ Open) dengan konfirmasi Whale/AOV Surge',
+      },
+      {
+        id: 'ALL',
+        label: 'Top Active Liquidity',
+        badge: 'Market Value',
+        icon: Activity,
+        color: 'text-slate-400',
+        bgIcon: 'bg-slate-500/10 text-slate-400 border-slate-500/25',
+        accentBorder: 'border-l-slate-400',
+        desc: 'Top 10 saham paling likuid di bursa pada tanggal tersebut',
+      },
+    ]
+  }
 ]
+
+const ALL_PRESETS_FLAT = SIGNAL_CATEGORIES.flatMap(c => c.presets)
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function BacktestPage() {
@@ -206,7 +282,6 @@ export default function BacktestPage() {
           const dates = rows.map((r: any) => String(r.trading_date).split('T')[0])
           setTradingDates(dates)
           
-          // Set initial default target date (approx 10 trading days ago)
           if (dates.length > 10) {
             setTargetDate(dates[10])
           } else if (dates.length > 0) {
@@ -219,7 +294,6 @@ export default function BacktestPage() {
     }
     loadDates()
 
-    // Default dates for BnH
     const end = new Date()
     const start = new Date(); start.setDate(start.getDate() - 90)
     setEndDate(end.toISOString().split('T')[0])
@@ -261,7 +335,7 @@ export default function BacktestPage() {
     }
   }, [targetDate, signalPreset, limitCount])
 
-  // Auto-run when trading dates load for first time
+  // Auto-run when target date loads
   useEffect(() => {
     if (tradingDates.length > 0 && targetDate && !signalResults && mode === 'signal' && !loading) {
       runSignalBacktest(targetDate, signalPreset, limitCount)
@@ -549,7 +623,7 @@ export default function BacktestPage() {
   // ─── Copy Social Media Summary ──────────────────────────────────────────────
   const handleCopySocial = () => {
     if (!signalKPIs || !signalResults) return
-    const activePresetObj = SIGNAL_PRESETS.find(p => p.id === signalPreset)
+    const activePresetObj = ALL_PRESETS_FLAT.find(p => p.id === signalPreset)
     const text = `📊 BDMFLOW SIGNAL EFFICACY REPORT 🚀
 🔍 Sinyal: ${activePresetObj?.label || signalPreset}
 📅 Trigger Snapshot: ${targetDate} (${signalResults[0]?.days_held || 0} Hari Bursa Lalu)
@@ -585,7 +659,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
     <div className="w-full py-6 space-y-6 pb-16 animate-fade-in max-w-7xl mx-auto px-2 sm:px-4">
 
       {/* ── Header & Main Navigation Tabs ── */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/60 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-line-3 shadow-xs">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/75 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-line-3 shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/30 text-amber-500 shadow-sm shrink-0">
             <FlaskConical className="w-5 h-5 stroke-[2.5]" />
@@ -593,7 +667,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">Backtest Lab</h1>
-              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-black uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[9px] font-black uppercase tracking-wider">
                 Accuracy & Efficacy
               </span>
             </div>
@@ -604,7 +678,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
         </div>
 
         {/* 3 Modern Navigation Tabs */}
-        <div className="flex bg-surface-2/80 p-1 rounded-xl border border-line-2 w-full md:w-auto overflow-x-auto">
+        <div className="flex bg-surface-2 p-1 rounded-xl border border-line-2 w-full md:w-auto overflow-x-auto">
           {[
             { id: 'signal', label: '🎯 Signal Accuracy (Multi-Stock)' },
             { id: 'strategy', label: '📊 Single Stock Sim' },
@@ -642,65 +716,79 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
       {mode === 'signal' && (
         <div className="space-y-6">
           
-          {/* Controls Bar: Preset Sinyal + Periode Snapshot + Jumlah Saham */}
-          <div className="rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm space-y-4">
+          {/* Controls Bar: 10 Sinyal Presets + Periode Snapshot + Jumlah Saham */}
+          <div className="rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm space-y-5">
             
-            {/* 1. Pilih Sinyal */}
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-2.5">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            {/* Sinyal Presets Categorized */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5 text-amber-500" />
                   Pilih Sinyal / Filter Entry ($T_0$)
                 </span>
-                <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
-                  {SIGNAL_PRESETS.find(p => p.id === signalPreset)?.desc}
+                <span className="text-[10px] text-muted-foreground/80 hidden sm:inline font-medium">
+                  {ALL_PRESETS_FLAT.find(p => p.id === signalPreset)?.desc}
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                {SIGNAL_PRESETS.map(p => {
-                  const Icon = p.icon
-                  const active = signalPreset === p.id
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setSignalPreset(p.id)
-                        runSignalBacktest(targetDate, p.id, limitCount)
-                      }}
-                      className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 ${
-                        active
-                          ? 'bg-surface-2 border-line-5 shadow-xs'
-                          : 'bg-surface-1 border-line-2 hover:border-line-4 text-muted-foreground'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <Icon className={`w-4 h-4 ${p.color}`} />
-                        {active && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
-                      </div>
-                      <span className={`text-xs font-bold ${active ? 'text-foreground font-black' : 'text-muted-foreground'}`}>
-                        {p.label}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
+
+              {SIGNAL_CATEGORIES.map((cat, ci) => (
+                <div key={ci} className="space-y-2">
+                  <div className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                    {cat.category}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                    {cat.presets.map(p => {
+                      const Icon = p.icon
+                      const active = signalPreset === p.id
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            setSignalPreset(p.id)
+                            runSignalBacktest(targetDate, p.id, limitCount)
+                          }}
+                          className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 border-l-[3.5px] ${p.accentBorder} ${
+                            active
+                              ? 'bg-surface-2 border-line-5 shadow-xs ring-1 ring-amber-500/30'
+                              : 'bg-surface-1/90 border-line-2 hover:border-line-4 text-muted-foreground hover:bg-surface-2'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center border ${p.bgIcon}`}>
+                              <Icon className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded bg-surface-3 text-muted-foreground border border-line-2">
+                              {p.badge}
+                            </span>
+                          </div>
+                          <div>
+                            <span className={`text-xs font-black block leading-snug ${active ? 'text-foreground' : 'text-foreground/80'}`}>
+                              {p.label}
+                            </span>
+                            <span className="text-[8.5px] text-muted-foreground/80 truncate block mt-0.5 font-medium">
+                              {p.desc}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* 2. Pilih Periode Waktu ($T_0$) & Sample Count */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-3 border-t border-line-2 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-3.5 border-t border-line-2 items-center">
               
               {/* Quick Timeframe Buttons */}
               <div className="md:col-span-6 flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mr-1">
-                  Titik Awal:
+                  Titik Awal ($T_0$):
                 </span>
                 {(['1W', '2W', '1M', '3M'] as const).map(tf => (
                   <button
                     key={tf}
-                    onClick={() => {
-                      applyTimeframe(tf)
-                      // Target date will update and trigger runSignalBacktest
-                    }}
+                    onClick={() => applyTimeframe(tf)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                       timeframe === tf
                         ? 'bg-amber-500 text-black border-amber-400 font-black shadow-xs'
@@ -779,90 +867,84 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
           {signalKPIs && signalResults && !loading && (
             <div className="space-y-6 animate-fade-in">
               
-              {/* 4 Executive KPI Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {/* 4 Themed & Distinct Executive KPI Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                 
-                {/* 1. Win Rate */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                {/* 1. Win Rate (Emerald Theme) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/30 dark:border-emerald-500/35 border-l-[4px] border-l-emerald-500 shadow-xs flex flex-col justify-between relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                       Win Rate Akurasi
                     </span>
-                    <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded-md border ${
-                      signalKPIs.winRate >= 70 
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25' 
-                        : signalKPIs.winRate >= 50 
-                          ? 'bg-amber-500/10 text-amber-500 border-amber-500/25' 
-                          : 'bg-rose-500/10 text-rose-500 border-rose-500/25'
-                    }`}>
+                    <span className="text-[8.5px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                       {signalKPIs.winCount} Win · {signalKPIs.lossCount} Loss
                     </span>
                   </div>
                   <div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-foreground">
+                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-emerald-600 dark:text-emerald-400">
                       {signalKPIs.winRate.toFixed(1)}%
                     </div>
                     {/* Micro bar */}
-                    <div className="w-full h-1.5 bg-surface-3 rounded-full mt-2 overflow-hidden">
+                    <div className="w-full h-1.5 bg-emerald-500/20 rounded-full mt-2.5 overflow-hidden">
                       <div 
-                        className={`h-full rounded-full ${signalKPIs.winRate >= 70 ? 'bg-emerald-500' : signalKPIs.winRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} 
+                        className="h-full rounded-full bg-emerald-500 transition-all duration-500" 
                         style={{ width: `${signalKPIs.winRate}%` }} 
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* 2. Avg Current Return */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between">
+                {/* 2. Avg Current Return (Cyan Theme) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-cyan-500/[0.04] dark:bg-cyan-950/20 border border-cyan-500/30 dark:border-cyan-500/35 border-l-[4px] border-l-cyan-500 shadow-xs flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-[9px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
                       Rata-Rata Return Saat Ini
                     </span>
-                    <TrendingUp className={`w-4 h-4 ${signalKPIs.avgReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />
+                    <TrendingUp className="w-4 h-4 text-cyan-500" />
                   </div>
                   <div>
                     <div className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
-                      signalKPIs.avgReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                      signalKPIs.avgReturn >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-500'
                     }`}>
                       {signalKPIs.avgReturn >= 0 ? '+' : ''}{signalKPIs.avgReturn.toFixed(2)}%
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-medium block mt-1">
+                    <span className="text-[10px] text-cyan-800/80 dark:text-cyan-200/70 font-medium block mt-1">
                       Holding ~{signalResults[0]?.days_held || 0} hari bursa
                     </span>
                   </div>
                 </div>
 
-                {/* 3. Avg Max Potential Gain (MFE) */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between">
+                {/* 3. Avg Max Potential Gain / MFE (Purple Theme) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-purple-500/[0.04] dark:bg-purple-950/20 border border-purple-500/30 dark:border-purple-500/35 border-l-[4px] border-l-purple-500 shadow-xs flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-[9px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
                       Avg Puncak Tertinggi (MFE)
                     </span>
                     <Sparkles className="w-4 h-4 text-purple-500" />
                   </div>
                   <div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-purple-500">
+                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-purple-600 dark:text-purple-400">
                       +{signalKPIs.avgMaxGain.toFixed(2)}%
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-medium block mt-1">
+                    <span className="text-[10px] text-purple-800/80 dark:text-purple-200/70 font-medium block mt-1">
                       Potensi target swing maksimum
                     </span>
                   </div>
                 </div>
 
-                {/* 4. Avg Max Drawdown (MAE) */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between">
+                {/* 4. Avg Max Drawdown / MAE (Rose Theme) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-rose-500/[0.04] dark:bg-rose-950/20 border border-rose-500/30 dark:border-rose-500/35 border-l-[4px] border-l-rose-500 shadow-xs flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-[9px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
                       Avg Max Drawdown (MAE)
                     </span>
-                    <Shield className="w-4 h-4 text-amber-500" />
+                    <Shield className="w-4 h-4 text-rose-500" />
                   </div>
                   <div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-rose-500">
+                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-rose-600 dark:text-rose-400">
                       {signalKPIs.avgMaxDD.toFixed(2)}%
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-medium block mt-1">
+                    <span className="text-[10px] text-rose-800/80 dark:text-rose-200/70 font-medium block mt-1">
                       Risiko floating loss terdalam
                     </span>
                   </div>
@@ -944,7 +1026,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                                   <div className="flex items-center gap-1.5">
                                     <span className="font-black font-mono text-xs sm:text-sm text-foreground">{s.stock_code}</span>
                                     {s.entry_whale && (
-                                      <span className="text-[8px] px-1 rounded bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30">
+                                      <span className="text-[8px] px-1 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/30">
                                         WHALE
                                       </span>
                                     )}
@@ -976,8 +1058,8 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             <td className="py-3 px-4 text-right font-black">
                               <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs ${
                                 isWin 
-                                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-                                  : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25' 
+                                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25'
                               }`}>
                                 {isWin ? '+' : ''}{s.current_return_pct.toFixed(2)}%
                               </span>
@@ -985,7 +1067,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
 
                             {/* Max High */}
                             <td className="py-3 px-4 text-right">
-                              <span className="font-bold text-purple-500">
+                              <span className="font-bold text-purple-600 dark:text-purple-400">
                                 +{s.max_gain_pct.toFixed(2)}%
                               </span>
                               <span className="text-[9px] text-muted-foreground block font-normal">
@@ -995,7 +1077,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
 
                             {/* Max Drawdown */}
                             <td className="py-3 px-4 text-right">
-                              <span className="font-bold text-rose-400">
+                              <span className="font-bold text-rose-600 dark:text-rose-400">
                                 {s.max_drawdown_pct.toFixed(2)}%
                               </span>
                               <span className="text-[9px] text-muted-foreground block font-normal">
@@ -1005,12 +1087,13 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
 
                             {/* Win/Loss Status Pill */}
                             <td className="py-3 px-4 text-center">
-                              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1 ${
                                 isWin
-                                  ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
-                                  : 'bg-rose-500/15 text-rose-500 border border-rose-500/30'
+                                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                               }`}>
-                                {isWin ? '🟢 WIN' : '🔴 LOSS'}
+                                {isWin ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                {isWin ? 'WIN' : 'LOSS'}
                               </span>
                             </td>
 
@@ -1195,26 +1278,26 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                 
                 {/* 4 KPIs */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Win Rate</span>
-                    <div className="text-2xl font-black font-mono text-foreground mt-1">{stratResult.winRate.toFixed(1)}%</div>
+                  <div className="p-4 rounded-2xl bg-emerald-500/[0.05] border border-emerald-500/30 border-l-4 border-l-emerald-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">Win Rate</span>
+                    <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">{stratResult.winRate.toFixed(1)}%</div>
                     <span className="text-[10px] text-muted-foreground font-medium">{stratResult.trades.length} total trades</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Total Return</span>
-                    <div className={`text-2xl font-black font-mono mt-1 ${stratResult.totalReturnPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  <div className="p-4 rounded-2xl bg-cyan-500/[0.05] border border-cyan-500/30 border-l-4 border-l-cyan-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-cyan-700 dark:text-cyan-300 uppercase">Total Return</span>
+                    <div className={`text-2xl font-black font-mono mt-1 ${stratResult.totalReturnPct >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-500'}`}>
                       {stratResult.totalReturnPct >= 0 ? '+' : ''}{stratResult.totalReturnPct.toFixed(1)}%
                     </div>
                     <span className="text-[10px] text-muted-foreground font-medium">{fmtRp(stratResult.totalReturnRp)}</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Max Drawdown</span>
-                    <div className="text-2xl font-black font-mono text-rose-500 mt-1">-{stratResult.maxDrawdown.toFixed(1)}%</div>
+                  <div className="p-4 rounded-2xl bg-rose-500/[0.05] border border-rose-500/30 border-l-4 border-l-rose-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-rose-700 dark:text-rose-300 uppercase">Max Drawdown</span>
+                    <div className="text-2xl font-black font-mono text-rose-600 dark:text-rose-400 mt-1">-{stratResult.maxDrawdown.toFixed(1)}%</div>
                     <span className="text-[10px] text-muted-foreground font-medium">Peak to trough</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Profit Factor</span>
-                    <div className="text-2xl font-black font-mono text-purple-500 mt-1">{stratResult.profitFactor.toFixed(2)}x</div>
+                  <div className="p-4 rounded-2xl bg-purple-500/[0.05] border border-purple-500/30 border-l-4 border-l-purple-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-purple-700 dark:text-purple-300 uppercase">Profit Factor</span>
+                    <div className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 mt-1">{stratResult.profitFactor.toFixed(2)}x</div>
                     <span className="text-[10px] text-muted-foreground font-medium">Avg hold: {stratResult.avgHolding.toFixed(0)}d</span>
                   </div>
                 </div>
@@ -1243,7 +1326,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             <td className="py-2 px-3">{t.exitDate}</td>
                             <td className="py-2 px-3 text-right">{formatNumber(t.entryPrice)}</td>
                             <td className="py-2 px-3 text-right">{formatNumber(t.exitPrice)}</td>
-                            <td className={`py-2 px-3 text-right font-black ${t.returnPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            <td className={`py-2 px-3 text-right font-black ${t.returnPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                               {t.returnPct >= 0 ? '+' : ''}{t.returnPct.toFixed(2)}%
                             </td>
                             <td className="py-2 px-3 text-center">
@@ -1267,28 +1350,28 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
             {mode === 'bnh' && bnhResult && (
               <div className="space-y-4 animate-fade-in">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Total Return</span>
-                    <div className={`text-2xl font-black font-mono mt-1 ${bnhResult.returnPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  <div className="p-4 rounded-2xl bg-cyan-500/[0.05] border border-cyan-500/30 border-l-4 border-l-cyan-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-cyan-700 dark:text-cyan-300 uppercase">Total Return</span>
+                    <div className={`text-2xl font-black font-mono mt-1 ${bnhResult.returnPct >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-500'}`}>
                       {bnhResult.returnPct >= 0 ? '+' : ''}{bnhResult.returnPct.toFixed(1)}%
                     </div>
                     <span className="text-[10px] text-muted-foreground font-medium">{fmtRp(bnhResult.netReturn)}</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-xs">
                     <span className="text-[9px] font-bold text-muted-foreground uppercase">vs IHSG Benchmark</span>
                     <div className="text-2xl font-black font-mono text-foreground mt-1">
                       {bnhResult.ihsgReturnPct !== null ? `${bnhResult.ihsgReturnPct >= 0 ? '+' : ''}${bnhResult.ihsgReturnPct.toFixed(1)}%` : '—'}
                     </div>
                     <span className="text-[10px] text-muted-foreground font-medium">Periode {bnhResult.days} hari</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Max Drawdown</span>
-                    <div className="text-2xl font-black font-mono text-rose-500 mt-1">-{bnhResult.maxDrawdown.toFixed(1)}%</div>
+                  <div className="p-4 rounded-2xl bg-rose-500/[0.05] border border-rose-500/30 border-l-4 border-l-rose-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-rose-700 dark:text-rose-300 uppercase">Max Drawdown</span>
+                    <div className="text-2xl font-black font-mono text-rose-600 dark:text-rose-400 mt-1">-{bnhResult.maxDrawdown.toFixed(1)}%</div>
                     <span className="text-[10px] text-muted-foreground font-medium">Penurunan terdalam</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Sinyal Whale</span>
-                    <div className="text-2xl font-black font-mono text-amber-500 mt-1">{bnhResult.whaleCount}x</div>
+                  <div className="p-4 rounded-2xl bg-amber-500/[0.05] border border-amber-500/30 border-l-4 border-l-amber-500 shadow-xs">
+                    <span className="text-[9px] font-bold text-amber-700 dark:text-amber-300 uppercase">Sinyal Whale</span>
+                    <div className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-1">{bnhResult.whaleCount}x</div>
                     <span className="text-[10px] text-muted-foreground font-medium">Muncul di periode</span>
                   </div>
                 </div>

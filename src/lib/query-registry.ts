@@ -459,15 +459,22 @@ export const QUERIES = {
           AND dt.close > 0
           AND (
             ($2 = 'AOV_SURGE' AND dt.aov_ratio_ma20 >= 1.5)
+            OR ($2 = 'AOV_EXTREME' AND dt.aov_ratio_ma20 >= 2.5)
             OR ($2 = 'WHALE_ALERT' AND (dt.whale_signal = true OR dt.big_player_anomaly = true))
-            OR ($2 = 'FOREIGN_INFLOW' AND dt.net_foreign_value > 0)
             OR ($2 = 'BIG_PLAYER' AND dt.big_player_anomaly = true)
-            OR ($2 = 'COMBINED' AND (dt.whale_signal = true OR dt.aov_ratio_ma20 >= 1.5) AND dt.net_foreign_value > 0)
+            OR ($2 = 'FOREIGN_INFLOW' AND dt.net_foreign_value > 0)
+            OR ($2 = 'COMBINED_WHALE_FOREIGN' AND (dt.whale_signal = true OR dt.aov_ratio_ma20 >= 1.5) AND dt.net_foreign_value > 0)
+            OR ($2 = 'TRIPLE_POWER' AND dt.whale_signal = true AND dt.aov_ratio_ma20 >= 1.5 AND dt.net_foreign_value > 0)
+            OR ($2 = 'RADAR_MOMENTUM' AND dt.aov_ratio_ma20 >= 1.2 AND dt.change_percent >= 1.5 AND dt.net_foreign_value > 0)
+            OR ($2 = 'ACCUM_BREAKOUT' AND dt.close >= dt.open_price AND dt.change_percent > 0 AND (dt.whale_signal = true OR dt.aov_ratio_ma20 >= 1.3))
             OR ($2 = 'ALL')
           )
         ORDER BY
-          CASE WHEN $2 = 'AOV_SURGE' THEN dt.aov_ratio_ma20 ELSE NULL END DESC NULLS LAST,
-          CASE WHEN $2 = 'FOREIGN_INFLOW' THEN dt.net_foreign_value ELSE NULL END DESC NULLS LAST,
+          CASE 
+            WHEN $2 IN ('AOV_SURGE', 'AOV_EXTREME') THEN dt.aov_ratio_ma20 
+            WHEN $2 = 'FOREIGN_INFLOW' THEN dt.net_foreign_value 
+            ELSE NULL 
+          END DESC NULLS LAST,
           dt.value DESC NULLS LAST
         LIMIT CAST($3 AS INTEGER)
       ),
