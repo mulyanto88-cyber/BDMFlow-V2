@@ -241,6 +241,7 @@ export default function BacktestPage() {
   const [targetDate, setTargetDate] = useState<string>('')
   const [limitCount, setLimitCount] = useState<number>(10)
   const [capitalPerStock, setCapitalPerStock] = useState<number>(1_000_000)
+  const [showCapitalSim, setShowCapitalSim] = useState<boolean>(false)
   const [tradingDates, setTradingDates] = useState<string[]>([])
   const [signalResults, setSignalResults] = useState<SignalStockResult[] | null>(null)
   const [copiedToast, setCopiedToast] = useState(false)
@@ -880,45 +881,82 @@ ${signalResults.slice(0, 5).map((s, i) => {
           {signalKPIs && signalResults && !loading && (
             <div className="space-y-5 animate-fade-in">
               
-              {/* Capital Simulation Bar */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-card border border-line-3 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shrink-0">
-                    <Coins className="w-4 h-4" />
+              {/* Header Bar with Toggle for Nominal Rupiah Simulation */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-1 border-b border-line-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-foreground">Ringkasan Akurasi Sinyal</span>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-surface-2 text-muted-foreground border border-line-2">
+                      {signalResults.length} Saham Terdeteksi
+                    </span>
                   </div>
-                  <div>
-                    <div className="text-xs font-black text-foreground flex items-center gap-1.5 flex-wrap">
-                      <span>Simulasi Modal per Saham:</span>
-                      <span className="text-[9.5px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black border border-amber-500/30">
-                        Rp {formatNumber(capitalPerStock)} / Saham
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Total portofolio: <strong className="text-foreground font-mono">Rp {formatNumber(signalKPIs.totalCapital)}</strong> ({signalResults.length} Saham × Rp {formatNumber(capitalPerStock)})
-                    </p>
-                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Evaluasi pergerakan harga dari tanggal <strong className="text-foreground">{targetDate}</strong> hingga saat ini (~{signalResults[0]?.days_held || 0} hari bursa)
+                  </p>
                 </div>
 
-                {/* Quick Preset Buttons */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] text-muted-foreground font-medium mr-1 hidden sm:inline">Pilih Modal:</span>
-                  {[500_000, 1_000_000, 2_000_000, 5_000_000, 10_000_000].map((cap) => (
-                    <button
-                      key={cap}
-                      onClick={() => setCapitalPerStock(cap)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all border ${
-                        capitalPerStock === cap
-                          ? 'bg-amber-500 text-black border-amber-400 font-black shadow-xs'
-                          : 'bg-surface-2 border-line-2 text-muted-foreground hover:text-foreground hover:bg-surface-3'
-                      }`}
-                    >
-                      {cap >= 1_000_000 ? `Rp ${cap / 1_000_000} Jt` : `Rp ${cap / 1_000} Rb`}
-                    </button>
-                  ))}
-                </div>
+                {/* Toggle Button for Rupiah Simulation */}
+                <button
+                  onClick={() => setShowCapitalSim(!showCapitalSim)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 shrink-0 ${
+                    showCapitalSim
+                      ? 'bg-amber-500/15 border-amber-500/35 text-amber-600 dark:text-amber-400 shadow-xs'
+                      : 'bg-surface-2 border-line-2 text-muted-foreground hover:text-foreground hover:bg-surface-3'
+                  }`}
+                >
+                  <Coins className="w-3.5 h-3.5" />
+                  <span>{showCapitalSim ? 'Sembunyikan Nominal (Rp)' : 'Simulasi Modal (Rp)'}</span>
+                </button>
               </div>
 
-              {/* 4 Themed & Distinct Executive KPI Cards (Compact & Sized Down) */}
+              {/* Collapsible Capital Simulation Bar (Only shown when toggled ON) */}
+              {showCapitalSim && (
+                <div className="p-3.5 rounded-xl bg-card border border-amber-500/30 bg-gradient-to-r from-amber-500/[0.04] to-transparent shadow-xs space-y-2.5 animate-slide-up">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shrink-0">
+                        <Coins className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-black text-foreground flex items-center gap-1.5 flex-wrap">
+                          <span>Simulasi Modal per Saham:</span>
+                          <span className="text-[9.5px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black border border-amber-500/30">
+                            Rp {formatNumber(capitalPerStock)} / Saham
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Total portofolio simulasi: <strong className="text-foreground font-mono">Rp {formatNumber(signalKPIs.totalCapital)}</strong> ({signalResults.length} Saham × Rp {formatNumber(capitalPerStock)})
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick Preset Buttons */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] text-muted-foreground font-medium mr-1 hidden sm:inline">Pilih Modal:</span>
+                      {[500_000, 1_000_000, 2_000_000, 5_000_000, 10_000_000].map((cap) => (
+                        <button
+                          key={cap}
+                          onClick={() => setCapitalPerStock(cap)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all border ${
+                            capitalPerStock === cap
+                              ? 'bg-amber-500 text-black border-amber-400 font-black shadow-xs'
+                              : 'bg-surface-2 border-line-2 text-muted-foreground hover:text-foreground hover:bg-surface-3'
+                          }`}
+                        >
+                          {cap >= 1_000_000 ? `Rp ${cap / 1_000_000} Jt` : `Rp ${cap / 1_000} Rb`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-line-2 flex items-center gap-1.5 text-[9.5px] text-muted-foreground/80">
+                    <Info className="w-3 h-3 text-amber-500/80 shrink-0" />
+                    <span>Simulasi matematis independen per saham. Hasil simulasi masa lalu bukan jaminan kepastian keuntungan di masa depan.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 4 Themed & Distinct Executive KPI Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 
                 {/* 1. Win Rate (Emerald Theme) */}
@@ -943,63 +981,81 @@ ${signalResults.slice(0, 5).map((s, i) => {
                       />
                     </div>
                     <span className="text-[9px] text-emerald-800/80 dark:text-emerald-200/70 font-medium block mt-1">
-                      {signalKPIs.winCount} dari {signalKPIs.total} saham profit
+                      {signalKPIs.winCount} dari {signalKPIs.total} saham positif
                     </span>
                   </div>
                 </div>
 
-                {/* 2. Total Net Profit/Loss Portofolio (Cyan Theme) */}
+                {/* 2. Avg Return / Total Net P&L (Cyan Theme) */}
                 <div className="p-3 sm:p-3.5 rounded-xl bg-cyan-500/[0.04] dark:bg-cyan-950/20 border border-cyan-500/30 dark:border-cyan-500/35 border-l-[3.5px] border-l-cyan-500 shadow-xs flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[8.5px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
-                      Total Net P&L (Portofolio)
+                      {showCapitalSim ? 'Total Net P&L (Porto)' : 'Avg Return Saat Ini'}
                     </span>
                     <TrendingUp className="w-3.5 h-3.5 text-cyan-500" />
                   </div>
                   <div>
                     <div className={`text-xl sm:text-2xl font-black font-mono tracking-tight ${
-                      signalKPIs.totalProfitRp >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-500'
+                      signalKPIs.avgReturn >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-500'
                     }`}>
-                      {signalKPIs.totalProfitRp >= 0 ? '+' : ''}Rp {formatNumber(Math.round(signalKPIs.totalProfitRp))}
+                      {showCapitalSim
+                        ? `${signalKPIs.totalProfitRp >= 0 ? '+' : ''}Rp ${formatNumber(Math.round(signalKPIs.totalProfitRp))}`
+                        : `${signalKPIs.avgReturn >= 0 ? '+' : ''}${signalKPIs.avgReturn.toFixed(2)}%`
+                      }
                     </div>
                     <span className="text-[9px] text-cyan-800/80 dark:text-cyan-200/70 font-medium block mt-1 font-mono">
-                      {signalKPIs.avgReturn >= 0 ? '+' : ''}{signalKPIs.avgReturn.toFixed(2)}% return rata-rata
+                      {showCapitalSim
+                        ? `${signalKPIs.avgReturn >= 0 ? '+' : ''}${signalKPIs.avgReturn.toFixed(2)}% return rata-rata`
+                        : `Hold ~${signalResults[0]?.days_held || 0} hari bursa`
+                      }
                     </span>
                   </div>
                 </div>
 
-                {/* 3. Total Potensi Puncak Cuan / MFE (Purple Theme) */}
+                {/* 3. Avg Max Potential Gain / MFE (Purple Theme) */}
                 <div className="p-3 sm:p-3.5 rounded-xl bg-purple-500/[0.04] dark:bg-purple-950/20 border border-purple-500/30 dark:border-purple-500/35 border-l-[3.5px] border-l-purple-500 shadow-xs flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[8.5px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
-                      Potensi Puncak Cuan
+                      {showCapitalSim ? 'Potensi Puncak Cuan' : 'Avg Puncak (MFE)'}
                     </span>
                     <Sparkles className="w-3.5 h-3.5 text-purple-500" />
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-purple-600 dark:text-purple-400">
-                      +Rp {formatNumber(Math.round(signalKPIs.totalPeakProfitRp))}
+                      {showCapitalSim
+                        ? `+Rp ${formatNumber(Math.round(signalKPIs.totalPeakProfitRp))}`
+                        : `+${signalKPIs.avgMaxGain.toFixed(2)}%`
+                      }
                     </div>
                     <span className="text-[9px] text-purple-800/80 dark:text-purple-200/70 font-medium block mt-1 font-mono">
-                      +{signalKPIs.avgMaxGain.toFixed(2)}% target swing tertinggi
+                      {showCapitalSim
+                        ? `+${signalKPIs.avgMaxGain.toFixed(2)}% target swing tertinggi`
+                        : 'Potensi target swing'
+                      }
                     </span>
                   </div>
                 </div>
 
-                {/* 4. Total Max Drawdown / MAE (Rose Theme) */}
+                {/* 4. Avg Max Drawdown / MAE (Rose Theme) */}
                 <div className="p-3 sm:p-3.5 rounded-xl bg-rose-500/[0.04] dark:bg-rose-950/20 border border-rose-500/30 dark:border-rose-500/35 border-l-[3.5px] border-l-rose-500 shadow-xs flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[8.5px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
-                      Max Floating Loss
+                      {showCapitalSim ? 'Max Floating Loss' : 'Avg Max Drawdown'}
                     </span>
                     <Shield className="w-3.5 h-3.5 text-rose-500" />
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-rose-600 dark:text-rose-400">
-                      Rp {formatNumber(Math.round(signalKPIs.totalMaxDDRp))}
+                      {showCapitalSim
+                        ? `Rp ${formatNumber(Math.round(signalKPIs.totalMaxDDRp))}`
+                        : `${signalKPIs.avgMaxDD.toFixed(2)}%`
+                      }
                     </div>
                     <span className="text-[9px] text-rose-800/80 dark:text-rose-200/70 font-medium block mt-1 font-mono">
-                      {signalKPIs.avgMaxDD.toFixed(2)}% risiko drawdown rata-rata
+                      {showCapitalSim
+                        ? `${signalKPIs.avgMaxDD.toFixed(2)}% risiko drawdown rata-rata`
+                        : 'Risiko floating loss'
+                      }
                     </span>
                   </div>
                 </div>
@@ -1011,7 +1067,7 @@ ${signalResults.slice(0, 5).map((s, i) => {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Award className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>
-                    Top performer: <strong className="text-foreground">${signalKPIs.topStock.stock_code}</strong> ({signalKPIs.topStock.current_return_pct >= 0 ? '+' : ''}{signalKPIs.topStock.current_return_pct.toFixed(1)}% · Cuan <strong className="text-emerald-500">+{signalKPIs.topStock.current_return_pct >= 0 ? '+' : ''}Rp {formatNumber(Math.round(capitalPerStock * (signalKPIs.topStock.current_return_pct / 100)))}</strong>)
+                    Top performer: <strong className="text-foreground">${signalKPIs.topStock.stock_code}</strong> ({signalKPIs.topStock.current_return_pct >= 0 ? '+' : ''}{signalKPIs.topStock.current_return_pct.toFixed(1)}% · Peak +{signalKPIs.topStock.max_gain_pct.toFixed(1)}%)
                   </span>
                 </div>
                 <button
@@ -1040,7 +1096,7 @@ ${signalResults.slice(0, 5).map((s, i) => {
                       Daftar {signalResults.length} Saham Terdeteksi pada {targetDate}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Perbandingan harga & kondisi sinyal saat muncul ($T_0$) vs estimasi laba/rugi dengan modal Rp {formatNumber(capitalPerStock)} / saham
+                      Perbandingan harga &amp; kondisi sinyal saat muncul ($T_0$) vs pergerakan harga hingga saat ini
                     </p>
                   </div>
                   <span className="text-xs font-mono font-bold text-muted-foreground bg-surface-2 px-2.5 py-1 rounded-lg border border-line-2">
@@ -1057,7 +1113,7 @@ ${signalResults.slice(0, 5).map((s, i) => {
                         <th className="py-2.5 px-3">Kondisi Sinyal $T_0$</th>
                         <th className="py-2.5 px-3 text-right">Entry ($T_0$)</th>
                         <th className="py-2.5 px-3 text-right">Saat Ini</th>
-                        <th className="py-2.5 px-3 text-right">Current Return &amp; P&amp;L</th>
+                        <th className="py-2.5 px-3 text-right">Current Return {showCapitalSim && '& P&L'}</th>
                         <th className="py-2.5 px-3 text-right">Max High (MFE)</th>
                         <th className="py-2.5 px-3 text-right">Max Low (MAE)</th>
                         <th className="py-2.5 px-3 text-center">Status</th>
@@ -1133,7 +1189,7 @@ ${signalResults.slice(0, 5).map((s, i) => {
                               </span>
                             </td>
 
-                            {/* Current Return & Nominal P&L */}
+                            {/* Current Return */}
                             <td className="py-2.5 px-3 text-right font-black">
                               <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs ${
                                 isWin 
@@ -1142,11 +1198,13 @@ ${signalResults.slice(0, 5).map((s, i) => {
                               }`}>
                                 {isWin ? '+' : ''}{s.current_return_pct.toFixed(2)}%
                               </span>
-                              <span className={`text-[10px] font-bold block mt-0.5 ${
-                                isWin ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                              }`}>
-                                {nominalPnl >= 0 ? '+' : ''}Rp {formatNumber(nominalPnl)}
-                              </span>
+                              {showCapitalSim && (
+                                <span className={`text-[10px] font-bold block mt-0.5 ${
+                                  isWin ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                }`}>
+                                  {nominalPnl >= 0 ? '+' : ''}Rp {formatNumber(nominalPnl)}
+                                </span>
+                              )}
                             </td>
 
                             {/* Max High */}
@@ -1154,9 +1212,11 @@ ${signalResults.slice(0, 5).map((s, i) => {
                               <span className="font-bold text-purple-600 dark:text-purple-400">
                                 +{s.max_gain_pct.toFixed(2)}%
                               </span>
-                              <span className="text-[9.5px] font-bold text-purple-600/90 dark:text-purple-300 block">
-                                +Rp {formatNumber(nominalPeak)}
-                              </span>
+                              {showCapitalSim && (
+                                <span className="text-[9.5px] font-bold text-purple-600/90 dark:text-purple-300 block">
+                                  +Rp {formatNumber(nominalPeak)}
+                                </span>
+                              )}
                               <span className="text-[8.5px] text-muted-foreground block font-normal">
                                 High: Rp {formatNumber(s.max_high)}
                               </span>
@@ -1167,9 +1227,11 @@ ${signalResults.slice(0, 5).map((s, i) => {
                               <span className="font-bold text-rose-600 dark:text-rose-400">
                                 {s.max_drawdown_pct.toFixed(2)}%
                               </span>
-                              <span className="text-[9.5px] font-bold text-rose-600/90 dark:text-rose-300 block">
-                                Rp {formatNumber(nominalDD)}
-                              </span>
+                              {showCapitalSim && (
+                                <span className="text-[9.5px] font-bold text-rose-600/90 dark:text-rose-300 block">
+                                  Rp {formatNumber(nominalDD)}
+                                </span>
+                              )}
                               <span className="text-[8.5px] text-muted-foreground block font-normal">
                                 Low: Rp {formatNumber(s.min_low)}
                               </span>
