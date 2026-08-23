@@ -60,21 +60,21 @@ function ScoreKPI({
       : 'text-rose-600 dark:text-rose-400'
 
   const badgeStyle = badgeColor || (pos === undefined
-    ? 'bg-surface-3 text-muted-foreground border-border/40'
+    ? 'bg-surface-3 text-muted-foreground/80 border-border/40'
     : pos
-      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
-      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25')
+      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+      : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30')
 
   return (
-    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-line-2 hover:border-line-4 hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
-      <div className="flex items-center justify-between gap-1 mb-1.5">
-        <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-wider truncate">{label}</span>
-        {Icon && <Icon className={`w-3.5 h-3.5 ${pos === undefined ? 'text-muted-foreground/60' : pos ? 'text-emerald-500' : 'text-rose-500'}`} />}
+    <div className="p-3 rounded-2xl bg-gradient-to-b from-surface-1/90 via-surface-1/60 to-surface-2/40 dark:from-white/[0.035] dark:via-white/[0.02] dark:to-transparent border border-border/60 dark:border-white/[0.07] hover:border-border/90 hover:shadow-xs transition-all duration-200 flex flex-col justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+      <div className="flex items-center justify-between gap-1 mb-2">
+        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-muted-foreground/75 truncate">{label}</span>
+        {Icon && <Icon className={`w-3.5 h-3.5 ${pos === undefined ? 'text-muted-foreground/50' : pos ? 'text-emerald-500' : 'text-rose-500'}`} />}
       </div>
       <div className="flex items-baseline justify-between gap-1">
-        <span className={`text-sm sm:text-base font-black font-mono tracking-tight ${c}`}>{val}</span>
+        <span className={`text-base sm:text-[17px] font-black font-mono tracking-tight ${c}`}>{val}</span>
         {sub && (
-          <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border leading-none tracking-wider shrink-0 ${badgeStyle}`}>
+          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border leading-none tracking-wider shrink-0 shadow-2xs ${badgeStyle}`}>
             {sub}
           </span>
         )}
@@ -128,19 +128,19 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
+      {/* ── Diagnostic Scorecard v2 (Ultra-Premium Glass Pod) ─────────────────── */}
       {(scorecard || scVerdict) && (
-        <div className="rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent pointer-events-none" />
+        <div className="rounded-3xl p-4 sm:p-5 lg:p-6 border border-border/70 dark:border-white/[0.08] bg-gradient-to-b from-card via-card/95 to-surface-1/90 dark:from-[#111118] dark:via-[#0d0d14] dark:to-[#09090e] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)] relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 dark:via-amber-400/40 to-transparent pointer-events-none" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
             <div className="lg:col-span-7 xl:col-span-8 min-w-0">
               <div className="flex items-center gap-2.5 mb-1.5">
-                <span className="text-xl filter drop-shadow">{scVerdict?.emoji}</span>
-                <h3 className="font-black text-sm sm:text-base text-foreground tracking-tight">{scVerdict?.headline}</h3>
+                <span className="text-2xl filter drop-shadow">{scVerdict?.emoji}</span>
+                <h3 className="font-black text-base sm:text-lg text-foreground tracking-tight">{scVerdict?.headline}</h3>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
+              <p className="text-xs text-muted-foreground/80 leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
               {scorecard && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-line-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mt-4 pt-4 border-t border-border/50 dark:border-white/[0.06]">
                   <ScoreKPI 
                     label="Return 5D"   
                     val={`${Number(scorecard.return_5d ?? 0) >= 0 ? '+' : ''}${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        
@@ -159,7 +159,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                     label="AOV Ratio"   
                     val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`}
                     sub={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? 'WHALE' : 'NORMAL'}
-                    badgeColor={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25' : 'bg-surface-3 text-muted-foreground border-border/40'}
+                    badgeColor={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 shadow-[0_0_8px_rgba(168,85,247,0.2)]' : 'bg-surface-3 text-muted-foreground/80 border-border/40'}
                     icon={Zap}
                   />
                   <ScoreKPI 
@@ -179,26 +179,28 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               )}
             </div>
             {scorecard && (
-              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-line-3 lg:pl-6 pt-4 lg:pt-0">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <div className="text-[9px] text-muted-foreground uppercase tracking-[0.14em] font-bold">Composite V2</div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono text-amber-500 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-amber-200 dark:to-amber-400 leading-none mt-0.5">
-                      {scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span>
+              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-border/50 dark:border-white/[0.06] lg:pl-6 pt-4 lg:pt-0">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-surface-2/90 via-surface-2/40 to-transparent dark:from-white/[0.04] dark:via-white/[0.01] dark:to-transparent border border-border/60 dark:border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="text-[9px] text-muted-foreground/75 uppercase tracking-[0.18em] font-black">Composite V2</div>
+                      <div className="text-2xl sm:text-3xl font-black font-mono text-amber-500 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-amber-200 dark:to-amber-400 leading-none mt-0.5">
+                        {scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground/60 font-bold">/73</span>
+                      </div>
                     </div>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-sm ${tierCls(scorecard.tier_v2)}`}>
+                      {scorecard.tier_v2}
+                    </span>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider backdrop-blur-md ${tierCls(scorecard.tier_v2)}`}>
-                    {scorecard.tier_v2}
-                  </span>
-                </div>
-                <div className="space-y-2 bg-surface-1/90 dark:bg-surface-2/50 p-2.5 rounded-xl border border-line-2">
-                  <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
-                  <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
-                  <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
-                  <ScoreBar label="Foreign" v={scorecard.foreign_pts} max={6} />
-                </div>
-                <div className="text-[9px] font-mono text-muted-foreground mt-2 truncate">
-                  v1: {scorecard.v1_tier} ({scorecard.v1_score}) · flow: {scorecard.flow_context}
+                  <div className="space-y-2 bg-surface-1/90 dark:bg-black/30 p-2.5 rounded-xl border border-border/40 dark:border-white/[0.04]">
+                    <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
+                    <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
+                    <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
+                    <ScoreBar label="Foreign" v={scorecard.foreign_pts} max={6} />
+                  </div>
+                  <div className="text-[9.5px] font-mono text-muted-foreground/70 mt-2 truncate">
+                    v1: {scorecard.v1_tier} ({scorecard.v1_score}) · flow: {scorecard.flow_context}
+                  </div>
                 </div>
               </div>
             )}
