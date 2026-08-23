@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Target, Building2, Globe, ExternalLink, Shield } from 'lucide-react'
+import { Target, Building2, Globe, ExternalLink, Shield, TrendingUp, TrendingDown, Zap, Hash, Activity } from 'lucide-react'
 import { formatRupiah } from '@/lib/utils'
 import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
@@ -38,16 +38,45 @@ function ScoreBar({ label, v, max }: { label: string; v: number; max: number }) 
     </div>
   )
 }
-function ScoreKPI({ label, val, pos }: { label: string; val: string; pos?: boolean }) {
+function ScoreKPI({ 
+  label, 
+  val, 
+  pos, 
+  sub, 
+  icon: Icon 
+}: { 
+  label: string
+  val: string
+  pos?: boolean
+  sub?: string
+  icon?: React.ElementType 
+}) {
   const c = pos === undefined 
     ? 'text-foreground' 
     : pos 
       ? 'text-emerald-600 dark:text-emerald-400' 
       : 'text-rose-600 dark:text-rose-400'
+
+  const badgeStyle = pos === undefined
+    ? 'bg-surface-3 text-muted-foreground border-border/40'
+    : pos
+      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
+      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25'
+
   return (
-    <div className="flex flex-col justify-center p-2.5 rounded-xl bg-surface-1/90 dark:bg-surface-2/60 border border-border/60 dark:border-white/[0.05] transition-all hover:border-border">
-      <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-0.5">{label}</span>
-      <span className={`font-black font-mono text-xs sm:text-[13px] tracking-tight ${c}`}>{val}</span>
+    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-border/70 dark:border-white/[0.06] hover:border-border hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
+      <div className="flex items-center justify-between gap-1 mb-1.5">
+        <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-wider truncate">{label}</span>
+        {Icon && <Icon className={`w-3.5 h-3.5 ${pos === undefined ? 'text-muted-foreground/60' : pos ? 'text-emerald-500' : 'text-rose-500'}`} />}
+      </div>
+      <div className="flex items-baseline justify-between gap-1">
+        <span className={`text-sm sm:text-base font-black font-mono tracking-tight ${c}`}>{val}</span>
+        {sub && (
+          <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border leading-none tracking-wider shrink-0 ${badgeStyle}`}>
+            {sub}
+          </span>
+        )}
+      </div>
     </div>
   )
 }
@@ -109,12 +138,41 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
               {scorecard && (
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-border/60 dark:border-white/[0.06]">
-                  <ScoreKPI label="Return 5D"   val={`${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        pos={Number(scorecard.return_5d) >= 0} />
-                  <ScoreKPI label="Return 20D"  val={`${Number(scorecard.return_20d ?? 0).toFixed(1)}%`}       pos={Number(scorecard.return_20d) >= 0} />
-                  <ScoreKPI label="AOV Ratio"   val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`} />
-                  <ScoreKPI label="Foreign 20D" val={`${Number(scorecard.foreign_20d_miliar ?? 0).toFixed(1)} M`} pos={Number(scorecard.foreign_20d_miliar) >= 0} />
-                  <ScoreKPI label="Rank v2"     val={`#${scorecard.rank_overall ?? '—'}`} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-border/60 dark:border-white/[0.06]">
+                  <ScoreKPI 
+                    label="Return 5D"   
+                    val={`${Number(scorecard.return_5d ?? 0) >= 0 ? '+' : ''}${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        
+                    pos={Number(scorecard.return_5d) >= 0} 
+                    sub={Number(scorecard.return_5d) >= 0 ? 'BULL' : 'BEAR'}
+                    icon={Number(scorecard.return_5d) >= 0 ? TrendingUp : TrendingDown}
+                  />
+                  <ScoreKPI 
+                    label="Return 20D"  
+                    val={`${Number(scorecard.return_20d ?? 0) >= 0 ? '+' : ''}${Number(scorecard.return_20d ?? 0).toFixed(1)}%`}       
+                    pos={Number(scorecard.return_20d) >= 0} 
+                    sub={Number(scorecard.return_20d) >= 0 ? 'BULL' : 'BEAR'}
+                    icon={Number(scorecard.return_20d) >= 0 ? TrendingUp : TrendingDown}
+                  />
+                  <ScoreKPI 
+                    label="AOV Ratio"   
+                    val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`}
+                    sub={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? 'WHALE' : 'NORMAL'}
+                    pos={Number(scorecard.aov_ratio_ma20 ?? 0) >= 1.5 ? true : undefined}
+                    icon={Zap}
+                  />
+                  <ScoreKPI 
+                    label="Foreign 20D" 
+                    val={`${Number(scorecard.foreign_20d_miliar ?? 0) >= 0 ? '+' : ''}${Number(scorecard.foreign_20d_miliar ?? 0).toFixed(1)} M`} 
+                    pos={Number(scorecard.foreign_20d_miliar) >= 0} 
+                    sub={Number(scorecard.foreign_20d_miliar) >= 0 ? 'NET BUY' : 'NET SELL'}
+                    icon={Globe}
+                  />
+                  <ScoreKPI 
+                    label="Rank v2"     
+                    val={`#${scorecard.rank_overall ?? '—'}`} 
+                    sub="OVERALL"
+                    icon={Hash}
+                  />
                 </div>
               )}
             </div>

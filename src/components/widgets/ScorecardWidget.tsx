@@ -145,14 +145,14 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
               </div>
             </div>
 
-            <div className="flex items-baseline gap-3 mt-3">
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter text-foreground font-mono">{formatRupiah(stockData.close)}</span>
-              <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-black text-xs sm:text-sm border shadow-sm ${
+            <div className="flex items-baseline gap-2.5 mt-2.5">
+              <span className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight text-foreground font-mono leading-none">{formatRupiah(stockData.close)}</span>
+              <span className={`flex items-center gap-1 px-2 py-0.5 rounded-lg font-black text-xs border shadow-xs ${
                 stockData.change_percent >= 0 
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
                   : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
               }`}>
-                {stockData.change_percent >= 0 ? <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" /> : <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />}
+                {stockData.change_percent >= 0 ? <TrendingUp className="w-3 h-3 stroke-[2.5]" /> : <TrendingDown className="w-3 h-3 stroke-[2.5]" />}
                 {Math.abs(stockData.change_percent).toFixed(2)}%
               </span>
             </div>
@@ -266,60 +266,79 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
 
       </div>
 
-      {/* BOTTOM SECTION: 6 Consistent Financial Indicator Badges */}
+      {/* BOTTOM SECTION: 6 Executive Financial KPI Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-border/60 dark:border-white/[0.06]">
         {[
           { 
             l: 'Conviction',   
             v: `${convictionScore}`,                           
-            status: convictionScore >= 80 ? 'High' : convictionScore >= 60 ? 'Moderate' : 'Low',
+            status: convictionScore >= 80 ? 'HIGH' : convictionScore >= 60 ? 'MED' : 'LOW',
             color: convictionScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' : convictionScore >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400',
-            dot: convictionScore >= 80 ? 'bg-emerald-500' : convictionScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'
+            badgeBg: convictionScore >= 80 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25' : convictionScore >= 60 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
+            barPct: Math.min(100, convictionScore),
+            barColor: convictionScore >= 80 ? 'bg-emerald-500' : convictionScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'
           },
           { 
             l: 'Smart Money',  
             v: `${Math.round(smiScore)}`,                      
-            status: smiScore >= 60 ? 'Accum' : smiScore >= 30 ? 'Neutral' : 'Distrib',
+            status: smiScore >= 60 ? 'ACCUM' : smiScore >= 30 ? 'NEUTRAL' : 'DISTRIB',
             color: smiScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : smiScore >= 30 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400',
-            dot: smiScore >= 60 ? 'bg-emerald-500' : smiScore >= 30 ? 'bg-amber-500' : 'bg-rose-500'
+            badgeBg: smiScore >= 60 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25' : smiScore >= 30 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
+            barPct: Math.min(100, Math.round(smiScore)),
+            barColor: smiScore >= 60 ? 'bg-emerald-500' : smiScore >= 30 ? 'bg-amber-500' : 'bg-rose-500'
           },
           { 
             l: 'Foreign 1D',   
             v: formatRupiah(stockData.net_foreign_value),      
-            status: stockData.net_foreign_value >= 0 ? 'Net Buy' : 'Net Sell',
+            status: stockData.net_foreign_value >= 0 ? 'NET BUY' : 'NET SELL',
             color: stockData.net_foreign_value >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
-            dot: stockData.net_foreign_value >= 0 ? 'bg-emerald-500' : 'bg-rose-500'
+            badgeBg: stockData.net_foreign_value >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
+            barPct: stockData.net_foreign_value >= 0 ? 80 : 30,
+            barColor: stockData.net_foreign_value >= 0 ? 'bg-emerald-500' : 'bg-rose-500'
           },
           { 
             l: 'AOV Ratio',    
             v: `${(stockData.aov_ratio_ma20||1).toFixed(2)}x`, 
-            status: stockData.aov_ratio_ma20 >= 1.5 ? 'Whale Surge' : 'Normal',
+            status: stockData.aov_ratio_ma20 >= 1.5 ? 'WHALE' : 'NORMAL',
             color: stockData.aov_ratio_ma20 >= 1.5 ? 'text-purple-600 dark:text-purple-400' : 'text-foreground',
-            dot: stockData.aov_ratio_ma20 >= 1.5 ? 'bg-purple-500' : 'bg-slate-400'
+            badgeBg: stockData.aov_ratio_ma20 >= 1.5 ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25' : 'bg-surface-3 text-muted-foreground border-border/40',
+            barPct: Math.min(100, (stockData.aov_ratio_ma20 || 1) * 50),
+            barColor: stockData.aov_ratio_ma20 >= 1.5 ? 'bg-purple-500' : 'bg-slate-400'
           },
           { 
             l: 'Turnover',     
             v: `${dailyTurnover.toFixed(2)}%`,                 
-            status: dailyTurnover > 5 ? 'High Vol' : dailyTurnover < 1 ? 'Low Vol' : 'Normal',
+            status: dailyTurnover > 5 ? 'HIGH VOL' : dailyTurnover < 1 ? 'LOW VOL' : 'NORMAL',
             color: dailyTurnover > 5 ? 'text-emerald-600 dark:text-emerald-400' : dailyTurnover < 1 ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400',
-            dot: dailyTurnover > 5 ? 'bg-emerald-500' : dailyTurnover < 1 ? 'bg-rose-500' : 'bg-amber-500'
+            badgeBg: dailyTurnover > 5 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25' : dailyTurnover < 1 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
+            barPct: Math.min(100, dailyTurnover * 10),
+            barColor: dailyTurnover > 5 ? 'bg-emerald-500' : dailyTurnover < 1 ? 'bg-rose-500' : 'bg-amber-500'
           },
           { 
             l: 'Free Float',   
             v: `${stockData.free_float?.toFixed(1)||'--'}%`,   
-            status: (stockData.free_float || 0) > 30 ? 'Liquid' : 'Concentrated',
+            status: (stockData.free_float || 0) > 30 ? 'LIQUID' : 'TIGHT',
             color: 'text-cyan-600 dark:text-cyan-400',
-            dot: 'bg-cyan-500'
+            badgeBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/25',
+            barPct: Math.min(100, stockData.free_float || 0),
+            barColor: 'bg-cyan-500'
           },
         ].map((m, i) => (
-          <div key={i} className="p-2.5 rounded-xl bg-surface-1/90 dark:bg-surface-2/40 border border-border/60 dark:border-white/[0.05] hover:border-border transition-all flex flex-col justify-between">
-            <div className="flex items-center justify-between gap-1 mb-1">
+          <div key={i} className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-surface-1/90 dark:bg-surface-2/40 border border-border/70 dark:border-white/[0.05] hover:border-border hover:shadow-xs transition-all duration-200 flex flex-col justify-between">
+            <div className="flex items-center justify-between gap-1 mb-1.5">
               <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-wider truncate">{m.l}</span>
-              <span className={`w-1.5 h-1.5 rounded-full ${m.dot} shrink-0`} />
+              <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border leading-none tracking-wider ${m.badgeBg}`}>
+                {m.status}
+              </span>
             </div>
-            <div className="flex items-baseline justify-between gap-1 mt-0.5">
-              <span className={`text-xs sm:text-sm font-black font-mono truncate ${m.color}`}>{m.v}</span>
-              <span className="text-[8.5px] font-semibold text-muted-foreground/80 shrink-0">{m.status}</span>
+            <div>
+              <div className={`text-sm sm:text-base font-black font-mono tracking-tight ${m.color}`}>
+                {m.v}
+              </div>
+              {/* Micro visual bar */}
+              <div className="w-full h-1 bg-surface-3/80 rounded-full mt-1.5 overflow-hidden">
+                <div className={`h-full rounded-full ${m.barColor}`} style={{ width: `${m.barPct}%` }} />
+              </div>
             </div>
           </div>
         ))}
