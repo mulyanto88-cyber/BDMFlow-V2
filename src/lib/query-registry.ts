@@ -428,6 +428,109 @@ export const QUERIES = {
   },
 
   // ── Backtest ──────────────────────────────────────────────────────────────
+  'backtest.tradingDates': {
+    sql: `
+      SELECT DISTINCT CAST(trading_date AS VARCHAR) AS trading_date
+      FROM market.daily_transactions
+      WHERE stock_code = 'COMPOSITE' OR stock_code = 'BBCA'
+      ORDER BY trading_date DESC
+      LIMIT 120`,
+    pro: true,
+  },
+  'backtest.signalPerformance': {
+    sql: `
+      WITH t0_stocks AS (
+        SELECT
+          dt.stock_code,
+          dt.trading_date AS t0_date,
+          dt.close AS t0_close,
+          dt.value AS t0_value,
+          dt.volume AS t0_volume,
+          dt.net_foreign_value AS t0_foreign,
+          dt.aov_ratio_ma20 AS t0_aov,
+          dt.whale_signal AS t0_whale,
+          dt.big_player_anomaly AS t0_bp,
+          cp.company_name,
+          cp.sector
+        FROM market.daily_transactions dt
+        LEFT JOIN market.company_profile cp ON cp.stock_code = dt.stock_code
+        WHERE CAST(dt.trading_date AS VARCHAR) = $1
+          AND dt.stock_code != 'COMPOSITE'
+          AND dt.close > 0
+          AND (
+            ($2 = 'AOV_SURGE' AND dt.aov_ratio_ma20 >= 1.5)
+            OR ($2 = 'WHALE_ALERT' AND (dt.whale_signal = true OR dt.big_player_anomaly = true))
+            OR ($2 = 'FOREIGN_INFLOW' AND dt.net_foreign_value > 0)
+            OR ($2 = 'BIG_PLAYER' AND dt.big_player_anomaly = true)
+            OR ($2 = 'COMBINED' AND (dt.whale_signal = true OR dt.aov_ratio_ma20 >= 1.5) AND dt.net_foreign_value > 0)
+            OR ($2 = 'ALL')
+          )
+        ORDER BY
+          CASE WHEN $2 = 'AOV_SURGE' THEN dt.aov_ratio_ma20 ELSE NULL END DESC NULLS LAST,
+          CASE WHEN $2 = 'FOREIGN_INFLOW' THEN dt.net_foreign_value ELSE NULL END DESC NULLS LAST,
+          dt.value DESC NULLS LAST
+        LIMIT CAST($3 AS INTEGER)
+      ),
+      forward_prices AS (
+        SELECT
+          dt.stock_code,
+          dt.trading_date,
+          dt.open_price,
+          dt.high,
+          dt.low,
+          dt.close,
+          ROW_NUMBER() OVER (PARTITION BY dt.stock_code ORDER BY dt.trading_date ASC) AS day_num,
+          ROW_NUMBER() OVER (PARTITION BY dt.stock_code ORDER BY dt.trading_date DESC) AS rn_latest
+        FROM market.daily_transactions dt
+        JOIN t0_stocks t0 ON t0.stock_code = dt.stock_code
+        WHERE dt.trading_date >= CAST($1 AS DATE)
+      ),
+      stock_aggregates AS (
+        SELECT
+          fp.stock_code,
+          MAX(fp.high) AS max_high,
+          MIN(fp.low) AS min_low,
+          COUNT(*) AS trading_days_count,
+          MAX(CASE WHEN fp.rn_latest = 1 THEN fp.close ELSE NULL END) AS latest_close,
+          MAX(CASE WHEN fp.rn_latest = 1 THEN CAST(fp.trading_date AS VARCHAR) ELSE NULL END) AS latest_date
+        FROM forward_prices fp
+        GROUP BY fp.stock_code
+      )
+      SELECT
+        t0.stock_code,
+        COALESCE(t0.company_name, '') AS company_name,
+        COALESCE(t0.sector, 'Stock') AS sector,
+        CAST(t0.t0_date AS VARCHAR) AS entry_date,
+        t0.t0_close::FLOAT8 AS entry_price,
+        t0.t0_value::FLOAT8 AS entry_value,
+        t0.t0_foreign::FLOAT8 AS entry_foreign,
+        t0.t0_aov::FLOAT8 AS entry_aov,
+        t0.t0_whale AS entry_whale,
+        sa.latest_date,
+        sa.latest_close::FLOAT8 AS latest_price,
+        sa.max_high::FLOAT8 AS max_high,
+        sa.min_low::FLOAT8 AS min_low,
+        sa.trading_days_count::INTEGER AS days_held,
+        ROUND(((sa.latest_close - t0.t0_close) / NULLIF(t0.t0_close, 0) * 100)::NUMERIC, 2)::FLOAT8 AS current_return_pct,
+        ROUND(((sa.max_high - t0.t0_close) / NULLIF(t0.t0_close, 0) * 100)::NUMERIC, 2)::FLOAT8 AS max_gain_pct,
+        ROUND(((sa.min_low - t0.t0_close) / NULLIF(t0.t0_close, 0) * 100)::NUMERIC, 2)::FLOAT8 AS max_drawdown_pct
+      FROM t0_stocks t0
+      JOIN stock_aggregates sa ON sa.stock_code = t0.stock_code
+      ORDER BY current_return_pct DESC`,
+    params: 3,
+    pro: true,
+  },
+  'backtest.forwardPricePath': {
+    sql: `
+      SELECT dt.stock_code, CAST(dt.trading_date AS VARCHAR) AS date, dt.close::FLOAT8 AS close
+      FROM market.daily_transactions dt
+      WHERE dt.stock_code = ANY($1::VARCHAR[])
+        AND dt.trading_date >= CAST($2 AS DATE)
+      ORDER BY dt.stock_code, dt.trading_date ASC`,
+    params: 2,
+    arrayParams: [0],
+    pro: true,
+  },
   'backtest.pricesAll': {
     sql: `
       SELECT trading_date, open_price, high, low, close,

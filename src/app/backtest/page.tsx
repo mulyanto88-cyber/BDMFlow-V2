@@ -1,24 +1,26 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   FlaskConical, Play, Settings2, TrendingUp, TrendingDown,
-  Target, Clock, AlertTriangle, X, Calculator, BarChart3,
-  DollarSign, Activity, Zap, Calendar, RefreshCw, Info,
+  Target, Clock, AlertTriangle, X, BarChart3,
+  Zap, Calendar, RefreshCw, Info, Share2, Copy, Check,
+  ExternalLink, Shield, Award, Sparkles, Layers, Flame,
+  Coins, ArrowUpRight, Activity, Globe, Users, PieChart
 } from 'lucide-react'
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
-  Cell, Legend,
+  ResponsiveContainer, ReferenceLine, Cell
 } from 'recharts'
-import { formatRupiah } from '@/lib/utils'
+import { formatRupiah, formatNumber, formatShares } from '@/lib/utils'
 import { mdQuery, UpgradeRequiredError } from '@/lib/api'
 import { UpgradePrompt } from '@/components/upgrade-prompt'
+import CompanyLogo from '@/components/company-logo'
+import Link from 'next/link'
 
 declare const window: any
 
-// ─── Formatters ───────────────────────────────────────────────────────────────
+// ─── Formatters & Fees ────────────────────────────────────────────────────────
 function fmtRp(v: number): string {
   if (!v && v !== 0) return 'Rp 0'
   const abs = Math.abs(v)
@@ -29,11 +31,32 @@ function fmtRp(v: number): string {
   return `${sign}Rp ${abs.toLocaleString('id-ID')}`
 }
 
-// Indonesian broker fee standard
 const BROKER_FEE_BUY  = 0.0015  // 0.15%
 const BROKER_FEE_SELL = 0.0025  // 0.25% (includes PPh 0.1%)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+type Mode = 'signal' | 'strategy' | 'bnh'
+
+interface SignalStockResult {
+  stock_code: string
+  company_name: string
+  sector: string
+  entry_date: string
+  entry_price: number
+  entry_value: number
+  entry_foreign: number
+  entry_aov: number
+  entry_whale: boolean
+  latest_date: string
+  latest_price: number
+  max_high: number
+  min_low: number
+  days_held: number
+  current_return_pct: number
+  max_gain_pct: number
+  max_drawdown_pct: number
+}
+
 interface Trade {
   entryDate: string
   entryPrice: number
@@ -63,14 +86,13 @@ interface BnHResult {
   returnPct: number
   annualizedReturn: number
   days: number
-  maxDrawdown: number       // ← fixed: true peak-to-trough
+  maxDrawdown: number
   whaleCount: number
   bpAnomalyCount: number
   totalForeign: number
   highestPrice: number
   lowestPrice: number
   rawData: any[]
-  // IHSG comparison
   ihsgReturnPct: number | null
   ihsgBuyPrice: number | null
   ihsgSellPrice: number | null
@@ -91,18 +113,63 @@ interface StratResult {
   equityCurve: { date: string; equity: number; drawdown: number }[]
 }
 
-type Mode = 'strategy' | 'bnh'
+const SIGNAL_PRESETS = [
+  {
+    id: 'AOV_SURGE',
+    label: 'AOV Volume Surge',
+    icon: Flame,
+    color: 'text-amber-500',
+    desc: 'AOV Ratio ≥ 1.5x (Lonjakan rata-rata volume per transaksi)',
+  },
+  {
+    id: 'WHALE_ALERT',
+    label: 'Whale / Big Player',
+    icon: Zap,
+    color: 'text-purple-500',
+    desc: 'Sinyal akumulasi bandar & anomali big player',
+  },
+  {
+    id: 'FOREIGN_INFLOW',
+    label: 'Foreign Net Inflow 1D',
+    icon: Globe,
+    color: 'text-teal-500',
+    desc: 'Top akumulasi net buy asing harian',
+  },
+  {
+    id: 'COMBINED',
+    label: 'Power Signal (Whale + Asing)',
+    icon: Sparkles,
+    color: 'text-emerald-500',
+    desc: 'Kombinasi Whale/AOV Surge + Asing Net Buy',
+  },
+  {
+    id: 'ALL',
+    label: 'Top Active Market Value',
+    icon: Activity,
+    color: 'text-blue-500',
+    desc: 'Top saham paling likuid di bursa pada tanggal tersebut',
+  },
+]
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function BacktestPage() {
-  // ── Shared ─────────────────────────────────────────────────────────────────
-  const [mode, setMode] = useState<Mode>('strategy')
-  const [stockCode, setStockCode] = useState('BBCA')
+  // ── Mode Switcher ──────────────────────────────────────────────────────────
+  const [mode, setMode] = useState<Mode>('signal')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [blocked, setBlocked] = useState(false)
 
-  // ── Strategy mode ──────────────────────────────────────────────────────────
+  // ── Tab 1: Signal Efficacy State ───────────────────────────────────────────
+  const [signalPreset, setSignalPreset] = useState('AOV_SURGE')
+  const [timeframe, setTimeframe] = useState<'1W' | '2W' | '1M' | '3M' | 'CUSTOM'>('2W')
+  const [targetDate, setTargetDate] = useState<string>('')
+  const [limitCount, setLimitCount] = useState<number>(10)
+  const [tradingDates, setTradingDates] = useState<string[]>([])
+  const [signalResults, setSignalResults] = useState<SignalStockResult[] | null>(null)
+  const [copiedToast, setCopiedToast] = useState(false)
+
+  // ── Tab 2: Strategy Sim State ──────────────────────────────────────────────
+  const [stockCode, setStockCode] = useState('BBCA')
   const [signalType, setSignalType] = useState('WHALE_SIGNAL')
   const [holdingPeriod, setHoldingPeriod] = useState(10)
   const [takeProfit, setTakeProfit] = useState(5)
@@ -110,7 +177,7 @@ export default function BacktestPage() {
   const [lotsStrat, setLotsStrat] = useState(10)
   const [stratResult, setStratResult] = useState<StratResult | null>(null)
 
-  // ── Buy & Hold mode ────────────────────────────────────────────────────────
+  // ── Tab 3: Buy & Hold State ────────────────────────────────────────────────
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [lotsBnH, setLotsBnH] = useState(10)
@@ -120,25 +187,88 @@ export default function BacktestPage() {
   const [chartScriptLoaded, setChartScriptLoaded] = useState(false)
   const todayStr = new Date().toISOString().split('T')[0]
 
-  // ── Load LWC ────────────────────────────────────────────────────────────────
+  // ── Load LightweightCharts Script ───────────────────────────────────────────
   useEffect(() => {
     if ((window as any).LightweightCharts) { setChartScriptLoaded(true); return }
     const s = document.createElement('script')
     s.src = 'https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js'
-    s.crossOrigin = 'anonymous' // COEP require-corp: load via CORS so the cross-origin script isn't blocked
+    s.crossOrigin = 'anonymous'
     s.async = true; s.onload = () => setChartScriptLoaded(true)
     document.body.appendChild(s)
   }, [])
 
-  // ── Set default dates ───────────────────────────────────────────────────────
+  // ── Load Available Historical Trading Dates ─────────────────────────────────
   useEffect(() => {
+    async function loadDates() {
+      try {
+        const rows = await mdQuery('backtest.tradingDates', [])
+        if (rows && rows.length > 0) {
+          const dates = rows.map((r: any) => String(r.trading_date).split('T')[0])
+          setTradingDates(dates)
+          
+          // Set initial default target date (approx 10 trading days ago)
+          if (dates.length > 10) {
+            setTargetDate(dates[10])
+          } else if (dates.length > 0) {
+            setTargetDate(dates[dates.length - 1])
+          }
+        }
+      } catch (err: any) {
+        if (err instanceof UpgradeRequiredError) setBlocked(true)
+      }
+    }
+    loadDates()
+
+    // Default dates for BnH
     const end = new Date()
     const start = new Date(); start.setDate(start.getDate() - 90)
     setEndDate(end.toISOString().split('T')[0])
     setStartDate(start.toISOString().split('T')[0])
   }, [])
 
-  // ─── Strategy Backtest ─────────────────────────────────────────────────────
+  // ── Helper: Set Timeframe Preset ───────────────────────────────────────────
+  const applyTimeframe = useCallback((tf: '1W' | '2W' | '1M' | '3M', dates = tradingDates) => {
+    setTimeframe(tf)
+    if (!dates || dates.length === 0) return
+    let idx = 10
+    if (tf === '1W') idx = Math.min(dates.length - 1, 5)
+    if (tf === '2W') idx = Math.min(dates.length - 1, 10)
+    if (tf === '1M') idx = Math.min(dates.length - 1, 21)
+    if (tf === '3M') idx = Math.min(dates.length - 1, 63)
+    setTargetDate(dates[idx])
+  }, [tradingDates])
+
+  // ── Execute Signal Accuracy Backtest ───────────────────────────────────────
+  const runSignalBacktest = useCallback(async (customDate?: string, customPreset?: string, customLimit?: number) => {
+    const d = customDate || targetDate
+    const p = customPreset || signalPreset
+    const l = customLimit || limitCount
+    if (!d) { setError('Pilih tanggal awal sinyal'); return }
+
+    setLoading(true); setError(null); setSignalResults(null)
+    try {
+      const data = await mdQuery('backtest.signalPerformance', [d, p, l])
+      if (!data || data.length === 0) {
+        setError(`Tidak ditemukan saham yang memicu sinyal ${p} pada tanggal ${d}. Coba pilih tanggal lain atau sinyal lain.`)
+      } else {
+        setSignalResults(data as unknown as SignalStockResult[])
+      }
+    } catch (e: any) {
+      if (e instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [targetDate, signalPreset, limitCount])
+
+  // Auto-run when trading dates load for first time
+  useEffect(() => {
+    if (tradingDates.length > 0 && targetDate && !signalResults && mode === 'signal' && !loading) {
+      runSignalBacktest(targetDate, signalPreset, limitCount)
+    }
+  }, [tradingDates, targetDate, mode])
+
+  // ── Execute Strategy Backtest (Single Stock) ───────────────────────────────
   const runStrategy = useCallback(async () => {
     if (!stockCode || stockCode.length < 1) { setError('Isi kode saham'); return }
     setLoading(true); setError(null); setStratResult(null)
@@ -162,7 +292,6 @@ export default function BacktestPage() {
         const high  = Number(row.high)  || close
         const low   = Number(row.low)   || close
 
-        // ── Update equity (mark-to-market) ──
         let curEq = equity
         if (position) {
           const ret = (close - position.entry) / position.entry
@@ -171,7 +300,6 @@ export default function BacktestPage() {
         peak = Math.max(peak, curEq)
         equityHistory.push({ date, equity: curEq, peak })
 
-        // ── Check exit conditions ──
         if (position) {
           const tpPrice = position.entry * (1 + takeProfit / 100)
           const slPrice = position.entry * (1 - stopLoss / 100)
@@ -204,7 +332,6 @@ export default function BacktestPage() {
           continue
         }
 
-        // ── Check entry ──
         let signal = false
         if (signalType === 'WHALE_SIGNAL' && row.whale_signal) signal = true
         if (signalType === 'AOV_SPIKE' && Number(row.aov_ratio_ma20) >= 1.5) signal = true
@@ -215,7 +342,6 @@ export default function BacktestPage() {
         if (signal) position = { entry: close, date, idx: i }
       }
 
-      // ── Compute metrics ──
       const wins = trades.filter(t => t.returnPct > 0)
       const losses = trades.filter(t => t.returnPct <= 0)
       const winRate = trades.length ? (wins.length / trades.length) * 100 : 0
@@ -223,7 +349,6 @@ export default function BacktestPage() {
       const totalReturnRp = trades.reduce((s, t) => s + t.returnRp, 0)
       const totalFee = trades.reduce((s, t) => s + t.fee, 0)
 
-      // True max drawdown: peak-to-trough
       let maxDrawdown = 0
       let runPeak = 0
       for (const pt of equityHistory) {
@@ -236,14 +361,9 @@ export default function BacktestPage() {
       const grossProfit = wins.reduce((s, t) => s + t.returnRp, 0)
       const grossLoss   = Math.abs(losses.reduce((s, t) => s + t.returnRp, 0))
       const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 99 : 0
-
-      // Annualized return (CAGR-like from first to last data point)
       const totalDays = equityHistory.length
-      const annualizedReturn = totalDays > 0
-        ? ((Math.pow(equity / 100, 365 / totalDays) - 1) * 100)
-        : 0
+      const annualizedReturn = totalDays > 0 ? ((Math.pow(equity / 100, 365 / totalDays) - 1) * 100) : 0
 
-      // Approx Sharpe: avg trade return / std of trade returns
       const tradeReturns = trades.map(t => t.returnPct)
       const avgR = tradeReturns.length ? tradeReturns.reduce((s, r) => s + r, 0) / tradeReturns.length : 0
       const variance = tradeReturns.length > 1
@@ -251,7 +371,6 @@ export default function BacktestPage() {
         : 0
       const sharpeApprox = variance > 0 ? avgR / Math.sqrt(variance) : 0
 
-      // Build equity curve with drawdown
       const equityCurve = equityHistory.map(pt => ({
         date: pt.date,
         equity: Number(pt.equity.toFixed(2)),
@@ -271,14 +390,13 @@ export default function BacktestPage() {
     }
   }, [stockCode, signalType, holdingPeriod, takeProfit, stopLoss, lotsStrat])
 
-  // ─── Buy & Hold Backtest ───────────────────────────────────────────────────
+  // ── Execute Buy & Hold Backtest ─────────────────────────────────────────────
   const runBnH = useCallback(async () => {
     if (!stockCode || !startDate || !endDate) { setError('Isi semua field'); return }
     if (startDate >= endDate) { setError('Tanggal mulai harus sebelum tanggal akhir'); return }
     setLoading(true); setError(null); setBnHResult(null)
 
     try {
-      // Fetch stock + IHSG parallel
       const [data, ihsgData] = await Promise.all([
         mdQuery('backtest.pricesRange', [stockCode.toUpperCase(), startDate, endDate]),
         mdQuery('backtest.compositeRange', [startDate, endDate]),
@@ -297,18 +415,15 @@ export default function BacktestPage() {
       const netReturn = grossReturn - fee
       const returnPct = (netReturn / modal) * 100
 
-      // Days (calendar)
       const days = Math.round(
         (new Date(String(last.trading_date).split('T')[0]).getTime() -
          new Date(String(first.trading_date).split('T')[0]).getTime()) / 86400000
       ) || data.length
 
-      // Annualized return
       const annualizedReturn = days > 0
         ? ((Math.pow((sellPrice / buyPrice), 365 / days) - 1) * 100)
         : 0
 
-      // True max drawdown (peak-to-trough from buyPrice baseline)
       let runPeak = buyPrice
       let maxDrawdown = 0
       for (const r of data) {
@@ -325,7 +440,6 @@ export default function BacktestPage() {
       const highestPrice  = Math.max(...data.map((r: any) => Number(r.high) || Number(r.close)))
       const lowestPrice   = Math.min(...data.map((r: any) => Number(r.low)  || Number(r.close)))
 
-      // IHSG comparison
       let ihsgReturnPct: number | null = null
       let ihsgBuyPrice: number | null = null
       let ihsgSellPrice: number | null = null
@@ -353,10 +467,8 @@ export default function BacktestPage() {
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stockCode, startDate, endDate, lotsBnH])
 
-  // ─── Render Buy & Hold Candlestick Chart ───────────────────────────────────
   function renderBnHChart(data: any[]) {
     if (!chartScriptLoaded || !chartRef.current || !data.length) return
     const lwc = (window as any).LightweightCharts
@@ -384,11 +496,9 @@ export default function BacktestPage() {
       close: Number(r.close),
     })))
 
-    // Buy price line
     const buyPrice = Number(data[0].open_price) || Number(data[0].close)
     candle.createPriceLine({ price: buyPrice, color: '#3b82f6', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: '📌 Entry' })
 
-    // Volume
     const volSeries = chart.addHistogramSeries({ priceScaleId: 'vol', priceFormat: { type: 'volume' } })
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } })
     volSeries.setData(data.map((r: any) => ({
@@ -397,7 +507,6 @@ export default function BacktestPage() {
       color: Number(r.close) >= (Number(r.open_price) || Number(r.close)) ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)',
     })))
 
-    // Markers
     const markers: any[] = []
     data.forEach((r: any) => {
       if (r.whale_signal || Number(r.aov_ratio_ma20) >= 1.5)
@@ -411,291 +520,738 @@ export default function BacktestPage() {
     return () => chart.remove()
   }
 
-  const handleRun = () => {
-    setError(null)
-    mode === 'strategy' ? runStrategy() : runBnH()
+  // ─── Computed Signal Accuracy Metrics ───────────────────────────────────────
+  const signalKPIs = useMemo(() => {
+    if (!signalResults || signalResults.length === 0) return null
+    const total = signalResults.length
+    const wins = signalResults.filter(s => s.current_return_pct > 0)
+    const winRate = (wins.length / total) * 100
+    const avgReturn = signalResults.reduce((acc, s) => acc + s.current_return_pct, 0) / total
+    const avgMaxGain = signalResults.reduce((acc, s) => acc + s.max_gain_pct, 0) / total
+    const avgMaxDD = signalResults.reduce((acc, s) => acc + s.max_drawdown_pct, 0) / total
+    
+    const topStock = [...signalResults].sort((a, b) => b.current_return_pct - a.current_return_pct)[0]
+    const worstStock = [...signalResults].sort((a, b) => a.current_return_pct - b.current_return_pct)[0]
+
+    return {
+      total,
+      winCount: wins.length,
+      lossCount: total - wins.length,
+      winRate,
+      avgReturn,
+      avgMaxGain,
+      avgMaxDD,
+      topStock,
+      worstStock,
+    }
+  }, [signalResults])
+
+  // ─── Copy Social Media Summary ──────────────────────────────────────────────
+  const handleCopySocial = () => {
+    if (!signalKPIs || !signalResults) return
+    const activePresetObj = SIGNAL_PRESETS.find(p => p.id === signalPreset)
+    const text = `📊 BDMFLOW SIGNAL EFFICACY REPORT 🚀
+🔍 Sinyal: ${activePresetObj?.label || signalPreset}
+📅 Trigger Snapshot: ${targetDate} (${signalResults[0]?.days_held || 0} Hari Bursa Lalu)
+
+🎯 Win Rate: ${signalKPIs.winRate.toFixed(1)}% (${signalKPIs.winCount} Win / ${signalKPIs.lossCount} Loss)
+📈 Rata-rata Return Saat Ini: ${signalKPIs.avgReturn >= 0 ? '+' : ''}${signalKPIs.avgReturn.toFixed(2)}%
+🚀 Rata-rata Puncak Kenaikan (MFE): +${signalKPIs.avgMaxGain.toFixed(2)}%
+🛡️ Rata-rata Max Drawdown (MAE): ${signalKPIs.avgMaxDD.toFixed(2)}%
+
+Top 5 Performers:
+${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.current_return_pct >= 0 ? '+' : ''}${s.current_return_pct.toFixed(1)}% (Peak +${s.max_gain_pct.toFixed(1)}%)`).join('\n')}
+
+💡 Uji sinyal dan data smart money terlengkap di BDMFlow!`
+
+    navigator.clipboard.writeText(text)
+    setCopiedToast(true)
+    setTimeout(() => setCopiedToast(false), 3000)
   }
 
-  // ─── Quick date presets ────────────────────────────────────────────────────
-  const setPreset = (days: number) => {
-    const e = new Date()
-    const s = new Date(); s.setDate(s.getDate() - days)
-    setEndDate(e.toISOString().split('T')[0])
-    setStartDate(s.toISOString().split('T')[0])
-  }
-
-  // ─── Render ────────────────────────────────────────────────────────────────
-  // Both the price history and the composite range are paid-tier, so a refusal
-  // leaves nothing to backtest against.
+  // ── Blocked check ──
   if (blocked) {
     return (
       <div className="w-full animate-fade-in pb-10 pt-6">
         <UpgradePrompt
-          feature="Backtest Lab"
-          detail="Uji strategi Anda terhadap data harga historis dan skor komposit — sebelum mempertaruhkan modal."
+          feature="Backtest Lab & Signal Efficacy"
+          detail="Uji akurasi sinyal radar, screener, dan strategi trading Anda terhadap data historis bursa sebelum mempertaruhkan modal nyata."
         />
       </div>
     )
   }
 
   return (
-    <div className="w-full py-6 space-y-5 pb-12 animate-fade-in">
+    <div className="w-full py-6 space-y-6 pb-16 animate-fade-in max-w-7xl mx-auto px-2 sm:px-4">
 
-      {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, rgba(231,183,51,0.15) 0%, rgba(231,183,51,0.05) 100%)', border: '1px solid rgba(231,183,51,0.2)' }}>
-            <FlaskConical className="w-5 h-5 text-gold-400" />
+      {/* ── Header & Main Navigation Tabs ── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/60 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-line-3 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/30 text-amber-500 shadow-sm shrink-0">
+            <FlaskConical className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight gradient-gold">Backtest Lab</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Uji strategi sinyal · Hitung P&L dengan biaya broker</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">Backtest Lab</h1>
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-black uppercase tracking-wider">
+                Accuracy & Efficacy
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Validasi akurasi sinyal harian di seluruh market & uji simulasi strategi trading
+            </p>
           </div>
         </div>
 
-        {/* Mode Toggle */}
-        <div className="flex bg-surface-3 p-1 rounded-xl">
-          {(['strategy', 'bnh'] as Mode[]).map(m => (
-            <button key={m} onClick={() => { setMode(m); setError(null) }}
-              className={`px-5 py-2 rounded-lg text-xs font-black transition-all capitalize ${
-                mode === m ? 'bg-surface-4 text-gold-400 shadow-lg shadow-gold-400/5' : 'text-muted-foreground hover:text-white'
-              }`}>
-              {m === 'strategy' ? '⚡ Strategy' : '📊 Buy & Hold'}
+        {/* 3 Modern Navigation Tabs */}
+        <div className="flex bg-surface-2/80 p-1 rounded-xl border border-line-2 w-full md:w-auto overflow-x-auto">
+          {[
+            { id: 'signal', label: '🎯 Signal Accuracy (Multi-Stock)' },
+            { id: 'strategy', label: '📊 Single Stock Sim' },
+            { id: 'bnh', label: '📈 Buy & Hold vs IHSG' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => { setMode(t.id as Mode); setError(null) }}
+              className={`px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex-1 md:flex-initial ${
+                mode === t.id
+                  ? 'bg-card text-foreground border border-line-3 shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ── Error ── */}
+      {/* ── Error Banner ── */}
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
+        <div className="p-4 bg-rose-500/10 border border-rose-500/25 rounded-2xl flex items-center gap-3 text-rose-500 text-xs sm:text-sm shadow-sm animate-fade-in">
           <AlertTriangle className="w-5 h-5 shrink-0" />
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)}><X className="w-4 h-4" /></button>
+          <span className="flex-1 font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="p-1 hover:bg-rose-500/20 rounded-lg">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        {/* ══ LEFT — Settings Panel ══ */}
-        <div className="glass rounded-2xl p-5 border border-border/50 shadow-xl h-fit space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Settings2 className="w-4 h-4 text-gold-400" />
-            <h3 className="font-bold text-sm">Parameter</h3>
-          </div>
-
-          {/* Stock code */}
-          <div>
-            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Kode Saham</label>
-            <input type="text" value={stockCode}
-              onChange={e => setStockCode(e.target.value.toUpperCase())}
-              onKeyDown={e => e.key === 'Enter' && handleRun()}
-              placeholder="BBCA"
-              className="w-full bg-surface-2 border border-line-4 rounded-xl px-4 py-2.5 text-sm font-mono font-bold uppercase focus:border-gold-400/50 outline-none" maxLength={10} />
-          </div>
-
-          {/* ── Strategy-only params ── */}
-          {mode === 'strategy' && (
-            <>
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Signal Entry</label>
-                <select value={signalType} onChange={e => setSignalType(e.target.value)}
-                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-4 py-2.5 text-sm focus:border-gold-400/50 outline-none">
-                  <option value="WHALE_SIGNAL">🐋 Whale Signal (AOV anomaly)</option>
-                  <option value="AOV_SPIKE">📊 AOV Spike ≥ 1.5x</option>
-                  <option value="FOREIGN_BUY">🌏 Foreign Net Buy</option>
-                  <option value="BIG_PLAYER">⚡ Big Player Anomaly</option>
-                  <option value="COMBINED">🔀 Combined (Whale + Foreign)</option>
-                </select>
+      {/* ═══════════════════════════════════════════════════════════════════════
+          TAB 1: SIGNAL ACCURACY & FORWARD RETURN TRACKER (MULTI-STOCK)
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {mode === 'signal' && (
+        <div className="space-y-6">
+          
+          {/* Controls Bar: Preset Sinyal + Periode Snapshot + Jumlah Saham */}
+          <div className="rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm space-y-4">
+            
+            {/* 1. Pilih Sinyal */}
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-amber-500" />
+                  Pilih Sinyal / Filter Entry ($T_0$)
+                </span>
+                <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
+                  {SIGNAL_PRESETS.find(p => p.id === signalPreset)?.desc}
+                </span>
               </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                {SIGNAL_PRESETS.map(p => {
+                  const Icon = p.icon
+                  const active = signalPreset === p.id
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setSignalPreset(p.id)
+                        runSignalBacktest(targetDate, p.id, limitCount)
+                      }}
+                      className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 ${
+                        active
+                          ? 'bg-surface-2 border-line-5 shadow-xs'
+                          : 'bg-surface-1 border-line-2 hover:border-line-4 text-muted-foreground'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <Icon className={`w-4 h-4 ${p.color}`} />
+                        {active && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                      </div>
+                      <span className={`text-xs font-bold ${active ? 'text-foreground font-black' : 'text-muted-foreground'}`}>
+                        {p.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-emerald-400 uppercase block mb-1.5">TP %</label>
-                  <input type="number" value={takeProfit} onChange={e => setTakeProfit(Number(e.target.value))} min="0.5" step="0.5"
-                    className="w-full bg-surface-2 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/50 outline-none" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-red-400 uppercase block mb-1.5">SL %</label>
-                  <input type="number" value={stopLoss} onChange={e => setStopLoss(Number(e.target.value))} min="0.5" step="0.5"
-                    className="w-full bg-surface-2 border border-red-500/20 rounded-xl px-3 py-2.5 text-sm focus:border-red-500/50 outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Max Hold (Hari)</label>
-                <input type="number" value={holdingPeriod} onChange={e => setHoldingPeriod(Number(e.target.value))} min="1"
-                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Lot per Trade</label>
-                <input type="number" value={lotsStrat} onChange={e => setLotsStrat(Number(e.target.value))} min="1"
-                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
-              </div>
-            </>
-          )}
-
-          {/* ── Buy & Hold params ── */}
-          {mode === 'bnh' && (
-            <>
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Jumlah Lot</label>
-                <input type="number" value={lotsBnH} onChange={e => setLotsBnH(Number(e.target.value))} min="1"
-                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Tanggal Beli</label>
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} max={endDate}
-                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none [color-scheme:dark]" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Tanggal Jual</label>
-                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} min={startDate} max={todayStr}
-                  className="w-full bg-surface-2 border border-line-4 rounded-xl px-3 py-2.5 text-sm focus:border-gold-400/50 outline-none [color-scheme:dark]" />
-              </div>
-              {/* Quick presets */}
-              <div className="flex gap-1.5 flex-wrap">
-                {[['1M',30],['3M',90],['6M',180],['1Y',365]].map(([l, d]) => (
-                  <button key={l} onClick={() => setPreset(Number(d))}
-                    className="px-3 py-1 text-[10px] font-bold bg-surface-2 border border-line-4 rounded-lg hover:border-gold-400/30 hover:text-gold-400 transition-colors">
-                    {l}
+            {/* 2. Pilih Periode Waktu ($T_0$) & Sample Count */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-3 border-t border-line-2 items-center">
+              
+              {/* Quick Timeframe Buttons */}
+              <div className="md:col-span-6 flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mr-1">
+                  Titik Awal:
+                </span>
+                {(['1W', '2W', '1M', '3M'] as const).map(tf => (
+                  <button
+                    key={tf}
+                    onClick={() => {
+                      applyTimeframe(tf)
+                      // Target date will update and trigger runSignalBacktest
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      timeframe === tf
+                        ? 'bg-amber-500 text-black border-amber-400 font-black shadow-xs'
+                        : 'bg-surface-2 border-line-3 text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {tf === '1W' ? '1 Minggu Lalu' : tf === '2W' ? '2 Minggu Lalu' : tf === '1M' ? '1 Bulan Lalu' : '3 Bulan Lalu'}
                   </button>
                 ))}
               </div>
-            </>
-          )}
 
-          {/* Fee disclaimer */}
-          <div className="p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/10 text-[10px] text-amber-400/80 flex items-start gap-1.5">
-            <Info className="w-3 h-3 shrink-0 mt-0.5" />
-            <span>Termasuk biaya broker: beli 0.15%, jual 0.25% (PPh 0.1% included)</span>
+              {/* Custom Date Picker & Limit Count */}
+              <div className="md:col-span-6 flex items-center justify-start md:justify-end gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Tanggal $T_0$:</label>
+                  <select
+                    value={targetDate}
+                    onChange={e => {
+                      setTimeframe('CUSTOM')
+                      setTargetDate(e.target.value)
+                      runSignalBacktest(e.target.value, signalPreset, limitCount)
+                    }}
+                    className="bg-surface-2 border border-line-3 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-foreground outline-none focus:border-amber-500"
+                  >
+                    {tradingDates.map((d, i) => (
+                      <option key={d} value={d}>
+                        {d} {i === 0 ? '(Hari Ini)' : `(-${i} hari)`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Top:</span>
+                  {[5, 10, 20].map(cnt => (
+                    <button
+                      key={cnt}
+                      onClick={() => {
+                        setLimitCount(cnt)
+                        runSignalBacktest(targetDate, signalPreset, cnt)
+                      }}
+                      className={`px-2 py-1 rounded-md text-xs font-bold border ${
+                        limitCount === cnt
+                          ? 'bg-foreground text-background border-foreground font-black'
+                          : 'bg-surface-2 border-line-2 text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {cnt}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => runSignalBacktest()}
+                  disabled={loading}
+                  className="px-4 py-1.5 rounded-lg bg-amber-500 text-black font-black text-xs hover:bg-amber-400 active:scale-95 transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  Scan
+                </button>
+              </div>
+
+            </div>
           </div>
 
-          <button onClick={handleRun} disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-400 text-black font-black hover:bg-gold-300 active:scale-95 shadow-lg shadow-gold-400/20 transition-all disabled:opacity-50">
-            {loading
-              ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Running...</>
-              : <><Play className="w-4 h-4 fill-current" /> Jalankan Backtest</>}
-          </button>
-        </div>
-
-        {/* ══ RIGHT — Results ══ */}
-        <div className="lg:col-span-2 space-y-4">
-
-          {/* Empty state */}
-          {!stratResult && !bnhResult && !loading && (
-            <div className="glass rounded-2xl border border-border/50 shadow-xl min-h-[400px] flex flex-col items-center justify-center text-center p-8">
-              <Target className="w-14 h-14 text-muted-foreground/20 mb-4" />
-              <p className="font-bold text-lg">Siap Diuji</p>
-              <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                {mode === 'strategy'
-                  ? 'Atur sinyal entry, TP/SL, holding period, lalu jalankan.'
-                  : 'Pilih saham, lot, tanggal beli & jual, lalu lihat P&L real.'}
-              </p>
-            </div>
-          )}
-
+          {/* Loading Indicator */}
           {loading && (
-            <div className="glass rounded-2xl border border-border/50 shadow-xl min-h-[400px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 border-4 border-gold-400/20 border-t-gold-400 rounded-full animate-spin mb-4" />
-              <p className="text-sm text-gold-400 font-bold animate-pulse">Menghitung Skenario...</p>
+            <div className="rounded-2xl p-12 border border-line-3 bg-card shadow-sm flex flex-col items-center justify-center text-center space-y-3">
+              <div className="w-8 h-8 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+              <p className="text-sm font-bold text-foreground">Menghitung forward returns & excursion data...</p>
+              <p className="text-xs text-muted-foreground">Menganalisis pergerakan harga dari {targetDate} hingga hari ini</p>
             </div>
           )}
 
-          {/* ════ STRATEGY RESULTS ════ */}
-          {mode === 'strategy' && stratResult && !loading && (
-            <>
-              {/* KPI Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { l: 'Total Trades',   v: String(stratResult.trades.length),                             c: 'text-foreground' },
-                  { l: 'Win Rate',       v: `${stratResult.winRate.toFixed(1)}%`,                           c: stratResult.winRate >= 50 ? 'text-emerald-400' : 'text-red-400' },
-                  { l: 'Total Return',   v: `${stratResult.totalReturnPct >= 0 ? '+' : ''}${stratResult.totalReturnPct.toFixed(2)}%`, c: stratResult.totalReturnPct >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                  { l: 'Max Drawdown',   v: `-${stratResult.maxDrawdown.toFixed(2)}%`,                      c: 'text-red-400' },
-                  { l: 'P&L (Rp)',       v: fmtRp(stratResult.totalReturnRp),                              c: stratResult.totalReturnRp >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                  { l: 'Ann. Return',    v: `${stratResult.annualizedReturn >= 0 ? '+' : ''}${stratResult.annualizedReturn.toFixed(1)}%/yr`, c: stratResult.annualizedReturn >= 0 ? 'text-emerald-400' : 'text-amber-400' },
-                  { l: 'Profit Factor',  v: stratResult.profitFactor >= 99 ? '∞' : stratResult.profitFactor.toFixed(2), c: stratResult.profitFactor > 1.5 ? 'text-emerald-400' : stratResult.profitFactor > 1 ? 'text-amber-400' : 'text-red-400' },
-                  { l: 'Sharpe (Est)',   v: stratResult.sharpeApprox.toFixed(2),                            c: stratResult.sharpeApprox > 1 ? 'text-emerald-400' : stratResult.sharpeApprox > 0 ? 'text-amber-400' : 'text-red-400' },
-                ].map((m, i) => (
-                  <div key={i} className="glass rounded-xl p-3 border border-border/50">
-                    <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{m.l}</p>
-                    <p className={`text-lg font-black mt-1 ${m.c}`}>{m.v}</p>
+          {/* Results Section */}
+          {signalKPIs && signalResults && !loading && (
+            <div className="space-y-6 animate-fade-in">
+              
+              {/* 4 Executive KPI Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                
+                {/* 1. Win Rate */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Win Rate Akurasi
+                    </span>
+                    <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded-md border ${
+                      signalKPIs.winRate >= 70 
+                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25' 
+                        : signalKPIs.winRate >= 50 
+                          ? 'bg-amber-500/10 text-amber-500 border-amber-500/25' 
+                          : 'bg-rose-500/10 text-rose-500 border-rose-500/25'
+                    }`}>
+                      {signalKPIs.winCount} Win · {signalKPIs.lossCount} Loss
+                    </span>
                   </div>
-                ))}
-              </div>
-
-              {/* Extra stats bar */}
-              <div className="glass rounded-xl p-3 border border-border/50 flex flex-wrap gap-4 text-[10px] text-muted-foreground">
-                <span>Avg Hold: <span className="font-bold text-foreground">{stratResult.avgHolding.toFixed(1)} hari</span></span>
-                <span>Total Fee: <span className="font-bold text-amber-400">{fmtRp(stratResult.totalFee)}</span></span>
-                <span>Trades: <span className="text-emerald-400 font-bold">{stratResult.trades.filter(t => t.reason === 'TP').length} TP</span> · <span className="text-red-400 font-bold">{stratResult.trades.filter(t => t.reason === 'SL').length} SL</span> · <span className="text-blue-400 font-bold">{stratResult.trades.filter(t => t.reason === 'TIME').length} TIME</span></span>
-              </div>
-
-              {/* Equity Curve */}
-              <div className="glass rounded-2xl p-5 border border-border/50">
-                <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-gold-400" /> Equity Curve (Base 100)
-                </h3>
-                <div className="h-[220px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={stratResult.equityCurve}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                      <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickMargin={8} minTickGap={40} />
-                      <YAxis stroke="#64748b" fontSize={10} domain={['auto', 'auto']} tickFormatter={v => v.toFixed(0)} width={40} />
-                      <Tooltip
-                        contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                        formatter={(val: any, name: string) => [Number(val).toFixed(2), name === 'equity' ? 'Equity' : 'Drawdown %']}
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-foreground">
+                      {signalKPIs.winRate.toFixed(1)}%
+                    </div>
+                    {/* Micro bar */}
+                    <div className="w-full h-1.5 bg-surface-3 rounded-full mt-2 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${signalKPIs.winRate >= 70 ? 'bg-emerald-500' : signalKPIs.winRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} 
+                        style={{ width: `${signalKPIs.winRate}%` }} 
                       />
-                      <ReferenceLine y={100} stroke="rgba(255,255,255,0.1)" strokeDasharray="4 4" />
-                      <Line type="monotone" dataKey="equity" stroke="#e7b733" strokeWidth={2} dot={false} activeDot={{ r: 3 }} name="equity" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Avg Current Return */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Rata-Rata Return Saat Ini
+                    </span>
+                    <TrendingUp className={`w-4 h-4 ${signalKPIs.avgReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />
+                  </div>
+                  <div>
+                    <div className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
+                      signalKPIs.avgReturn >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                    }`}>
+                      {signalKPIs.avgReturn >= 0 ? '+' : ''}{signalKPIs.avgReturn.toFixed(2)}%
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium block mt-1">
+                      Holding ~{signalResults[0]?.days_held || 0} hari bursa
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Avg Max Potential Gain (MFE) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Avg Puncak Tertinggi (MFE)
+                    </span>
+                    <Sparkles className="w-4 h-4 text-purple-500" />
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-purple-500">
+                      +{signalKPIs.avgMaxGain.toFixed(2)}%
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium block mt-1">
+                      Potensi target swing maksimum
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Avg Max Drawdown (MAE) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-card border border-line-3 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Avg Max Drawdown (MAE)
+                    </span>
+                    <Shield className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-rose-500">
+                      {signalKPIs.avgMaxDD.toFixed(2)}%
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium block mt-1">
+                      Risiko floating loss terdalam
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Action Banner: Copy/Share Result to Medsos */}
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-surface-2 border border-line-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                  <Award className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>
+                    Top performer: <strong className="text-foreground">${signalKPIs.topStock.stock_code}</strong> ({signalKPIs.topStock.current_return_pct >= 0 ? '+' : ''}{signalKPIs.topStock.current_return_pct.toFixed(1)}% · Peak +{signalKPIs.topStock.max_gain_pct.toFixed(1)}%)
+                  </span>
+                </div>
+                <button
+                  onClick={handleCopySocial}
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-card border border-line-3 hover:border-line-5 text-foreground font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs shrink-0"
+                >
+                  {copiedToast ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-emerald-500">Tersalin ke Clipboard!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span>Salin Rekap untuk Threads / Medsos</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* 10 Stocks Transparency Table */}
+              <div className="rounded-2xl border border-line-3 bg-card shadow-sm overflow-hidden">
+                <div className="p-4 sm:p-5 border-b border-line-2 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-foreground">
+                      Daftar {signalResults.length} Saham Terdeteksi pada {targetDate}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Perbandingan harga beli saat sinyal muncul ($T_0$) vs pergerakan harga hingga saat ini
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-muted-foreground bg-surface-2 px-2.5 py-1 rounded-lg border border-line-2">
+                    {signalResults.length} Stocks
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-line-2 bg-surface-1/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        <th className="py-3 px-4">#</th>
+                        <th className="py-3 px-4">Saham</th>
+                        <th className="py-3 px-4 text-right">Harga Entry ($T_0$)</th>
+                        <th className="py-3 px-4 text-right">Harga Saat Ini</th>
+                        <th className="py-3 px-4 text-right">Current Return</th>
+                        <th className="py-3 px-4 text-right">Max High (MFE)</th>
+                        <th className="py-3 px-4 text-right">Max Low (MAE)</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                        <th className="py-3 px-4 text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line-2 font-mono">
+                      {signalResults.map((s, idx) => {
+                        const isWin = s.current_return_pct > 0
+                        return (
+                          <tr key={s.stock_code} className="hover:bg-surface-1 transition-colors">
+                            
+                            {/* Number */}
+                            <td className="py-3 px-4 text-muted-foreground font-bold">{idx + 1}</td>
+
+                            {/* Stock info */}
+                            <td className="py-3 px-4 font-sans">
+                              <div className="flex items-center gap-2.5">
+                                <CompanyLogo code={s.stock_code} sector={s.sector} size={32} />
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-black font-mono text-xs sm:text-sm text-foreground">{s.stock_code}</span>
+                                    {s.entry_whale && (
+                                      <span className="text-[8px] px-1 rounded bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30">
+                                        WHALE
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] text-muted-foreground truncate block max-w-[120px] sm:max-w-[160px]">
+                                    {s.company_name || s.sector}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Entry Price */}
+                            <td className="py-3 px-4 text-right font-bold text-foreground">
+                              {formatNumber(s.entry_price)}
+                              <span className="text-[9px] text-muted-foreground block font-normal font-sans">
+                                {s.entry_date}
+                              </span>
+                            </td>
+
+                            {/* Current Price */}
+                            <td className="py-3 px-4 text-right font-bold text-foreground">
+                              {formatNumber(s.latest_price)}
+                              <span className="text-[9px] text-muted-foreground block font-normal font-sans">
+                                {s.latest_date}
+                              </span>
+                            </td>
+
+                            {/* Current Return */}
+                            <td className="py-3 px-4 text-right font-black">
+                              <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs ${
+                                isWin 
+                                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                  : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                              }`}>
+                                {isWin ? '+' : ''}{s.current_return_pct.toFixed(2)}%
+                              </span>
+                            </td>
+
+                            {/* Max High */}
+                            <td className="py-3 px-4 text-right">
+                              <span className="font-bold text-purple-500">
+                                +{s.max_gain_pct.toFixed(2)}%
+                              </span>
+                              <span className="text-[9px] text-muted-foreground block font-normal">
+                                Rp {formatNumber(s.max_high)}
+                              </span>
+                            </td>
+
+                            {/* Max Drawdown */}
+                            <td className="py-3 px-4 text-right">
+                              <span className="font-bold text-rose-400">
+                                {s.max_drawdown_pct.toFixed(2)}%
+                              </span>
+                              <span className="text-[9px] text-muted-foreground block font-normal">
+                                Rp {formatNumber(s.min_low)}
+                              </span>
+                            </td>
+
+                            {/* Win/Loss Status Pill */}
+                            <td className="py-3 px-4 text-center">
+                              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                isWin
+                                  ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                                  : 'bg-rose-500/15 text-rose-500 border border-rose-500/30'
+                              }`}>
+                                {isWin ? '🟢 WIN' : '🔴 LOSS'}
+                              </span>
+                            </td>
+
+                            {/* Action Link */}
+                            <td className="py-3 px-4 text-center">
+                              <Link
+                                href={`/stock/${s.stock_code}`}
+                                className="p-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-muted-foreground hover:text-foreground inline-flex items-center justify-center border border-line-2 transition-colors"
+                              >
+                                <ArrowUpRight className="w-3.5 h-3.5" />
+                              </Link>
+                            </td>
+
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              {/* Trade Log */}
-              {stratResult.trades.length > 0 && (
-                <div className="glass rounded-2xl overflow-hidden border border-border/50">
-                  <div className="p-3 border-b border-line-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gold-400" />
-                    <h3 className="font-bold text-sm">Trade Log ({stratResult.trades.length} trades)</h3>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          TAB 2 & 3: SINGLE STOCK STRATEGY & BUY-AND-HOLD SIMULATION
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {mode !== 'signal' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* ══ LEFT — Settings Panel ══ */}
+          <div className="rounded-2xl p-5 border border-line-3 bg-card shadow-sm h-fit space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Settings2 className="w-4 h-4 text-amber-500" />
+              <h3 className="font-bold text-sm text-foreground">Parameter Simulasi</h3>
+            </div>
+
+            {/* Stock code */}
+            <div>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Kode Saham</label>
+              <input
+                type="text"
+                value={stockCode}
+                onChange={e => setStockCode(e.target.value.toUpperCase())}
+                onKeyDown={e => e.key === 'Enter' && (mode === 'strategy' ? runStrategy() : runBnH())}
+                placeholder="BBCA"
+                className="w-full bg-surface-2 border border-line-3 rounded-xl px-4 py-2.5 text-sm font-mono font-bold uppercase focus:border-amber-500 outline-none text-foreground"
+                maxLength={10}
+              />
+            </div>
+
+            {/* Strategy mode params */}
+            {mode === 'strategy' && (
+              <>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Signal Entry</label>
+                  <select
+                    value={signalType}
+                    onChange={e => setSignalType(e.target.value)}
+                    className="w-full bg-surface-2 border border-line-3 rounded-xl px-4 py-2.5 text-sm focus:border-amber-500 outline-none text-foreground"
+                  >
+                    <option value="WHALE_SIGNAL">🐋 Whale Signal (AOV Anomaly)</option>
+                    <option value="AOV_SPIKE">📊 AOV Spike ≥ 1.5x</option>
+                    <option value="FOREIGN_BUY">🌏 Foreign Net Buy</option>
+                    <option value="BIG_PLAYER">⚡ Big Player Anomaly</option>
+                    <option value="COMBINED">🔀 Combined (Whale + Foreign)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-emerald-500 uppercase block mb-1.5">Take Profit %</label>
+                    <input
+                      type="number"
+                      value={takeProfit}
+                      onChange={e => setTakeProfit(Number(e.target.value))}
+                      min="0.5"
+                      step="0.5"
+                      className="w-full bg-surface-2 border border-emerald-500/30 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500 outline-none text-foreground font-mono font-bold"
+                    />
                   </div>
-                  <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
-                    <table className="w-full text-xs">
-                      <thead className="sticky top-0 bg-card/95 backdrop-blur-sm">
-                        <tr className="text-[9px] text-muted-foreground uppercase border-b border-line-2">
-                          <th className="p-2 text-left">Entry</th>
-                          <th className="p-2 text-right">Harga Beli</th>
-                          <th className="p-2 text-left">Exit</th>
-                          <th className="p-2 text-right">Harga Jual</th>
-                          <th className="p-2 text-center">Hold</th>
-                          <th className="p-2 text-center">Alasan</th>
-                          <th className="p-2 text-right">Return %</th>
-                          <th className="p-2 text-right">P&L Rp</th>
+                  <div>
+                    <label className="text-[10px] font-bold text-rose-500 uppercase block mb-1.5">Stop Loss %</label>
+                    <input
+                      type="number"
+                      value={stopLoss}
+                      onChange={e => setStopLoss(Number(e.target.value))}
+                      min="0.5"
+                      step="0.5"
+                      className="w-full bg-surface-2 border border-rose-500/30 rounded-xl px-3 py-2.5 text-sm focus:border-rose-500 outline-none text-foreground font-mono font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Max Holding (Hari)</label>
+                  <input
+                    type="number"
+                    value={holdingPeriod}
+                    onChange={e => setHoldingPeriod(Number(e.target.value))}
+                    min="1"
+                    className="w-full bg-surface-2 border border-line-3 rounded-xl px-3 py-2.5 text-sm focus:border-amber-500 outline-none text-foreground font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Lot per Trade</label>
+                  <input
+                    type="number"
+                    value={lotsStrat}
+                    onChange={e => setLotsStrat(Number(e.target.value))}
+                    min="1"
+                    className="w-full bg-surface-2 border border-line-3 rounded-xl px-3 py-2.5 text-sm focus:border-amber-500 outline-none text-foreground font-mono font-bold"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Buy & Hold params */}
+            {mode === 'bnh' && (
+              <>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Jumlah Lot</label>
+                  <input
+                    type="number"
+                    value={lotsBnH}
+                    onChange={e => setLotsBnH(Number(e.target.value))}
+                    min="1"
+                    className="w-full bg-surface-2 border border-line-3 rounded-xl px-3 py-2.5 text-sm focus:border-amber-500 outline-none text-foreground font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Tanggal Beli</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={e => setStartDate(e.target.value)}
+                    max={endDate}
+                    className="w-full bg-surface-2 border border-line-3 rounded-xl px-3 py-2.5 text-sm focus:border-amber-500 outline-none [color-scheme:dark] text-foreground font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1.5">Tanggal Jual</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={e => setEndDate(e.target.value)}
+                    min={startDate}
+                    max={todayStr}
+                    className="w-full bg-surface-2 border border-line-3 rounded-xl px-3 py-2.5 text-sm focus:border-amber-500 outline-none [color-scheme:dark] text-foreground font-mono"
+                  />
+                </div>
+              </>
+            )}
+
+            <button
+              onClick={() => (mode === 'strategy' ? runStrategy() : runBnH())}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-500 text-black font-black hover:bg-amber-400 active:scale-95 shadow-md shadow-amber-500/10 transition-all disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" /> Menghitung...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 fill-current" /> Jalankan Simulasi
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* ══ RIGHT — Strategy Results ══ */}
+          <div className="lg:col-span-2 space-y-4">
+            
+            {/* Strategy Result Display */}
+            {mode === 'strategy' && stratResult && (
+              <div className="space-y-4 animate-fade-in">
+                
+                {/* 4 KPIs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Win Rate</span>
+                    <div className="text-2xl font-black font-mono text-foreground mt-1">{stratResult.winRate.toFixed(1)}%</div>
+                    <span className="text-[10px] text-muted-foreground font-medium">{stratResult.trades.length} total trades</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Total Return</span>
+                    <div className={`text-2xl font-black font-mono mt-1 ${stratResult.totalReturnPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {stratResult.totalReturnPct >= 0 ? '+' : ''}{stratResult.totalReturnPct.toFixed(1)}%
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium">{fmtRp(stratResult.totalReturnRp)}</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Max Drawdown</span>
+                    <div className="text-2xl font-black font-mono text-rose-500 mt-1">-{stratResult.maxDrawdown.toFixed(1)}%</div>
+                    <span className="text-[10px] text-muted-foreground font-medium">Peak to trough</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Profit Factor</span>
+                    <div className="text-2xl font-black font-mono text-purple-500 mt-1">{stratResult.profitFactor.toFixed(2)}x</div>
+                    <span className="text-[10px] text-muted-foreground font-medium">Avg hold: {stratResult.avgHolding.toFixed(0)}d</span>
+                  </div>
+                </div>
+
+                {/* Trade Log Table */}
+                <div className="rounded-2xl border border-line-3 bg-card shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-line-2">
+                    <h4 className="font-black text-sm text-foreground">Log Eksekusi Trade ({stockCode})</h4>
+                  </div>
+                  <div className="overflow-x-auto max-h-96">
+                    <table className="w-full text-left text-xs border-collapse font-mono">
+                      <thead className="sticky top-0 bg-surface-2 text-[10px] font-bold text-muted-foreground uppercase">
+                        <tr className="border-b border-line-2">
+                          <th className="py-2.5 px-3">Entry</th>
+                          <th className="py-2.5 px-3">Exit</th>
+                          <th className="py-2.5 px-3 text-right">Entry Price</th>
+                          <th className="py-2.5 px-3 text-right">Exit Price</th>
+                          <th className="py-2.5 px-3 text-right">Return %</th>
+                          <th className="py-2.5 px-3 text-center">Reason</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-line-2">
                         {stratResult.trades.map((t, i) => (
-                          <tr key={i} className="border-b border-line-1 hover:bg-surface-1">
-                            <td className="p-2 font-mono text-[10px]">{t.entryDate}</td>
-                            <td className="p-2 text-right">{formatRupiah(t.entryPrice)}</td>
-                            <td className="p-2 font-mono text-[10px]">{t.exitDate}</td>
-                            <td className="p-2 text-right">{formatRupiah(t.exitPrice)}</td>
-                            <td className="p-2 text-center text-muted-foreground">{t.daysHeld}h</td>
-                            <td className="p-2 text-center">
-                              <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${
-                                t.reason === 'TP' ? 'bg-emerald-500/20 text-emerald-400' :
-                                t.reason === 'SL' ? 'bg-red-500/20 text-red-400' :
-                                t.reason === 'TIME' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-500/20 text-slate-400'
-                              }`}>{t.reason}</span>
+                          <tr key={i} className="hover:bg-surface-1">
+                            <td className="py-2 px-3">{t.entryDate}</td>
+                            <td className="py-2 px-3">{t.exitDate}</td>
+                            <td className="py-2 px-3 text-right">{formatNumber(t.entryPrice)}</td>
+                            <td className="py-2 px-3 text-right">{formatNumber(t.exitPrice)}</td>
+                            <td className={`py-2 px-3 text-right font-black ${t.returnPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                              {t.returnPct >= 0 ? '+' : ''}{t.returnPct.toFixed(2)}%
                             </td>
-                            <td className={`p-2 text-right font-bold ${t.returnPct > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {t.returnPct > 0 ? '+' : ''}{t.returnPct.toFixed(2)}%
-                            </td>
-                            <td className={`p-2 text-right font-bold ${t.returnRp > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {fmtRp(t.returnRp)}
+                            <td className="py-2 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded text-[8.5px] font-bold ${
+                                t.reason === 'TP' ? 'bg-emerald-500/10 text-emerald-500' : t.reason === 'SL' ? 'bg-rose-500/10 text-rose-500' : 'bg-surface-3 text-muted-foreground'
+                              }`}>
+                                {t.reason}
+                              </span>
                             </td>
                           </tr>
                         ))}
@@ -703,122 +1259,70 @@ export default function BacktestPage() {
                     </table>
                   </div>
                 </div>
-              )}
-            </>
-          )}
 
-          {/* ════ BUY & HOLD RESULTS ════ */}
-          {mode === 'bnh' && bnhResult && !loading && (
-            <>
-              {/* Main KPIs */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { l: 'Return (net)', v: `${bnhResult.returnPct >= 0 ? '+' : ''}${bnhResult.returnPct.toFixed(2)}%`, c: bnhResult.returnPct >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                  { l: 'P&L Rp (net)',  v: fmtRp(bnhResult.netReturn),   c: bnhResult.netReturn >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                  { l: 'Modal',         v: fmtRp(bnhResult.modal),        c: 'text-blue-400' },
-                  { l: 'Ann. Return',   v: `${bnhResult.annualizedReturn >= 0 ? '+' : ''}${bnhResult.annualizedReturn.toFixed(1)}%/yr`, c: bnhResult.annualizedReturn >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                ].map((m, i) => (
-                  <div key={i} className="glass rounded-xl p-4 border border-border/50">
-                    <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{m.l}</p>
-                    <p className={`text-xl font-black mt-1 ${m.c}`}>{m.v}</p>
+              </div>
+            )}
+
+            {/* Buy & Hold Result Display */}
+            {mode === 'bnh' && bnhResult && (
+              <div className="space-y-4 animate-fade-in">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Total Return</span>
+                    <div className={`text-2xl font-black font-mono mt-1 ${bnhResult.returnPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {bnhResult.returnPct >= 0 ? '+' : ''}{bnhResult.returnPct.toFixed(1)}%
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium">{fmtRp(bnhResult.netReturn)}</span>
                   </div>
-                ))}
-              </div>
-
-              {/* Detail table + IHSG comparison */}
-              <div className="glass rounded-2xl p-5 border border-border/50">
-                <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-gold-400" /> Detail Skenario
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  {[
-                    { l: `Harga Beli (${bnhResult.buyDate})`,      v: `Rp ${bnhResult.buyPrice.toLocaleString('id-ID')}` },
-                    { l: `Harga Jual (${bnhResult.sellDate})`,      v: `Rp ${bnhResult.sellPrice.toLocaleString('id-ID')}` },
-                    { l: 'Lot × 100 Lembar',                        v: `${bnhResult.lots}L × 100 = ${bnhResult.shares.toLocaleString('id-ID')} lbr` },
-                    { l: 'Periode (hari)',                           v: `${bnhResult.days} hari (${bnhResult.rawData.length} trading days)` },
-                    { l: 'Modal',                                    v: fmtRp(bnhResult.modal),        c: 'text-blue-400' },
-                    { l: 'Gross Return',                             v: fmtRp(bnhResult.grossReturn),   c: bnhResult.grossReturn >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                    { l: 'Broker Fee (est)',                         v: fmtRp(bnhResult.fee),           c: 'text-amber-400' },
-                    { l: 'Net Return',                               v: fmtRp(bnhResult.netReturn),     c: bnhResult.netReturn >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                    { l: 'Highest Price',                            v: `Rp ${bnhResult.highestPrice.toLocaleString('id-ID')}`, c: 'text-emerald-400' },
-                    { l: 'Lowest Price',                             v: `Rp ${bnhResult.lowestPrice.toLocaleString('id-ID')}`, c: 'text-red-400' },
-                    { l: 'Max Drawdown (peak→trough)',               v: `-${bnhResult.maxDrawdown.toFixed(2)}%`,                c: 'text-red-400' },
-                    { l: 'Net Foreign (total periode)',              v: fmtRp(bnhResult.totalForeign),   c: bnhResult.totalForeign >= 0 ? 'text-emerald-400' : 'text-red-400' },
-                  ].map((m, i) => (
-                    <div key={i} className="p-2 rounded-lg bg-surface-1 border border-line-1">
-                      <p className="text-[8px] text-muted-foreground uppercase mb-0.5">{m.l}</p>
-                      <p className={`font-bold ${m.c || 'text-foreground'}`}>{m.v}</p>
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">vs IHSG Benchmark</span>
+                    <div className="text-2xl font-black font-mono text-foreground mt-1">
+                      {bnhResult.ihsgReturnPct !== null ? `${bnhResult.ihsgReturnPct >= 0 ? '+' : ''}${bnhResult.ihsgReturnPct.toFixed(1)}%` : '—'}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* IHSG Comparison */}
-              {bnhResult.ihsgReturnPct !== null && (
-                <div className="glass rounded-xl p-4 border border-border/50">
-                  <h3 className="font-bold text-xs mb-3 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-gold-400" /> vs IHSG Benchmark
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="p-3 rounded-lg bg-surface-1">
-                      <p className="text-[9px] text-muted-foreground uppercase">{stockCode.toUpperCase()} Return</p>
-                      <p className={`text-xl font-black mt-1 ${bnhResult.returnPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {bnhResult.returnPct >= 0 ? '+' : ''}{bnhResult.returnPct.toFixed(2)}%
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-surface-1">
-                      <p className="text-[9px] text-muted-foreground uppercase">IHSG Return</p>
-                      <p className={`text-xl font-black mt-1 ${bnhResult.ihsgReturnPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {bnhResult.ihsgReturnPct >= 0 ? '+' : ''}{bnhResult.ihsgReturnPct.toFixed(2)}%
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-surface-1">
-                      <p className="text-[9px] text-muted-foreground uppercase">Alpha</p>
-                      <p className={`text-xl font-black mt-1 ${(bnhResult.returnPct - bnhResult.ihsgReturnPct) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {(bnhResult.returnPct - bnhResult.ihsgReturnPct) >= 0 ? '+' : ''}{(bnhResult.returnPct - bnhResult.ihsgReturnPct).toFixed(2)}%
-                      </p>
-                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium">Periode {bnhResult.days} hari</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Max Drawdown</span>
+                    <div className="text-2xl font-black font-mono text-rose-500 mt-1">-{bnhResult.maxDrawdown.toFixed(1)}%</div>
+                    <span className="text-[10px] text-muted-foreground font-medium">Penurunan terdalam</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-card border border-line-3 shadow-sm">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">Sinyal Whale</span>
+                    <div className="text-2xl font-black font-mono text-amber-500 mt-1">{bnhResult.whaleCount}x</div>
+                    <span className="text-[10px] text-muted-foreground font-medium">Muncul di periode</span>
                   </div>
                 </div>
-              )}
 
-              {/* Signal Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { l: 'Whale Signals',  v: `${bnhResult.whaleCount}x`,     c: 'text-gold-400',   icon: Zap },
-                  { l: 'BP Anomaly',     v: `${bnhResult.bpAnomalyCount}x`, c: 'text-pink-400',   icon: Activity },
-                  { l: 'Net Foreign',    v: fmtRp(bnhResult.totalForeign),  c: bnhResult.totalForeign >= 0 ? 'text-emerald-400' : 'text-red-400', icon: TrendingUp },
-                  { l: 'Max Drawdown',   v: `-${bnhResult.maxDrawdown.toFixed(2)}%`, c: 'text-red-400', icon: TrendingDown },
-                ].map((m, i) => {
-                  const Icon = m.icon
-                  return (
-                    <div key={i} className="glass rounded-xl p-3 border border-border/50">
-                      <Icon className={`w-3.5 h-3.5 ${m.c} mb-1.5`} />
-                      <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
-                      <p className={`text-base font-black mt-0.5 ${m.c}`}>{m.v}</p>
+                {/* Candlestick Chart */}
+                <div className="rounded-2xl border border-line-3 bg-card p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-sm text-foreground">Grafik Historis & Indikator Sinyal</h4>
+                    <div className="flex items-center gap-3 text-[10px] font-bold">
+                      <span className="flex items-center gap-1 text-amber-500">🐋 Whale / AOV</span>
+                      <span className="flex items-center gap-1 text-pink-500">◆ Big Player</span>
                     </div>
-                  )
-                })}
-              </div>
-
-              {/* Candlestick Chart */}
-              <div className="glass rounded-2xl p-5 border border-border/50">
-                <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-gold-400" /> Price Chart
-                </h3>
-                <div ref={chartRef} className="w-full" style={{ minHeight: '320px' }} />
-                <div className="flex gap-4 text-[9px] text-muted-foreground mt-2 flex-wrap">
-                  <span>🕯️ Candle + Volume</span>
-                  <span className="text-blue-400">── Entry price</span>
-                  <span className="text-gold-400">🐋 Whale signal</span>
-                  <span className="text-pink-400">◆ BP anomaly</span>
-                  <span className="ml-auto">{bnhResult.rawData.length} trading days</span>
+                  </div>
+                  <div ref={chartRef} className="w-full h-[320px]" />
                 </div>
               </div>
-            </>
-          )}
+            )}
+
+            {/* Empty state for mode !== 'signal' */}
+            {!stratResult && !bnhResult && !loading && (
+              <div className="rounded-2xl border border-line-3 bg-card p-12 text-center flex flex-col items-center justify-center min-h-[380px]">
+                <Target className="w-12 h-12 text-muted-foreground/30 mb-3" />
+                <h3 className="font-bold text-base text-foreground">Siap Diuji</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mt-1">
+                  Atur kode saham dan parameter di panel sebelah kiri, lalu klik &quot;Jalankan Simulasi&quot;.
+                </p>
+              </div>
+            )}
+
+          </div>
+
         </div>
-      </div>
+      )}
+
     </div>
   )
 }
