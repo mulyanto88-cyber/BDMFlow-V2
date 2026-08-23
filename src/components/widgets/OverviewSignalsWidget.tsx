@@ -39,10 +39,14 @@ function ScoreBar({ label, v, max }: { label: string; v: number; max: number }) 
   )
 }
 function ScoreKPI({ label, val, pos }: { label: string; val: string; pos?: boolean }) {
-  const c = pos === undefined ? 'text-foreground' : pos ? 'text-emerald-400' : 'text-red-400'
+  const c = pos === undefined 
+    ? 'text-foreground' 
+    : pos 
+      ? 'text-emerald-600 dark:text-emerald-400' 
+      : 'text-rose-600 dark:text-rose-400'
   return (
-    <div className="flex flex-col justify-center p-2 rounded-xl bg-surface-2/70 border border-white/[0.05] transition-all hover:bg-surface-2">
-      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-0.5">{label}</span>
+    <div className="flex flex-col justify-center p-2.5 rounded-xl bg-surface-1/90 dark:bg-surface-2/60 border border-border/60 dark:border-white/[0.05] transition-all hover:border-border">
+      <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-0.5">{label}</span>
       <span className={`font-black font-mono text-xs sm:text-[13px] tracking-tight ${c}`}>{val}</span>
     </div>
   )
@@ -95,7 +99,7 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
     <div className="space-y-4">
       {/* ── Diagnostic Scorecard v2 ─────────────────────────────────────── */}
       {(scorecard || scVerdict) && (
-        <div className="rounded-2xl p-4 sm:p-5 border border-white/[0.08] bg-gradient-to-b from-surface-2/90 via-surface-1/95 to-background/95 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] relative overflow-hidden">
+        <div className="rounded-2xl p-4 sm:p-5 border border-border/80 dark:border-white/[0.08] bg-card/95 dark:bg-gradient-to-b dark:from-surface-2/90 dark:via-surface-1/95 dark:to-background/95 shadow-sm dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] relative overflow-hidden backdrop-blur-2xl">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent pointer-events-none" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
             <div className="lg:col-span-7 xl:col-span-8 min-w-0">
@@ -103,9 +107,9 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                 <span className="text-xl filter drop-shadow">{scVerdict?.emoji}</span>
                 <h3 className="font-black text-sm sm:text-base text-foreground tracking-tight">{scVerdict?.headline}</h3>
               </div>
-              <p className="text-xs text-muted-foreground/90 leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">{scVerdict?.detail}</p>
               {scorecard && (
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-white/[0.06]">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5 mt-4 pt-3.5 border-t border-border/60 dark:border-white/[0.06]">
                   <ScoreKPI label="Return 5D"   val={`${Number(scorecard.return_5d ?? 0).toFixed(1)}%`}        pos={Number(scorecard.return_5d) >= 0} />
                   <ScoreKPI label="Return 20D"  val={`${Number(scorecard.return_20d ?? 0).toFixed(1)}%`}       pos={Number(scorecard.return_20d) >= 0} />
                   <ScoreKPI label="AOV Ratio"   val={`${Number(scorecard.aov_ratio_ma20 ?? 0).toFixed(2)}x`} />
@@ -115,11 +119,11 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
               )}
             </div>
             {scorecard && (
-              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-white/[0.08] lg:pl-6 pt-4 lg:pt-0">
+              <div className="lg:col-span-5 xl:col-span-4 border-t lg:border-t-0 lg:border-l border-border/60 dark:border-white/[0.08] lg:pl-6 pt-4 lg:pt-0">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="text-[9px] text-muted-foreground/80 uppercase tracking-[0.14em] font-bold">Composite V2</div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400 leading-none mt-0.5">
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-[0.14em] font-bold">Composite V2</div>
+                    <div className="text-2xl sm:text-3xl font-black font-mono text-amber-500 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-amber-200 dark:to-amber-400 leading-none mt-0.5">
                       {scorecard.v2_score ?? 0}<span className="text-xs text-muted-foreground font-bold">/73</span>
                     </div>
                   </div>
@@ -127,13 +131,13 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
                     {scorecard.tier_v2}
                   </span>
                 </div>
-                <div className="space-y-2 bg-surface-2/50 p-2.5 rounded-xl border border-white/[0.04]">
+                <div className="space-y-2 bg-surface-1/90 dark:bg-surface-2/50 p-2.5 rounded-xl border border-border/50 dark:border-white/[0.04]">
                   <ScoreBar label="AOV"     v={scorecard.aov_pts}     max={40} />
                   <ScoreBar label="VWMA"    v={scorecard.vwma_pts}    max={15} />
                   <ScoreBar label="Whale"   v={scorecard.whale_pts}   max={12} />
                   <ScoreBar label="Foreign" v={scorecard.foreign_pts} max={6} />
                 </div>
-                <div className="text-[9px] font-mono text-muted-foreground/70 mt-2 truncate">
+                <div className="text-[9px] font-mono text-muted-foreground mt-2 truncate">
                   v1: {scorecard.v1_tier} ({scorecard.v1_score}) · flow: {scorecard.flow_context}
                 </div>
               </div>
