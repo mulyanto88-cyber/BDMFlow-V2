@@ -15,7 +15,7 @@ const SHOTS = [
   { src: '/screenshots/group-inteligence.png',        title: 'Group Intelligence',        desc: 'Aliran dana per grup konglomerat — Barito, Sinarmas, Salim, dll.' },
   { src: '/screenshots/ksei-1persen-inteligence.png', title: 'KSEI >1% Intelligence',     desc: 'Kepemilikan KSEI >1%, stealth accumulation, & perubahan bulanan.' },
   { src: '/screenshots/screener-breakout.png',        title: 'Breakout Scanner',          desc: 'Volume & AOV anomaly + breakout teknikal untuk timing entry.' },
-  { src: '/screenshots/backtest-lab.png',             title: 'Backtest Lab',              desc: 'Uji strategi pada data historis sebelum pakai modal nyata.' },
+  { src: '/screenshots/backtest-lab.png',             title: 'Backtest Lab & Signal Accuracy', desc: 'Uji akurasi 10 sinyal harian (AOV, Whale, Foreign) & forward return multi-saham sebelum pakai modal nyata.' },
   { src: '/screenshots/right-issue-calc.png',         title: 'Right Issue Calculator',    desc: 'Hitung dampak rights issue, harga teoretis, & dilusi.' },
 ]
 
