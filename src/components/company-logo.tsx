@@ -40,38 +40,41 @@ export default function CompanyLogo({
   className?: string
   eager?: boolean
 }) {
+  const cleanCode = (code || '').trim().toUpperCase()
   const [ext, setExt] = useState<Ext>('png')
 
-  useEffect(() => { setExt('png') }, [code])
+  useEffect(() => { 
+    setExt('png') 
+  }, [cleanCode])
 
   const style = SECTOR_STYLE[sector || ''] ?? SECTOR_STYLE['Financials']
 
-  if (ext === 'none') {
+  if (ext === 'none' || !cleanCode) {
     return (
       <div
         className={`flex items-center justify-center rounded-xl border ${style} font-mono font-black shrink-0 ${className}`}
         style={{ width: size, height: size, fontSize: size * 0.36 }}
-        aria-label={`Logo ${code} tidak tersedia`}
+        aria-label={`Logo ${cleanCode} tidak tersedia`}
       >
-        {code.slice(0, 2)}
+        {cleanCode.slice(0, 2)}
       </div>
     )
   }
 
   return (
     <div
-      className={`flex items-center justify-center rounded-xl bg-white ring-1 ring-black/5 shadow-sm overflow-hidden shrink-0 ${className}`}
-      style={{ width: size, height: size, padding: Math.max(4, size * 0.14) }}
+      className={`flex items-center justify-center shrink-0 overflow-hidden ${className}`}
+      style={{ width: size, height: size }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/logos/${code}.${ext}`}
-        alt={`Logo ${code}`}
+        src={`/logos/${cleanCode}.${ext}`}
+        alt={`Logo ${cleanCode}`}
         width={size}
         height={size}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain drop-shadow-sm"
         onError={() => setExt(prev => (prev === 'png' ? 'svg' : 'none'))}
       />
     </div>
