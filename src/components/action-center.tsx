@@ -84,10 +84,10 @@ export default function ActionCenter() {
   if (!mounted || signals.length === 0) return null
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
+    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-5 right-3 sm:right-5 z-40 md:z-50 flex flex-col items-end gap-2 pointer-events-auto">
       {/* Signal list */}
       {expanded && (
-        <div className="glass rounded-2xl border border-line-4 shadow-2xl w-80 max-h-[60vh] overflow-y-auto p-3 space-y-2 animate-scale-in">
+        <div className="glass rounded-2xl border border-line-4 shadow-2xl w-[calc(100vw-24px)] max-w-xs sm:w-80 max-h-[55vh] overflow-y-auto p-3 space-y-2 animate-scale-in">
           <div className="flex items-center justify-between px-1 mb-1">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -95,9 +95,9 @@ export default function ActionCenter() {
             </div>
             <button
               onClick={() => setExpanded(false)}
-              className="text-[9px] text-muted-foreground hover:text-foreground transition-colors"
+              className="text-[10px] font-bold text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
             >
-              [ x ]
+              ✕
             </button>
           </div>
           {signals.map((s) => (
@@ -105,7 +105,7 @@ export default function ActionCenter() {
               key={s.id}
               href={`/stock/${s.stock_code}`}
               onClick={() => setExpanded(false)}
-              className={`block rounded-xl border p-2.5 transition-all hover:shadow-lg ${SEVERITY_STYLE[s.severity]}`}
+              className={`block rounded-xl border p-2.5 transition-all hover:shadow-lg active:scale-[0.98] ${SEVERITY_STYLE[s.severity]}`}
             >
               <div className="flex items-center gap-1.5 mb-1">
                 {TYPE_ICON[s.type]}
@@ -122,12 +122,12 @@ export default function ActionCenter() {
       {/* Toggle button */}
       <button
         onClick={() => { setExpanded(!expanded); setHasNew(false) }}
-        className={`relative flex items-center gap-2 px-3.5 py-2.5 rounded-full border border-line-5 bg-black/80 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${
+        className={`relative flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full border border-line-5 bg-black/85 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${
           hasNew ? 'ring-2 ring-emerald-400/50 animate-glow-pulse' : ''
         }`}
       >
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="text-[10px] font-black text-text-foreground uppercase tracking-widest">
+        <span className="text-[9px] sm:text-[10px] font-black text-foreground uppercase tracking-wider sm:tracking-widest">
           {signals.length} Alert{signals.length !== 1 ? 's' : ''}
         </span>
       </button>
