@@ -40,9 +40,9 @@ export default function CompanyLogo({
   className?: string
   eager?: boolean
 }) {
-  const [ext, setExt] = useState<Ext>('svg')
+  const [ext, setExt] = useState<Ext>('png')
 
-  useEffect(() => { setExt('svg') }, [code])
+  useEffect(() => { setExt('png') }, [code])
 
   const style = SECTOR_STYLE[sector || ''] ?? SECTOR_STYLE['Financials']
 
@@ -72,7 +72,7 @@ export default function CompanyLogo({
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         className="w-full h-full object-contain"
-        onError={() => setExt(prev => (prev === 'svg' ? 'png' : 'none'))}
+        onError={() => setExt(prev => (prev === 'png' ? 'svg' : 'none'))}
       />
     </div>
   )
