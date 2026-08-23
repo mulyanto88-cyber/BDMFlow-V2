@@ -717,26 +717,26 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
         <div className="space-y-6">
           
           {/* Controls Bar: 10 Sinyal Presets + Periode Snapshot + Jumlah Saham */}
-          <div className="rounded-2xl p-4 sm:p-5 border border-line-3 bg-card shadow-sm space-y-5">
+          <div className="rounded-2xl p-3.5 sm:p-4 border border-line-3 bg-card shadow-sm space-y-3.5">
             
-            {/* Sinyal Presets Categorized */}
-            <div className="space-y-4">
+            {/* Sinyal Presets Categorized (Compact & Sleek) */}
+            <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5 text-amber-500" />
                   Pilih Sinyal / Filter Entry ($T_0$)
                 </span>
-                <span className="text-[10px] text-muted-foreground/80 hidden sm:inline font-medium">
+                <span className="text-[9.5px] text-muted-foreground/80 hidden sm:inline font-medium">
                   {ALL_PRESETS_FLAT.find(p => p.id === signalPreset)?.desc}
                 </span>
               </div>
 
               {SIGNAL_CATEGORIES.map((cat, ci) => (
-                <div key={ci} className="space-y-2">
-                  <div className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                <div key={ci} className="space-y-1.5">
+                  <div className="text-[8.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                     {cat.category}
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                     {cat.presets.map(p => {
                       const Icon = p.icon
                       const active = signalPreset === p.id
@@ -747,26 +747,23 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             setSignalPreset(p.id)
                             runSignalBacktest(targetDate, p.id, limitCount)
                           }}
-                          className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 border-l-[3.5px] ${p.accentBorder} ${
+                          className={`p-2 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 border-l-[3px] ${p.accentBorder} ${
                             active
                               ? 'bg-surface-2 border-line-5 shadow-xs ring-1 ring-amber-500/30'
                               : 'bg-surface-1/90 border-line-2 hover:border-line-4 text-muted-foreground hover:bg-surface-2'
                           }`}
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center border ${p.bgIcon}`}>
-                              <Icon className="w-3.5 h-3.5" />
+                          <div className="flex items-center justify-between mb-1">
+                            <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${p.bgIcon}`}>
+                              <Icon className="w-3 h-3" />
                             </div>
-                            <span className="text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded bg-surface-3 text-muted-foreground border border-line-2">
+                            <span className="text-[7px] font-black uppercase px-1 py-0.2 rounded bg-surface-3 text-muted-foreground border border-line-2">
                               {p.badge}
                             </span>
                           </div>
                           <div>
-                            <span className={`text-xs font-black block leading-snug ${active ? 'text-foreground' : 'text-foreground/80'}`}>
+                            <span className={`text-[11px] font-black block leading-tight truncate ${active ? 'text-foreground' : 'text-foreground/80'}`}>
                               {p.label}
-                            </span>
-                            <span className="text-[8.5px] text-muted-foreground/80 truncate block mt-0.5 font-medium">
-                              {p.desc}
                             </span>
                           </div>
                         </button>
@@ -778,18 +775,18 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
             </div>
 
             {/* 2. Pilih Periode Waktu ($T_0$) & Sample Count */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-3.5 border-t border-line-2 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-3 border-t border-line-2 items-center">
               
               {/* Quick Timeframe Buttons */}
               <div className="md:col-span-6 flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mr-1">
+                <span className="text-[9.5px] font-bold text-muted-foreground uppercase tracking-wider mr-1">
                   Titik Awal ($T_0$):
                 </span>
                 {(['1W', '2W', '1M', '3M'] as const).map(tf => (
                   <button
                     key={tf}
                     onClick={() => applyTimeframe(tf)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
                       timeframe === tf
                         ? 'bg-amber-500 text-black border-amber-400 font-black shadow-xs'
                         : 'bg-surface-2 border-line-3 text-muted-foreground hover:text-foreground'
@@ -801,9 +798,9 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
               </div>
 
               {/* Custom Date Picker & Limit Count */}
-              <div className="md:col-span-6 flex items-center justify-start md:justify-end gap-3 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Tanggal $T_0$:</label>
+              <div className="md:col-span-6 flex items-center justify-start md:justify-end gap-2.5 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[9.5px] font-bold text-muted-foreground uppercase">Tanggal:</label>
                   <select
                     value={targetDate}
                     onChange={e => {
@@ -811,18 +808,18 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                       setTargetDate(e.target.value)
                       runSignalBacktest(e.target.value, signalPreset, limitCount)
                     }}
-                    className="bg-surface-2 border border-line-3 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-foreground outline-none focus:border-amber-500"
+                    className="bg-surface-2 border border-line-3 rounded-lg px-2 py-1 text-xs font-mono font-bold text-foreground outline-none focus:border-amber-500"
                   >
                     {tradingDates.map((d, i) => (
                       <option key={d} value={d}>
-                        {d} {i === 0 ? '(Hari Ini)' : `(-${i} hari)`}
+                        {d} {i === 0 ? '(Hari Ini)' : `(-${i}d)`}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Top:</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9.5px] font-bold text-muted-foreground uppercase">Top:</span>
                   {[5, 10, 20].map(cnt => (
                     <button
                       key={cnt}
@@ -830,7 +827,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                         setLimitCount(cnt)
                         runSignalBacktest(targetDate, signalPreset, cnt)
                       }}
-                      className={`px-2 py-1 rounded-md text-xs font-bold border ${
+                      className={`px-2 py-0.5 rounded-md text-xs font-bold border ${
                         limitCount === cnt
                           ? 'bg-foreground text-background border-foreground font-black'
                           : 'bg-surface-2 border-line-2 text-muted-foreground hover:text-foreground'
@@ -844,7 +841,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                 <button
                   onClick={() => runSignalBacktest()}
                   disabled={loading}
-                  className="px-4 py-1.5 rounded-lg bg-amber-500 text-black font-black text-xs hover:bg-amber-400 active:scale-95 transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+                  className="px-3.5 py-1 rounded-lg bg-amber-500 text-black font-black text-xs hover:bg-amber-400 active:scale-95 transition-all shadow-xs flex items-center gap-1.5 shrink-0"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   Scan
@@ -856,8 +853,8 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
 
           {/* Loading Indicator */}
           {loading && (
-            <div className="rounded-2xl p-12 border border-line-3 bg-card shadow-sm flex flex-col items-center justify-center text-center space-y-3">
-              <div className="w-8 h-8 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+            <div className="rounded-2xl p-10 border border-line-3 bg-card shadow-sm flex flex-col items-center justify-center text-center space-y-3">
+              <div className="w-7 h-7 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
               <p className="text-sm font-bold text-foreground">Menghitung forward returns & excursion data...</p>
               <p className="text-xs text-muted-foreground">Menganalisis pergerakan harga dari {targetDate} hingga hari ini</p>
             </div>
@@ -865,27 +862,27 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
 
           {/* Results Section */}
           {signalKPIs && signalResults && !loading && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-5 animate-fade-in">
               
-              {/* 4 Themed & Distinct Executive KPI Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+              {/* 4 Themed & Distinct Executive KPI Cards (Compact & Sized Down) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 
                 {/* 1. Win Rate (Emerald Theme) */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/30 dark:border-emerald-500/35 border-l-[4px] border-l-emerald-500 shadow-xs flex flex-col justify-between relative overflow-hidden">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                <div className="p-3 sm:p-3.5 rounded-xl bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/30 dark:border-emerald-500/35 border-l-[3.5px] border-l-emerald-500 shadow-xs flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8.5px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                       Win Rate Akurasi
                     </span>
-                    <span className="text-[8.5px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                      {signalKPIs.winCount} Win · {signalKPIs.lossCount} Loss
+                    <span className="text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                      {signalKPIs.winCount}W · {signalKPIs.lossCount}L
                     </span>
                   </div>
                   <div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-emerald-600 dark:text-emerald-400">
+                    <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-emerald-600 dark:text-emerald-400">
                       {signalKPIs.winRate.toFixed(1)}%
                     </div>
                     {/* Micro bar */}
-                    <div className="w-full h-1.5 bg-emerald-500/20 rounded-full mt-2.5 overflow-hidden">
+                    <div className="w-full h-1 bg-emerald-500/20 rounded-full mt-2 overflow-hidden">
                       <div 
                         className="h-full rounded-full bg-emerald-500 transition-all duration-500" 
                         style={{ width: `${signalKPIs.winRate}%` }} 
@@ -895,57 +892,57 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                 </div>
 
                 {/* 2. Avg Current Return (Cyan Theme) */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-cyan-500/[0.04] dark:bg-cyan-950/20 border border-cyan-500/30 dark:border-cyan-500/35 border-l-[4px] border-l-cyan-500 shadow-xs flex flex-col justify-between">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
-                      Rata-Rata Return Saat Ini
+                <div className="p-3 sm:p-3.5 rounded-xl bg-cyan-500/[0.04] dark:bg-cyan-950/20 border border-cyan-500/30 dark:border-cyan-500/35 border-l-[3.5px] border-l-cyan-500 shadow-xs flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8.5px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
+                      Avg Return Saat Ini
                     </span>
-                    <TrendingUp className="w-4 h-4 text-cyan-500" />
+                    <TrendingUp className="w-3.5 h-3.5 text-cyan-500" />
                   </div>
                   <div>
-                    <div className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
+                    <div className={`text-xl sm:text-2xl font-black font-mono tracking-tight ${
                       signalKPIs.avgReturn >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-500'
                     }`}>
                       {signalKPIs.avgReturn >= 0 ? '+' : ''}{signalKPIs.avgReturn.toFixed(2)}%
                     </div>
-                    <span className="text-[10px] text-cyan-800/80 dark:text-cyan-200/70 font-medium block mt-1">
-                      Holding ~{signalResults[0]?.days_held || 0} hari bursa
+                    <span className="text-[9px] text-cyan-800/80 dark:text-cyan-200/70 font-medium block mt-1">
+                      Hold ~{signalResults[0]?.days_held || 0} hari bursa
                     </span>
                   </div>
                 </div>
 
                 {/* 3. Avg Max Potential Gain / MFE (Purple Theme) */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-purple-500/[0.04] dark:bg-purple-950/20 border border-purple-500/30 dark:border-purple-500/35 border-l-[4px] border-l-purple-500 shadow-xs flex flex-col justify-between">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
-                      Avg Puncak Tertinggi (MFE)
+                <div className="p-3 sm:p-3.5 rounded-xl bg-purple-500/[0.04] dark:bg-purple-950/20 border border-purple-500/30 dark:border-purple-500/35 border-l-[3.5px] border-l-purple-500 shadow-xs flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8.5px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+                      Avg Puncak (MFE)
                     </span>
-                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    <Sparkles className="w-3.5 h-3.5 text-purple-500" />
                   </div>
                   <div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-purple-600 dark:text-purple-400">
+                    <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-purple-600 dark:text-purple-400">
                       +{signalKPIs.avgMaxGain.toFixed(2)}%
                     </div>
-                    <span className="text-[10px] text-purple-800/80 dark:text-purple-200/70 font-medium block mt-1">
-                      Potensi target swing maksimum
+                    <span className="text-[9px] text-purple-800/80 dark:text-purple-200/70 font-medium block mt-1">
+                      Potensi target swing
                     </span>
                   </div>
                 </div>
 
                 {/* 4. Avg Max Drawdown / MAE (Rose Theme) */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-rose-500/[0.04] dark:bg-rose-950/20 border border-rose-500/30 dark:border-rose-500/35 border-l-[4px] border-l-rose-500 shadow-xs flex flex-col justify-between">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
-                      Avg Max Drawdown (MAE)
+                <div className="p-3 sm:p-3.5 rounded-xl bg-rose-500/[0.04] dark:bg-rose-950/20 border border-rose-500/30 dark:border-rose-500/35 border-l-[3.5px] border-l-rose-500 shadow-xs flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8.5px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
+                      Avg Max Drawdown
                     </span>
-                    <Shield className="w-4 h-4 text-rose-500" />
+                    <Shield className="w-3.5 h-3.5 text-rose-500" />
                   </div>
                   <div>
-                    <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-rose-600 dark:text-rose-400">
+                    <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-rose-600 dark:text-rose-400">
                       {signalKPIs.avgMaxDD.toFixed(2)}%
                     </div>
-                    <span className="text-[10px] text-rose-800/80 dark:text-rose-200/70 font-medium block mt-1">
-                      Risiko floating loss terdalam
+                    <span className="text-[9px] text-rose-800/80 dark:text-rose-200/70 font-medium block mt-1">
+                      Risiko floating loss
                     </span>
                   </div>
                 </div>
@@ -953,8 +950,8 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
               </div>
 
               {/* Action Banner: Copy/Share Result to Medsos */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-surface-2 border border-line-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-surface-2 border border-line-3 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Award className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>
                     Top performer: <strong className="text-foreground">${signalKPIs.topStock.stock_code}</strong> ({signalKPIs.topStock.current_return_pct >= 0 ? '+' : ''}{signalKPIs.topStock.current_return_pct.toFixed(1)}% · Peak +{signalKPIs.topStock.max_gain_pct.toFixed(1)}%)
@@ -962,7 +959,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                 </div>
                 <button
                   onClick={handleCopySocial}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-card border border-line-3 hover:border-line-5 text-foreground font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs shrink-0"
+                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-card border border-line-3 hover:border-line-5 text-foreground font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs shrink-0"
                 >
                   {copiedToast ? (
                     <>
@@ -978,15 +975,15 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                 </button>
               </div>
 
-              {/* 10 Stocks Transparency Table */}
+              {/* 10 Stocks Transparency Table with T0 Signal Indicators */}
               <div className="rounded-2xl border border-line-3 bg-card shadow-sm overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-line-2 flex items-center justify-between">
+                <div className="p-3.5 sm:p-4 border-b border-line-2 flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm sm:text-base font-black text-foreground">
+                    <h3 className="text-sm font-black text-foreground">
                       Daftar {signalResults.length} Saham Terdeteksi pada {targetDate}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Perbandingan harga beli saat sinyal muncul ($T_0$) vs pergerakan harga hingga saat ini
+                      Perbandingan harga & kondisi sinyal saat muncul ($T_0$) vs pergerakan harga hingga saat ini
                     </p>
                   </div>
                   <span className="text-xs font-mono font-bold text-muted-foreground bg-surface-2 px-2.5 py-1 rounded-lg border border-line-2">
@@ -998,15 +995,16 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-line-2 bg-surface-1/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        <th className="py-3 px-4">#</th>
-                        <th className="py-3 px-4">Saham</th>
-                        <th className="py-3 px-4 text-right">Harga Entry ($T_0$)</th>
-                        <th className="py-3 px-4 text-right">Harga Saat Ini</th>
-                        <th className="py-3 px-4 text-right">Current Return</th>
-                        <th className="py-3 px-4 text-right">Max High (MFE)</th>
-                        <th className="py-3 px-4 text-right">Max Low (MAE)</th>
-                        <th className="py-3 px-4 text-center">Status</th>
-                        <th className="py-3 px-4 text-center">Aksi</th>
+                        <th className="py-2.5 px-3">#</th>
+                        <th className="py-2.5 px-3">Saham</th>
+                        <th className="py-2.5 px-3">Kondisi Sinyal $T_0$</th>
+                        <th className="py-2.5 px-3 text-right">Entry ($T_0$)</th>
+                        <th className="py-2.5 px-3 text-right">Saat Ini</th>
+                        <th className="py-2.5 px-3 text-right">Current Return</th>
+                        <th className="py-2.5 px-3 text-right">Max High (MFE)</th>
+                        <th className="py-2.5 px-3 text-right">Max Low (MAE)</th>
+                        <th className="py-2.5 px-3 text-center">Status</th>
+                        <th className="py-2.5 px-3 text-center">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line-2 font-mono">
@@ -1016,30 +1014,46 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                           <tr key={s.stock_code} className="hover:bg-surface-1 transition-colors">
                             
                             {/* Number */}
-                            <td className="py-3 px-4 text-muted-foreground font-bold">{idx + 1}</td>
+                            <td className="py-2.5 px-3 text-muted-foreground font-bold">{idx + 1}</td>
 
                             {/* Stock info */}
-                            <td className="py-3 px-4 font-sans">
+                            <td className="py-2.5 px-3 font-sans">
                               <div className="flex items-center gap-2.5">
-                                <CompanyLogo code={s.stock_code} sector={s.sector} size={32} />
+                                <CompanyLogo code={s.stock_code} sector={s.sector} size={30} />
                                 <div>
                                   <div className="flex items-center gap-1.5">
                                     <span className="font-black font-mono text-xs sm:text-sm text-foreground">{s.stock_code}</span>
                                     {s.entry_whale && (
-                                      <span className="text-[8px] px-1 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/30">
+                                      <span className="text-[7.5px] px-1 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/30">
                                         WHALE
                                       </span>
                                     )}
                                   </div>
-                                  <span className="text-[10px] text-muted-foreground truncate block max-w-[120px] sm:max-w-[160px]">
+                                  <span className="text-[10px] text-muted-foreground truncate block max-w-[120px] sm:max-w-[150px]">
                                     {s.company_name || s.sector}
                                   </span>
                                 </div>
                               </div>
                             </td>
 
+                            {/* T0 Signal Conditions Badges */}
+                            <td className="py-2.5 px-3 font-sans">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                                  ⚡ AOV {s.entry_aov.toFixed(2)}x
+                                </span>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                                  s.entry_foreign >= 0 
+                                    ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/25' 
+                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25'
+                                }`}>
+                                  🌐 {s.entry_foreign >= 0 ? '+' : ''}{fmtRp(s.entry_foreign)}
+                                </span>
+                              </div>
+                            </td>
+
                             {/* Entry Price */}
-                            <td className="py-3 px-4 text-right font-bold text-foreground">
+                            <td className="py-2.5 px-3 text-right font-bold text-foreground">
                               {formatNumber(s.entry_price)}
                               <span className="text-[9px] text-muted-foreground block font-normal font-sans">
                                 {s.entry_date}
@@ -1047,7 +1061,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             </td>
 
                             {/* Current Price */}
-                            <td className="py-3 px-4 text-right font-bold text-foreground">
+                            <td className="py-2.5 px-3 text-right font-bold text-foreground">
                               {formatNumber(s.latest_price)}
                               <span className="text-[9px] text-muted-foreground block font-normal font-sans">
                                 {s.latest_date}
@@ -1055,7 +1069,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             </td>
 
                             {/* Current Return */}
-                            <td className="py-3 px-4 text-right font-black">
+                            <td className="py-2.5 px-3 text-right font-black">
                               <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs ${
                                 isWin 
                                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25' 
@@ -1066,7 +1080,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             </td>
 
                             {/* Max High */}
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-2.5 px-3 text-right">
                               <span className="font-bold text-purple-600 dark:text-purple-400">
                                 +{s.max_gain_pct.toFixed(2)}%
                               </span>
@@ -1076,7 +1090,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             </td>
 
                             {/* Max Drawdown */}
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-2.5 px-3 text-right">
                               <span className="font-bold text-rose-600 dark:text-rose-400">
                                 {s.max_drawdown_pct.toFixed(2)}%
                               </span>
@@ -1086,8 +1100,8 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             </td>
 
                             {/* Win/Loss Status Pill */}
-                            <td className="py-3 px-4 text-center">
-                              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1 ${
+                            <td className="py-2.5 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider inline-flex items-center gap-1 ${
                                 isWin
                                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                                   : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
@@ -1098,7 +1112,7 @@ ${signalResults.slice(0, 5).map((s, i) => `${i + 1}. $${s.stock_code}: ${s.curre
                             </td>
 
                             {/* Action Link */}
-                            <td className="py-3 px-4 text-center">
+                            <td className="py-2.5 px-3 text-center">
                               <Link
                                 href={`/stock/${s.stock_code}`}
                                 className="p-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-muted-foreground hover:text-foreground inline-flex items-center justify-center border border-line-2 transition-colors"
