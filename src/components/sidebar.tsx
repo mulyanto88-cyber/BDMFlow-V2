@@ -281,7 +281,7 @@ export default function Sidebar() {
       {drawerOpen && (
         <div className="md:hidden fixed inset-0 z-[60]">
           <button
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade"
             onClick={() => setDrawerOpen(false)}
             aria-label="Tutup menu"
           />
@@ -289,36 +289,36 @@ export default function Sidebar() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu navigasi"
-            className="absolute inset-x-0 bottom-0 max-h-[85vh] flex flex-col rounded-t-3xl border-t animate-slide-up safe-bottom"
+            className="absolute inset-x-0 bottom-0 max-h-[88vh] flex flex-col rounded-t-3xl border-t animate-slide-up pb-safe shadow-2xl"
             style={{ background: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
           >
             <div
-              className="flex items-center justify-between px-5 py-3.5 shrink-0"
+              className="flex items-center justify-between px-5 py-4 shrink-0 relative"
               style={{ borderBottom: '1px solid var(--sidebar-border)' }}
             >
               <div className="flex items-center gap-2">
-                <span className="w-8 h-1 rounded-full bg-muted-foreground/20 absolute left-1/2 -translate-x-1/2 top-2" aria-hidden="true" />
-                <h2 className="text-[13px] font-black tracking-tight">Semua Menu</h2>
+                <span className="w-10 h-1.5 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-2" aria-hidden="true" />
+                <h2 className="text-sm font-black tracking-tight mt-1">Semua Menu & Fitur</h2>
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-line-3 bg-surface-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-line-3 bg-surface-2 text-muted-foreground hover:text-foreground active:scale-90 transition-all mt-1"
                 aria-label="Tutup menu"
               >
                 <X size={15} />
               </button>
             </div>
 
-            <div className="overflow-y-auto px-3 py-3 custom-scrollbar">
+            <div className="overflow-y-auto px-3.5 py-3.5 custom-scrollbar pb-8 space-y-4">
               {navGroups.map((group, idx) => (
-                <div key={idx} className="mb-4 last:mb-1">
-                  <div className="flex items-center gap-2 px-2 mb-1.5">
-                    <p className="text-[9px] font-black text-muted-foreground/55 uppercase tracking-[0.20em] shrink-0">
+                <div key={idx} className="last:mb-1">
+                  <div className="flex items-center gap-2 px-1 mb-2">
+                    <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.20em] shrink-0">
                       {group.title}
                     </p>
                     <div className="h-px flex-1 bg-[color:var(--sidebar-border)]" />
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-2 gap-2">
                     {group.items.map((item) => {
                       const active = isActive(item.href)
                       const Icon = item.icon
@@ -327,14 +327,14 @@ export default function Sidebar() {
                           key={item.href}
                           href={item.href}
                           aria-current={active ? 'page' : undefined}
-                          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${
+                          className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all active:scale-[0.97] ${
                             active
-                              ? 'bg-primary/10 border-primary/25 text-foreground'
-                              : 'bg-surface-2 border-line-3 text-muted-foreground/80'
+                              ? 'bg-primary/15 border-primary/30 text-foreground font-bold shadow-sm'
+                              : 'bg-surface-2/90 border-line-3 text-muted-foreground/85 hover:text-foreground hover:bg-surface-3'
                           }`}
                         >
-                          <Icon size={15} className={active ? 'text-primary shrink-0' : 'text-muted-foreground/50 shrink-0'} />
-                          <span className="text-[11px] font-semibold leading-tight min-w-0 truncate">{item.label}</span>
+                          <Icon size={16} className={active ? 'text-primary shrink-0' : 'text-muted-foreground/60 shrink-0'} />
+                          <span className="text-[11.5px] font-semibold leading-tight min-w-0 truncate">{item.label}</span>
                           {item.badge && (
                             <span className={`ml-auto text-[7px] font-black uppercase px-1 py-0.5 rounded border shrink-0 ${BADGE_STYLES[item.badge]}`}>
                               {item.badge}
@@ -350,10 +350,16 @@ export default function Sidebar() {
               {!isPro && (
                 <Link
                   href="/pricing"
-                  className="flex items-center gap-2 px-3 py-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/[0.04] border border-amber-500/20 mt-1"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border border-amber-500/25 active:scale-[0.98] transition-all"
                 >
-                  <Crown size={13} className="text-amber-400 shrink-0" />
-                  <span className="text-[11px] font-black text-amber-400 uppercase tracking-[0.12em]">Upgrade ke Pro</span>
+                  <div className="flex items-center gap-2.5">
+                    <Crown size={15} className="text-amber-400 shrink-0" />
+                    <div>
+                      <span className="text-xs font-black text-amber-400 uppercase tracking-wider block">Upgrade ke Pro</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">Buka seluruh fitur screener & intel flow</span>
+                    </div>
+                  </div>
+                  <ChevronLeft size={14} className="text-amber-400 rotate-180" />
                 </Link>
               )}
             </div>
@@ -363,7 +369,7 @@ export default function Sidebar() {
 
       {/* ── MOBILE BOTTOM NAV ── */}
       <div
-        className="md:hidden fixed bottom-0 left-0 w-full z-50"
+        className="md:hidden fixed bottom-0 left-0 w-full z-50 backdrop-blur-xl"
         style={{ background: 'var(--sidebar-bg)', borderTop: '1px solid var(--sidebar-border)' }}
       >
         <div className="flex items-stretch h-16 safe-bottom">
@@ -375,29 +381,29 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex flex-col items-center justify-center flex-1 gap-1 transition-all ${active ? 'text-primary' : 'text-muted-foreground/50'}`}
+                className={`relative flex flex-col items-center justify-center flex-1 gap-1 transition-all active:scale-90 ${active ? 'text-primary font-bold' : 'text-muted-foreground/60'}`}
               >
                 {active && (
                   <span
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] rounded-b-full"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2.5px] rounded-b-full"
                     style={{ background: 'hsl(var(--primary))', boxShadow: '0 0 8px hsl(var(--primary))' }}
                   />
                 )}
-                <Icon size={18} />
-                <span className="text-[9px] font-bold">{item.label}</span>
+                <Icon size={19} className={active ? 'text-primary' : 'text-muted-foreground/60'} />
+                <span className="text-[9.5px] font-bold tracking-tight">{item.label}</span>
               </Link>
             )
           })}
 
-          {/* The way into the other 16 destinations. */}
+          {/* The way into the other destinations. */}
           <button
             onClick={() => setDrawerOpen(true)}
             aria-expanded={drawerOpen}
             aria-haspopup="dialog"
-            className={`relative flex flex-col items-center justify-center flex-1 gap-1 transition-all ${drawerOpen ? 'text-primary' : 'text-muted-foreground/50'}`}
+            className={`relative flex flex-col items-center justify-center flex-1 gap-1 transition-all active:scale-90 ${drawerOpen ? 'text-primary font-bold' : 'text-muted-foreground/60'}`}
           >
-            <Menu size={18} />
-            <span className="text-[9px] font-bold">Menu</span>
+            <Menu size={19} />
+            <span className="text-[9.5px] font-bold tracking-tight">Menu</span>
           </button>
         </div>
       </div>

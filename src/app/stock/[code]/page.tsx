@@ -74,16 +74,29 @@ export default function StockDetailPage() {
       <ScorecardWidget stockCode={stockCode} />
 
       {/* ══ TABS ════════════════════════════════════════════════════════════ */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {TABS.map(t => {
-          const Icon = t.icon
-          return (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs border transition-all whitespace-nowrap font-bold ${activeTab === t.id ? 'bg-gold-400/20 text-gold-400 border-gold-400/40' : 'glass border-line-3 text-muted-foreground hover:text-foreground hover:border-line-5'}`}>
-              <Icon size={13} />{t.label}
-            </button>
-          )
-        })}
+      <div className="relative w-full">
+        {/* Left/Right subtle fade hints for mobile overflow */}
+        <div className="md:hidden pointer-events-none absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-background to-transparent z-10" />
+        <div className="flex gap-1.5 overflow-x-auto pb-1.5 pt-0.5 px-0.5 scroll-smooth no-scrollbar touch-pan-x">
+          {TABS.map(t => {
+            const Icon = t.icon
+            const active = activeTab === t.id
+            return (
+              <button 
+                key={t.id} 
+                onClick={() => setActiveTab(t.id)}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs border transition-all whitespace-nowrap font-bold active:scale-95 shrink-0 ${
+                  active 
+                    ? 'bg-amber-400/15 text-amber-400 border-amber-400/40 shadow-sm' 
+                    : 'bg-surface-2 border-line-3 text-muted-foreground hover:text-foreground hover:border-line-5'
+                }`}
+              >
+                <Icon size={13} className={active ? 'text-amber-400' : 'text-muted-foreground/70'} />
+                {t.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* ══ TAB CONTENT ═════════════════════════════════════════════════════ */}

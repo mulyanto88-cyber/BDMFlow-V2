@@ -112,60 +112,60 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
         <div className="lg:col-span-4 flex flex-col justify-center">
           <div className="flex items-center gap-3">
             <CompanyLogo code={code} sector={stockData.sector} size={48} eager />
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1 className="text-3xl lg:text-4xl font-black font-mono tracking-tight gradient-gold">{code}</h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-surface-4 text-muted-foreground border border-line-4 text-[10px] font-bold uppercase tracking-wider">{stockData.sector || 'Stock'}</span>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono tracking-tight gradient-gold">{code}</h1>
+                <span className="px-2 py-0.5 rounded-full bg-surface-4 text-muted-foreground border border-line-4 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{stockData.sector || 'Stock'}</span>
               </div>
               {companyName && (
-                <p className="text-xs font-semibold text-muted-foreground -mt-0.5 leading-snug">{companyName}</p>
+                <p className="text-xs font-semibold text-muted-foreground -mt-0.5 leading-snug truncate max-w-[240px] sm:max-w-none">{companyName}</p>
               )}
             </div>
           </div>
-          <div className="flex items-baseline gap-3 mt-1">
-            <span className="text-4xl lg:text-5xl font-black tracking-tighter">{formatRupiah(stockData.close)}</span>
-            <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-black text-sm lg:text-base ${stockData.change_percent >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-              {stockData.change_percent >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+          <div className="flex items-baseline gap-2.5 sm:gap-3 mt-1.5">
+            <span className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter">{formatRupiah(stockData.close)}</span>
+            <span className={`flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg font-black text-xs sm:text-sm lg:text-base ${stockData.change_percent >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+              {stockData.change_percent >= 0 ? <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               {Math.abs(stockData.change_percent).toFixed(2)}%
             </span>
           </div>
-          <div className="text-xs text-muted-foreground mt-2 font-medium flex gap-2 lg:gap-3 bg-surface-2 px-2.5 py-1.5 rounded-lg border border-line-3 w-fit">
-            <span>H: <span className="text-foreground/80">{formatNumber(stockData.high)}</span></span>
-            <span>L: <span className="text-foreground/80">{formatNumber(stockData.low)}</span></span>
-            <span>O: <span className="text-foreground/80">{formatNumber(stockData.open_price)}</span></span>
-            <span className="opacity-30">|</span>
+          <div className="text-[11px] sm:text-xs text-muted-foreground mt-2 font-medium flex flex-wrap items-center gap-x-2.5 gap-y-1 bg-surface-2 px-2.5 py-1.5 rounded-lg border border-line-3 w-fit">
+            <span>H: <span className="text-foreground/90 font-mono">{formatNumber(stockData.high)}</span></span>
+            <span>L: <span className="text-foreground/90 font-mono">{formatNumber(stockData.low)}</span></span>
+            <span>O: <span className="text-foreground/90 font-mono">{formatNumber(stockData.open_price)}</span></span>
+            <span className="opacity-30 hidden sm:inline">|</span>
             <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {String(stockData.trading_date).split('T')[0]}</span>
           </div>
         </div>
 
-        {/* Metrics grid — fluid columns */}
-        <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-2 items-center">
+        {/* Metrics grid — fluid 2-col on mobile with balanced 5th item, 3-col on tablet, 5-col on desktop */}
+        <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 items-stretch">
           {[
             { l: 'Market Cap', v: formatRupiah(marketCap),           c: 'text-purple-400' },
             { l: 'Float Cap',  v: formatRupiah(floatCap),            c: 'text-purple-400' },
             { l: 'Public Shr', v: formatShares(publicShares),        c: 'text-cyan-400'   },
             { l: 'Volume',     v: formatShares(stockData.volume),    c: 'text-orange-400' },
-            { l: 'Value',      v: formatRupiah(stockData.value),     c: 'text-blue-400'   },
+            { l: 'Value',      v: formatRupiah(stockData.value),     c: 'text-blue-400', span: 'col-span-2 sm:col-span-1 lg:col-span-1' },
           ].map((m, i) => (
-            <div key={i} className="metric-card p-3 rounded-xl flex flex-col justify-center bg-surface-2 border border-line-3 hover:border-line-6 transition-all">
-              <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-1 font-medium">{m.l}</p>
-              <p className={`text-sm font-black font-mono ${m.c} tracking-tight`}>{m.v}</p>
+            <div key={i} className={`metric-card p-2.5 sm:p-3 rounded-xl flex flex-col justify-center bg-surface-2 border border-line-3 hover:border-line-6 transition-all ${m.span || ''}`}>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5 sm:mb-1 font-medium">{m.l}</p>
+              <p className={`text-xs sm:text-sm font-black font-mono ${m.c} tracking-tight`}>{m.v}</p>
             </div>
           ))}
         </div>
 
         {/* Verdict panel — fluid column */}
-        <div className={`lg:col-span-3 rounded-2xl p-4 ${verdict.bg} border ${verdict.border} flex flex-col justify-center relative overflow-hidden`}>
+        <div className={`lg:col-span-3 rounded-2xl p-3.5 sm:p-4 ${verdict.bg} border ${verdict.border} flex flex-col justify-center relative overflow-hidden`}>
           <div className="absolute -right-4 -bottom-4 opacity-[0.04]"><Shield className="w-24 h-24" /></div>
           <div className="relative z-10">
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="flex items-center gap-1.5 mb-1.5">
               <Shield className={`w-3.5 h-3.5 ${verdict.color}`} />
               <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Verdict</span>
             </div>
-            <p className={`text-base font-black ${verdict.color} mb-2 tracking-tight leading-snug`}>{verdict.label}</p>
+            <p className={`text-sm sm:text-base font-black ${verdict.color} mb-2 tracking-tight leading-snug`}>{verdict.label}</p>
             <div className="space-y-1">
               {verdict.evidence.map((e, i) => (
-                <div key={i} className="flex items-center gap-1.5 bg-black/10 px-2 py-1 rounded">
+                <div key={i} className="flex items-center gap-1.5 bg-black/15 dark:bg-black/25 px-2 py-1 rounded">
                   <span className={`text-[10px] font-black shrink-0 ${
                     e.sign === '+' ? 'text-emerald-400' : e.sign === '−' ? 'text-red-400' : 'text-muted-foreground'
                   }`}>{e.sign}</span>
@@ -178,7 +178,7 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
       </div>
 
       {/* Bottom KPI strip */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-3 pt-3 border-t border-line-2">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 mt-3 pt-3 border-t border-line-2">
         {[
           { l: 'Conviction',   v: `${convictionScore}`,                           c: convictionScore >= 80 ? 'text-emerald-400' : convictionScore >= 60 ? 'text-amber-400' : 'text-red-400' },
           { l: 'Smart Money',  v: `${Math.round(smiScore)}`,                      c: smiScore >= 60 ? 'text-emerald-400' : smiScore >= 30 ? 'text-amber-400' : 'text-red-400' },
@@ -187,9 +187,9 @@ export function ScorecardWidget({ stockCode: propCode }: ScorecardWidgetProps) {
           { l: 'Turnover',     v: `${dailyTurnover.toFixed(2)}%`,                 c: dailyTurnover > 5 ? 'text-emerald-400' : dailyTurnover < 1 ? 'text-red-400' : 'text-amber-400' },
           { l: 'Free Float',   v: `${stockData.free_float?.toFixed(1)||'--'}%`,   c: 'text-blue-400' },
         ].map((m, i) => (
-          <div key={i} className="py-1.5 px-2 rounded-lg bg-surface-2 border border-line-2 text-center">
-            <p className="text-[8px] text-muted-foreground uppercase tracking-wider mb-0.5">{m.l}</p>
-            <p className={`text-sm font-black ${m.c}`}>{m.v}</p>
+          <div key={i} className="py-1.5 px-1.5 sm:px-2 rounded-lg bg-surface-2 border border-line-2 text-center">
+            <p className="text-[8px] text-muted-foreground uppercase tracking-wider mb-0.5 truncate">{m.l}</p>
+            <p className={`text-xs sm:text-sm font-black font-mono ${m.c} truncate`}>{m.v}</p>
           </div>
         ))}
       </div>

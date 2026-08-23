@@ -132,14 +132,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* ═══ HEADER ═══ */}
         <header
-          className="sticky top-3 z-30 flex items-center h-14 px-4 lg:px-5 gap-4 backdrop-blur-xl"
+          className="sticky top-0 md:top-3 z-30 flex items-center h-13 sm:h-14 px-3 sm:px-4 lg:px-5 gap-2 sm:gap-4 backdrop-blur-xl"
           style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--header-border)' }}
         >
           {/* Mobile logo */}
-          <div className="md:hidden flex items-center gap-2 shrink-0">
+          <Link href="/dashboard" className="md:hidden flex items-center gap-2 shrink-0">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[12px] font-mono bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.2)]">B</div>
             <span className="text-sm font-black text-amber-500 tracking-tight">BDMFlow</span>
-          </div>
+          </Link>
 
           {/* Breadcrumb — desktop only */}
           <nav className="hidden md:flex items-center gap-1.5 text-[11px] shrink-0">
@@ -158,11 +158,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
 
           {/* Right: Search + Notification + Theme + CTA */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <GlobalSearch />
 
-            {/* Opens the radar. The old version was a dead button with a hardcoded
-                "unread" dot, which promised notifications that never existed. */}
+            {/* Opens the radar. */}
             <Link
               href="/radar"
               className="hidden md:flex w-8 h-8 items-center justify-center rounded-full border border-line-3 bg-surface-2 hover:bg-surface-4 text-muted-foreground hover:text-foreground transition-all"
@@ -176,86 +175,82 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             {user ? (
               isPro ? (
-                <span className="px-2.5 py-1 rounded-md bg-primary/10 text-primary font-black text-[10px] tracking-widest border border-primary/20">
+                <span className="px-2 sm:px-2.5 py-1 rounded-md bg-primary/10 text-primary font-black text-[9px] sm:text-[10px] tracking-widest border border-primary/20">
                   PRO
                 </span>
               ) : (
                 <Link
                   href="/pricing"
-                  className="px-3 py-1.5 rounded-lg text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
                 >
-                  Upgrade ke Pro
+                  Upgrade
                 </Link>
               )
             ) : (
               <Link
                 href="/auth"
-                className="px-3 py-1.5 rounded-lg text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
+                className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
               >
-                Daftar Gratis
+                Daftar
               </Link>
             )}
           </div>
         </header>
 
         {/* ═══ Plan Banner ═══ */}
-        {/* Guests see the no-signup preview; signed-in non-Pro users see the real
-            server-side trial countdown from their profile. */}
         {!user ? (
-          <div className="flex items-center justify-center gap-2 px-4 py-1.5 text-[10px] font-semibold border-b"
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 text-[9.5px] sm:text-[10px] font-semibold border-b"
             style={{
               background: 'linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.06) 50%, transparent 100%)',
               borderColor: 'rgba(245,158,11,0.15)',
             }}
           >
             <span className="w-1 h-1 rounded-full bg-amber-400/60 animate-pulse" />
-            <span className="text-amber-400/80">{guestMsg}</span>
+            <span className="text-amber-400/80 truncate max-w-[220px] sm:max-w-none">{guestMsg}</span>
             <span className="text-muted-foreground/30">·</span>
-            <Link href="/auth" className="font-black text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
+            <Link href="/auth" className="font-black text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors whitespace-nowrap">
               Daftar gratis →
             </Link>
           </div>
         ) : !isPro && (
-          <div className="flex items-center justify-center gap-2 px-4 py-1.5 text-[10px] font-semibold border-b"
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 text-[9.5px] sm:text-[10px] font-semibold border-b"
             style={{
               background: 'linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.06) 50%, transparent 100%)',
               borderColor: 'rgba(245,158,11,0.15)',
             }}
           >
             <span className="w-1 h-1 rounded-full bg-amber-400/60 animate-pulse" />
-            <span className="text-amber-400/80">
+            <span className="text-amber-400/80 truncate max-w-[220px] sm:max-w-none">
               {trialDaysLeft && trialDaysLeft > 0
                 ? `🎁 Trial Pro — ${trialDaysLeft} hari tersisa.`
                 : '⏳ Trial Pro sudah berakhir.'}
             </span>
             <span className="text-muted-foreground/30">·</span>
-            <Link href="/pricing" className="font-black text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
+            <Link href="/pricing" className="font-black text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors whitespace-nowrap">
               Upgrade ke Pro →
             </Link>
           </div>
         )}
 
-        {/* Sits above the ticker: if the data is stale, say so before showing prices. */}
+        {/* Sits above the ticker */}
         <DataFreshnessBanner />
 
         {/* ═══ Ticker Tape ═══ */}
         <TickerTape />
 
         {/* ═══ MAIN CONTENT ═══ */}
-        <main id="main-content" className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-4 pb-20 md:pb-8">
+        <main id="main-content" className="flex-1 w-full max-w-[1600px] mx-auto px-2.5 sm:px-4 lg:px-6 py-3 sm:py-4 pb-24 md:pb-8">
           {children}
         </main>
 
-        {/* ═══ COMPLIANCE FOOTER ═══
-            T&C, privacy and contact must be reachable from every app page —
-            payment-gateway reviews check exactly this. */}
-        <footer className="border-t border-border/10">
+        {/* ═══ COMPLIANCE FOOTER ═══ */}
+        <footer className="border-t border-border/10 pb-20 md:pb-4">
           <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-muted-foreground/40">
-            <span className="flex items-center gap-2 flex-wrap justify-center">
+            <span className="flex items-center gap-2 flex-wrap justify-center text-center">
               <span className="font-bold text-muted-foreground/50">© 2026 BDMFlow — IDX Flow Intelligence</span>
-              <span className="text-muted-foreground/20">·</span>
+              <span className="text-muted-foreground/20 hidden sm:inline">·</span>
               <a href="mailto:mulyanto.my88@gmail.com" className="hover:text-muted-foreground/70 transition-colors">mulyanto.my88@gmail.com</a>
-              <span className="text-muted-foreground/20">·</span>
+              <span className="text-muted-foreground/20 hidden sm:inline">·</span>
               <a href="tel:+6285782672208" className="hover:text-muted-foreground/70 transition-colors">+62 857-8267-2208</a>
             </span>
             <span className="flex items-center gap-4">

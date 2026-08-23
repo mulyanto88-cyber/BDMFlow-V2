@@ -57,15 +57,15 @@ export function DataTable<T>({
           {hg.headers.map(h => (
             <th
               key={h.id}
-              className="px-3.5 py-3 text-left text-[10px] font-black text-muted-foreground/80 uppercase tracking-widest select-none cursor-pointer whitespace-nowrap hover:text-foreground transition-colors"
+              className="px-2.5 sm:px-3.5 py-2.5 sm:py-3 text-left text-[9px] sm:text-[10px] font-black text-muted-foreground/80 uppercase tracking-wider sm:tracking-widest select-none cursor-pointer whitespace-nowrap hover:text-foreground transition-colors"
               onClick={h.column.getToggleSortingHandler()}
             >
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1 sm:gap-1.5">
                 {flexRender(h.column.columnDef.header, h.getContext())}
                 {h.column.getIsSorted() === 'asc' ? (
-                  <ChevronUp size={13} className="text-amber-400 shrink-0" />
+                  <ChevronUp size={12} className="text-amber-400 shrink-0" />
                 ) : h.column.getIsSorted() === 'desc' ? (
-                  <ChevronDown size={13} className="text-amber-400 shrink-0" />
+                  <ChevronDown size={12} className="text-amber-400 shrink-0" />
                 ) : null}
               </span>
             </th>
@@ -80,13 +80,13 @@ export function DataTable<T>({
       key={row.id}
       className={`group transition-colors duration-150 ${
         onRowClick
-          ? 'hover:bg-amber-500/[0.06] cursor-pointer'
+          ? 'hover:bg-amber-500/[0.06] active:bg-amber-500/[0.1] cursor-pointer'
           : 'hover:bg-surface-2'
       }`}
       onClick={() => onRowClick?.(row.original)}
     >
       {row.getVisibleCells().map(cell => (
-        <td key={cell.id} className="px-3.5 py-2.5 whitespace-nowrap text-foreground/90 font-medium group-hover:text-foreground">
+        <td key={cell.id} className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 whitespace-nowrap text-foreground/90 font-medium group-hover:text-foreground">
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </td>
       ))}
@@ -99,14 +99,14 @@ export function DataTable<T>({
 
     return (
       <div className="rounded-xl border border-line-4 bg-card/60 backdrop-blur-xl overflow-hidden shadow-glass-md">
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto custom-scrollbar touch-pan-x">
           <table className="w-full text-xs border-collapse">
             {headerEl}
           </table>
         </div>
         <div
           ref={scrollRef}
-          className="overflow-auto custom-scrollbar"
+          className="overflow-auto custom-scrollbar touch-pan-y"
           style={{ height: virtualHeight }}
         >
           <table className="w-full text-xs border-collapse">
@@ -123,13 +123,13 @@ export function DataTable<T>({
                     data-index={vr.index}
                     className={`group transition-colors duration-150 ${
                       onRowClick
-                        ? 'hover:bg-amber-500/[0.06] cursor-pointer'
+                        ? 'hover:bg-amber-500/[0.06] active:bg-amber-500/[0.1] cursor-pointer'
                         : 'hover:bg-surface-2'
                     }`}
                     onClick={() => onRowClick?.(row.original)}
                   >
                     {row.getVisibleCells().map(cell => (
-                      <td key={cell.id} className="px-3.5 py-2.5 whitespace-nowrap text-foreground/90 font-medium group-hover:text-foreground">
+                      <td key={cell.id} className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 whitespace-nowrap text-foreground/90 font-medium group-hover:text-foreground">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -139,8 +139,8 @@ export function DataTable<T>({
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-line-4 bg-surface-1">
-          <span className="text-[11px] font-mono text-muted-foreground">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-t border-line-4 bg-surface-1">
+          <span className="text-[10px] sm:text-[11px] font-mono text-muted-foreground">
             <span className="font-bold text-foreground">{data.length.toLocaleString()}</span> baris total
           </span>
           <span className="text-[9px] text-muted-foreground/50">
@@ -153,7 +153,7 @@ export function DataTable<T>({
 
   return (
     <div className="rounded-xl border border-line-4 bg-card/60 backdrop-blur-xl overflow-hidden shadow-glass-md">
-      <div className="overflow-x-auto custom-scrollbar">
+      <div className="overflow-x-auto custom-scrollbar touch-pan-x">
         <table className="w-full text-xs border-collapse">
           {headerEl}
           <tbody className="divide-y divide-line-1">
@@ -162,17 +162,17 @@ export function DataTable<T>({
         </table>
       </div>
       {data.length > pageSize && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-line-4 bg-surface-1">
-          <span className="text-[11px] font-mono text-muted-foreground">
-            Row <span className="font-bold text-foreground">{table.getState().pagination.pageIndex * pageSize + 1}</span>-
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-t border-line-4 bg-surface-1">
+          <span className="text-[10px] sm:text-[11px] font-mono text-muted-foreground">
+            <span className="font-bold text-foreground">{table.getState().pagination.pageIndex * pageSize + 1}</span>-
             <span className="font-bold text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * pageSize, data.length)}</span> of{' '}
             <span className="font-bold text-foreground">{data.length}</span>
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="p-1.5 rounded-lg border border-line-5 bg-surface-2 hover:bg-surface-4 disabled:opacity-20 transition-all"
+              className="p-2 sm:p-1.5 rounded-lg border border-line-5 bg-surface-2 hover:bg-surface-4 active:scale-95 disabled:opacity-20 transition-all"
               aria-label="Previous Page"
             >
               <ChevronLeft size={14} />
@@ -180,7 +180,7 @@ export function DataTable<T>({
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="p-1.5 rounded-lg border border-line-5 bg-surface-2 hover:bg-surface-4 disabled:opacity-20 transition-all"
+              className="p-2 sm:p-1.5 rounded-lg border border-line-5 bg-surface-2 hover:bg-surface-4 active:scale-95 disabled:opacity-20 transition-all"
               aria-label="Next Page"
             >
               <ChevronRight size={14} />
