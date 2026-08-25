@@ -40,7 +40,6 @@ export default function PricingPage() {
                 'Market Overview real-time',
                 'Stock Detail & Chart dasar',
                 '5 pencarian per hari',
-                'Komunitas & Edukasi'
               ].map((f, j) => (
                 <div key={j} className="flex items-center gap-2.5">
                   <span className="w-4 h-4 rounded-full bg-surface-3 flex items-center justify-center text-muted-foreground text-[10px] shrink-0">✓</span>
