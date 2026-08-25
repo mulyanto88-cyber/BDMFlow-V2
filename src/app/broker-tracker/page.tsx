@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { formatRupiah, formatNumber } from '@/lib/utils';
 import { authFetch } from '@/lib/api';
 import { InventoryChart, type InvCandle, type InvBrokerRow } from '@/components/inventory-chart';
+import { DominantBrokerWidget, type DominantBrokerRow } from '@/components/widgets/DominantBrokerWidget';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -2252,6 +2253,7 @@ export default function BrokerTrackerPage() {
   const [invStart,        setInvStart]        = useState(() => { const d = new Date(); d.setDate(d.getDate() - 180); return d.toISOString().slice(0, 10); });
   const [invEnd,          setInvEnd]          = useState(() => new Date().toISOString().slice(0, 10));
   const [multiBrokerData, setMultiBrokerData] = useState<MultiBrokerRow[]>([]);
+  const [dominantBrokers, setDominantBrokers] = useState<DominantBrokerRow[]>([]);
   const [stockCtx,        setStockCtx]        = useState<StockContext | null>(null);
   const [divergence,      setDivergence]      = useState<DivergenceData | null>(null);
   const [sectorList,      setSectorList]      = useState<string[]>([]);
@@ -2538,6 +2540,12 @@ export default function BrokerTrackerPage() {
           .then(j => setInsiderData(j.error ? null : j))
           .catch(() => setInsiderData(null))
           .finally(() => setInsiderLoading(false));
+
+        // Fetch Multi-Period Dominant Brokers (1W, 1M, 3M, 6M)
+        authFetch(`/api/stock-detail?code=${tick}`)
+          .then(r => r.json())
+          .then(j => setDominantBrokers(!j.error ? (j.dominantBrokers ?? []) : []))
+          .catch(() => setDominantBrokers([]));
 
         loadStance(tick, params);
 
@@ -3002,7 +3010,16 @@ export default function BrokerTrackerPage() {
 
       {/* ── TRACKER TAB ── */}
       {activeTab === 'tracker' && trackerData.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-6">
+
+          {/* Dominant Broker Multi-Period Matrix (1W, 1M, 3M, 6M) */}
+          {dominantBrokers.length > 0 && (
+            <DominantBrokerWidget
+              data={dominantBrokers}
+              stockCode={code}
+              currentPrice={currentPrice ?? undefined}
+            />
+          )}
 
           {/* Row 1: Tactical Verdict + Signal Banner */}
           <VerdictStrip buyers={buyers} sellers={sellers} divergence={divergence} stockCtx={stockCtx} />
