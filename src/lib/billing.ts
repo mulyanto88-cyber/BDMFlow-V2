@@ -21,9 +21,9 @@ export const PRO_PLANS = {
   },
   quarterly: {
     id: 'pro_quarterly',
-    priceIdr: 148_500, // Diskon 10% dari Rp 165.000 (hanya Rp 49.500/bulan)
+    priceIdr: 135_000, // Diskon 18.2% dari Rp 165.000 (hanya Rp 45.000/bulan)
     months: 3,
-    label: 'BDMFlow Pro — 3 Bulan (Hemat 10%)',
+    label: 'BDMFlow Pro — 3 Bulan (Hemat 18%)',
     invoiceDurationSec: 3 * 24 * 3600,
   },
 } as const

@@ -74,7 +74,7 @@ export default function PricingPage() {
                 <span className="text-xs text-muted-foreground font-mono">/ bulan</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Atau <strong>Rp 148.5K / 3 bulan</strong> <span className="text-emerald-600 dark:text-emerald-400 font-bold">(Hemat 10%)</span>
+                Atau <strong>Rp 135K / 3 bulan</strong> <span className="text-emerald-600 dark:text-emerald-400 font-bold">(Hemat 18% · Rp 45K/bln)</span>
               </p>
             </div>
 

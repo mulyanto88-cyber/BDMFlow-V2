@@ -123,10 +123,10 @@ export default function CheckoutButton({
           }`}
         >
           <span className="absolute -top-2 right-1 text-[8px] font-black uppercase px-1.5 py-0.2 bg-emerald-500 text-black rounded-full shadow-xs">
-            Hemat 10%
+            Hemat 18%
           </span>
           <span>3 Bulan</span>
-          <span className="text-[10px] font-mono font-normal text-emerald-600 dark:text-emerald-400 font-bold">Rp 148.5K</span>
+          <span className="text-[10px] font-mono font-normal text-emerald-600 dark:text-emerald-400 font-bold">Rp 135K</span>
         </button>
       </div>
 
