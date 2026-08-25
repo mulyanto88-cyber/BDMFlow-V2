@@ -11,13 +11,26 @@
 // ============================================================
 import { createHash, timingSafeEqual } from 'crypto'
 
-export const PRO_PLAN = {
-  id: 'pro_monthly',
-  priceIdr: 55_000,
-  months: 1,
-  label: 'BDMFlow Pro — 1 bulan',
-  invoiceDurationSec: 3 * 24 * 3600, // 3 days to pay before it expires
-}
+export const PRO_PLANS = {
+  monthly: {
+    id: 'pro_monthly',
+    priceIdr: 55_000,
+    months: 1,
+    label: 'BDMFlow Pro — 1 Bulan',
+    invoiceDurationSec: 3 * 24 * 3600, // 3 days to pay before it expires
+  },
+  quarterly: {
+    id: 'pro_quarterly',
+    priceIdr: 148_500, // Diskon 10% dari Rp 165.000 (hanya Rp 49.500/bulan)
+    months: 3,
+    label: 'BDMFlow Pro — 3 Bulan (Hemat 10%)',
+    invoiceDurationSec: 3 * 24 * 3600,
+  },
+} as const
+
+export type PlanKey = keyof typeof PRO_PLANS
+export type PlanItem = (typeof PRO_PLANS)[PlanKey]
+export const PRO_PLAN = PRO_PLANS.monthly
 
 // ── Pure helpers (unit-tested) ──────────────────────────────────────────────
 
@@ -94,6 +107,32 @@ export function parseWebhookEvent(body: unknown): WebhookEvent | null {
   }
 }
 
+/** Mayar status codes and webhook event parser */
+export function parseMayarWebhook(body: unknown): WebhookEvent | null {
+  const b = body as Record<string, unknown> | null
+  if (!b || typeof b !== 'object') return null
+  const data = (b.data || b) as Record<string, unknown>
+  const event = String(b.event || b.type || '')
+  const id = data.id ?? data.transaction_id ?? data.payment_id ?? b.id
+  const statusStr = String(data.status || event).toUpperCase()
+  if (!id) return null
+
+  const isPaid = statusStr.includes('SUCCESS') || statusStr.includes('PAID') || event.includes('payment.received') || event.includes('payment.paid')
+  const status = isPaid ? 'PAID' : statusStr.includes('EXPIRE') ? 'EXPIRED' : statusStr.includes('FAIL') ? 'FAILED' : 'PENDING'
+
+  const desc = String(data.description || data.notes || '')
+  const match = desc.match(/bdm-[a-zA-Z0-9_-]+/)
+  const externalId = (data.external_id as string) || (match ? match[0] : null) || (data.order_id as string) || null
+
+  return {
+    eventId: `mayar:${String(id)}:${status}`,
+    status,
+    externalId,
+    gatewayRef: String(id),
+    amount: Number(data.amount ?? 0),
+  }
+}
+
 /** Midtrans status codes → the shared vocabulary used by the ledger. */
 function mapMidtransStatus(s: string): string {
   switch (s) {
@@ -135,8 +174,6 @@ export function parseMidtransNotification(body: unknown): WebhookEvent | null {
 /**
  * Verify a Midtrans notification signature:
  * SHA512(order_id + status_code + gross_amount + server_key).
- * gross_amount is concatenated exactly as it arrived (a JSON string like
- * "55000.00") — Midtrans signs the raw field, not the parsed number.
  */
 export function verifyMidtransSignature(body: unknown, serverKey: string | null): boolean {
   if (!serverKey) return false
@@ -155,6 +192,7 @@ export function verifyMidtransSignature(body: unknown, serverKey: string | null)
 
 // ── Gateway clients ─────────────────────────────────────────────────────────
 
+const MAYAR_BASE = process.env.MAYAR_API_BASE ?? 'https://pub.mayar.id/api/v1'
 const XENDIT_BASE = process.env.XENDIT_API_BASE ?? 'https://api.xendit.co'
 const MIDTRANS_BASE = process.env.MIDTRANS_API_BASE ?? 'https://app.midtrans.com'
 
@@ -162,27 +200,83 @@ export type PaymentResult =
   | { ok: true; paymentUrl: string; gatewayRef: string }
   | { ok: false; reason: 'PAYMENT_NOT_CONFIGURED' | 'GATEWAY_ERROR'; message: string }
 
-/** Which gateway is configured. Midtrans wins when both keys exist. */
-export function activeGateway(): 'midtrans' | 'xendit' | null {
+/** Which gateway is configured. Mayar wins if configured, then Midtrans, then Xendit. */
+export function activeGateway(): 'mayar' | 'midtrans' | 'xendit' | null {
+  if (process.env.MAYAR_API_KEY) return 'mayar'
   if (process.env.MIDTRANS_SERVER_KEY) return 'midtrans'
   if (process.env.XENDIT_API_KEY) return 'xendit'
   return null
 }
 
 /**
- * Create a payment for the Pro plan with whichever gateway is configured.
- * The caller persists a billing_invoices row first so the webhook can map
- * external_id → user.
+ * Create a payment with whichever gateway is configured.
  */
 export async function createPayment(opts: {
   externalId: string
   email: string
+  planKey?: PlanKey
   successRedirectUrl: string
 }): Promise<PaymentResult> {
+  const plan = opts.planKey && PRO_PLANS[opts.planKey] ? PRO_PLANS[opts.planKey] : PRO_PLAN
   const gw = activeGateway()
-  if (gw === 'midtrans') return createMidtransTransaction(opts)
-  if (gw === 'xendit') return createXenditInvoice(opts)
+  if (gw === 'mayar') return createMayarPayment({ ...opts, plan })
+  if (gw === 'midtrans') return createMidtransTransaction({ ...opts, plan })
+  if (gw === 'xendit') return createXenditInvoice({ ...opts, plan })
   return { ok: false, reason: 'PAYMENT_NOT_CONFIGURED', message: 'Payment gateway belum dikonfigurasi.' }
+}
+
+/**
+ * Create a Mayar payment link (Single Payment / Invoice).
+ */
+export async function createMayarPayment(opts: {
+  externalId: string
+  email: string
+  plan?: PlanItem
+  successRedirectUrl: string
+}): Promise<PaymentResult> {
+  const key = process.env.MAYAR_API_KEY
+  if (!key) {
+    return { ok: false, reason: 'PAYMENT_NOT_CONFIGURED', message: 'Payment gateway Mayar belum dikonfigurasi.' }
+  }
+
+  const p = opts.plan ?? PRO_PLAN
+
+  try {
+    const res = await fetch(`${MAYAR_BASE}/payment/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        name: opts.email.split('@')[0] || 'Customer BDMFlow',
+        email: opts.email,
+        amount: p.priceIdr,
+        description: `${p.label} (${opts.externalId})`,
+        redirectUrl: opts.successRedirectUrl,
+        expiredAt: new Date(Date.now() + p.invoiceDurationSec * 1000).toISOString(),
+      }),
+    })
+
+    if (!res.ok) {
+      console.error('[billing] mayar create payment failed:', res.status, await res.text().catch(() => ''))
+      return { ok: false, reason: 'GATEWAY_ERROR', message: 'Gagal membuat pembayaran Mayar. Coba lagi nanti.' }
+    }
+
+    const json = await res.json()
+    const paymentUrl = json?.data?.link || json?.data?.url || json?.link || json?.url
+    const gatewayRef = json?.data?.id || json?.id || opts.externalId
+
+    if (!paymentUrl) {
+      console.error('[billing] mayar response missing paymentUrl:', json)
+      return { ok: false, reason: 'GATEWAY_ERROR', message: 'Respon gateway Mayar tidak lengkap. Coba lagi nanti.' }
+    }
+
+    return { ok: true, paymentUrl, gatewayRef }
+  } catch (err: unknown) {
+    console.error('[billing] mayar request failed:', (err as Error)?.message)
+    return { ok: false, reason: 'GATEWAY_ERROR', message: 'Gagal menghubungi payment gateway Mayar.' }
+  }
 }
 
 /**
@@ -191,12 +285,15 @@ export async function createPayment(opts: {
 export async function createXenditInvoice(opts: {
   externalId: string
   email: string
+  plan?: PlanItem
   successRedirectUrl: string
 }): Promise<PaymentResult> {
   const key = process.env.XENDIT_API_KEY
   if (!key) {
     return { ok: false, reason: 'PAYMENT_NOT_CONFIGURED', message: 'Payment gateway belum dikonfigurasi.' }
   }
+
+  const p = opts.plan ?? PRO_PLAN
 
   try {
     const res = await fetch(`${XENDIT_BASE}/v2/invoices`, {
@@ -207,11 +304,11 @@ export async function createXenditInvoice(opts: {
       },
       body: JSON.stringify({
         external_id: opts.externalId,
-        amount: PRO_PLAN.priceIdr,
+        amount: p.priceIdr,
         currency: 'IDR',
-        description: PRO_PLAN.label,
+        description: p.label,
         payer_email: opts.email,
-        invoice_duration: PRO_PLAN.invoiceDurationSec,
+        invoice_duration: p.invoiceDurationSec,
         success_redirect_url: opts.successRedirectUrl,
       }),
     })
@@ -238,12 +335,15 @@ export async function createXenditInvoice(opts: {
 export async function createMidtransTransaction(opts: {
   externalId: string
   email: string
+  plan?: PlanItem
   successRedirectUrl: string
 }): Promise<PaymentResult> {
   const key = process.env.MIDTRANS_SERVER_KEY
   if (!key) {
     return { ok: false, reason: 'PAYMENT_NOT_CONFIGURED', message: 'Payment gateway belum dikonfigurasi.' }
   }
+
+  const p = opts.plan ?? PRO_PLAN
 
   try {
     const res = await fetch(`${MIDTRANS_BASE}/snap/v1/transactions`, {
@@ -255,10 +355,10 @@ export async function createMidtransTransaction(opts: {
       body: JSON.stringify({
         transaction_details: {
           order_id: opts.externalId,
-          gross_amount: PRO_PLAN.priceIdr,
+          gross_amount: p.priceIdr,
         },
         item_details: [
-          { id: PRO_PLAN.id, price: PRO_PLAN.priceIdr, quantity: 1, name: PRO_PLAN.label },
+          { id: p.id, price: p.priceIdr, quantity: 1, name: p.label },
         ],
         customer_details: { email: opts.email },
         callbacks: { finish: opts.successRedirectUrl },

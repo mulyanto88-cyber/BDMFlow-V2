@@ -20,6 +20,7 @@ import {
   verifyMidtransSignature,
   parseWebhookEvent,
   parseMidtransNotification,
+  parseMayarWebhook,
 } from '@/lib/billing'
 
 export const dynamic = 'force-dynamic'
@@ -29,19 +30,33 @@ export async function POST(req: NextRequest) {
 
   // ── Dispatch on the gateway's auth scheme ──────────────────────────────
   const xenditToken = req.headers.get('x-callback-token')
+  const mayarToken = req.headers.get('x-mayar-token') || req.headers.get('x-callback-token')
   let ev
-  if (xenditToken) {
+
+  if (xenditToken && process.env.XENDIT_WEBHOOK_TOKEN) {
     if (!verifyCallbackToken(xenditToken, process.env.XENDIT_WEBHOOK_TOKEN ?? null)) {
       console.warn('[billing] xendit webhook rejected: invalid callback token')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     ev = parseWebhookEvent(body)
-  } else {
+  } else if (body && (body.event?.startsWith('payment.') || body.data?.transaction_id || req.headers.get('user-agent')?.toLowerCase().includes('mayar'))) {
+    // Mayar webhook verification
+    if (process.env.MAYAR_WEBHOOK_SECRET && mayarToken) {
+      if (!verifyCallbackToken(mayarToken, process.env.MAYAR_WEBHOOK_SECRET)) {
+        console.warn('[billing] mayar webhook rejected: invalid token')
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
+    ev = parseMayarWebhook(body)
+  } else if (process.env.MIDTRANS_SERVER_KEY) {
     if (!verifyMidtransSignature(body, process.env.MIDTRANS_SERVER_KEY ?? null)) {
       console.warn('[billing] midtrans webhook rejected: invalid signature')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     ev = parseMidtransNotification(body)
+  } else {
+    // Fallback: try Mayar or generic parser
+    ev = parseMayarWebhook(body) || parseWebhookEvent(body)
   }
 
   if (!ev) {
@@ -80,7 +95,7 @@ export async function POST(req: NextRequest) {
   // Find the invoice we created at checkout.
   const { data: invoice, error: invErr } = await admin
     .from('billing_invoices')
-    .select('user_id, status')
+    .select('user_id, status, amount')
     .eq('external_id', ev.externalId)
     .single()
   if (invErr || !invoice) {
@@ -104,9 +119,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Update failed' }, { status: 500 })
     }
 
+    // Determine months from invoice amount (148500 = 3 months, 55000 = 1 month)
+    const monthsToGrant = (invoice.amount && invoice.amount >= 100_000) ? 3 : 1
+
     const { data: rows, error: profErr } = await admin.rpc('grant_pro_subscription', {
       p_user_id: invoice.user_id,
-      p_months: 1,
+      p_months: monthsToGrant,
     })
     if (profErr) {
       console.error('[billing] grant_pro_subscription failed:', profErr.message)

@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getViewer, getAdmin } from '@/lib/auth-server'
 import { rateLimit, clientKey } from '@/lib/rate-limit'
-import { createPayment, PRO_PLAN } from '@/lib/billing'
+import { createPayment, PRO_PLANS, PRO_PLAN, PlanKey } from '@/lib/billing'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +30,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server belum dikonfigurasi.' }, { status: 500 })
   }
 
+  const body = await req.json().catch(() => ({}))
+  const planKey: PlanKey = (body.planKey in PRO_PLANS) ? body.planKey : 'monthly'
+  const selectedPlan = PRO_PLANS[planKey] || PRO_PLAN
+
   // Email comes from the profile (server-side), never from the client.
   const { data: profile } = await admin
     .from('profiles')
@@ -45,7 +49,7 @@ export async function POST(req: NextRequest) {
   const { error: insertErr } = await admin.from('billing_invoices').insert({
     external_id: externalId,
     user_id: viewer.userId,
-    amount: PRO_PLAN.priceIdr,
+    amount: selectedPlan.priceIdr,
     status: 'PENDING',
   })
   if (insertErr) {
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
   const result = await createPayment({
     externalId,
     email,
+    planKey,
     successRedirectUrl: `${origin}/pricing?paid=1`,
   })
 
@@ -78,7 +83,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     paymentUrl: result.paymentUrl,
-    amount: PRO_PLAN.priceIdr,
-    planLabel: PRO_PLAN.label,
+    amount: selectedPlan.priceIdr,
+    planLabel: selectedPlan.label,
   })
 }
