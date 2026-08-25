@@ -21,11 +21,11 @@ export default function PricingPage() {
         </p>
       </div>
 
-      {/* 3 Pricing Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      {/* 2 Pricing Cards Grid (Free vs Pro) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
         
         {/* 1. Free Tier */}
-        <div className="glass rounded-3xl p-6 border border-border/40 flex flex-col justify-between relative bg-surface-1/50 shadow-xs">
+        <div className="glass rounded-3xl p-6 sm:p-7 border border-border/40 flex flex-col justify-between relative bg-surface-1/50 shadow-xs">
           <div>
             <div className="mb-5">
               <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Akun Dasar</span>
@@ -60,7 +60,7 @@ export default function PricingPage() {
         </div>
 
         {/* 2. Pro Tier (Hero Card) */}
-        <div className="rounded-3xl p-6 sm:p-7 border-2 border-amber-500/40 bg-gradient-to-b from-amber-500/[0.06] via-card to-card flex flex-col justify-between relative shadow-xl shadow-amber-500/5 order-first md:order-none">
+        <div className="rounded-3xl p-6 sm:p-7 border-2 border-amber-500/40 bg-gradient-to-b from-amber-500/[0.06] via-card to-card flex flex-col justify-between relative shadow-xl shadow-amber-500/5">
           <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-500/20">
             🔥 Paling Populer
           </span>
@@ -98,43 +98,6 @@ export default function PricingPage() {
 
           <div className="pt-5 border-t border-line-2">
             <CheckoutButton />
-          </div>
-        </div>
-
-        {/* 3. Institutional Tier */}
-        <div className="glass rounded-3xl p-6 border border-purple-500/30 flex flex-col justify-between relative bg-surface-1/50 shadow-xs">
-          <div>
-            <div className="mb-5">
-              <span className="text-xs font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest">Institutional</span>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-3xl sm:text-4xl font-black text-foreground">Custom</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Untuk sekuritas, fund manager &amp; tim riset.</p>
-            </div>
-
-            <div className="space-y-2.5 py-4 border-t border-line-2">
-              {[
-                'Semua fitur Pro',
-                'Direct API access & custom feed',
-                'Multi-user institutional dashboard',
-                'Dedicated 24/7 technical support',
-                'Custom screening algorithm & alerting'
-              ].map((f, j) => (
-                <div key={j} className="flex items-center gap-2.5">
-                  <span className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 text-[10px] shrink-0 font-bold">✓</span>
-                  <span className="text-xs text-muted-foreground">{f}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-6">
-            <Link
-              href="mailto:mulyanto.my88@gmail.com?subject=BDMFlow%20Institutional%20Inquiry"
-              className="w-full py-3 rounded-xl text-xs font-bold transition-all text-center block bg-surface-2 hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-xs"
-            >
-              Hubungi Tim Kami
-            </Link>
           </div>
         </div>
 

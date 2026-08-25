@@ -11,7 +11,7 @@ export default function ContactPage() {
   return (
     <LegalPage title="Kontak" updated="15 Agustus 2026">
       <p>
-        Ada pertanyaan, kendala teknis, atau ingin kerja sama (API, data institutional, afiliasi)?
+        Ada pertanyaan, kendala teknis, atau ingin kerja sama &amp; afiliasi?
         Tim BDMFlow siap membantu.
       </p>
 
