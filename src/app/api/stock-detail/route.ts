@@ -408,10 +408,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: errMsg }, { status: 404 })
     }
 
-    // Batch 2 — Rich data (7 queries)
+    // Batch 2 — Rich data (8 queries)
     let flowTrendRows: any[] = [], concRows: any[] = [], instChangeRows: any[] = [],
         stealthRows: any[] = [], brokerConsRows: any[] = [],
-        volSpikeRows: any[] = [], whaleActRows: any[] = [];
+        volSpikeRows: any[] = [], whaleActRows: any[] = [], dominantBrokerRows: any[] = [];
     try {
       const _r2 = await Promise.allSettled([
       run(`
@@ -624,11 +624,116 @@ export async function GET(req: NextRequest) {
         WHERE stock_code = $1
         LIMIT 1
       `, [code]),
+
+      // 15. Dominant Brokers Matrix (Multi-Period 1W, 1M, 3M, 6M)
+      run(`
+        WITH max_dt AS (
+          SELECT MAX(date) AS mx FROM main.broker_activity
+        ),
+        stock_price AS (
+          SELECT close AS curr_price FROM market.tb_stock_detail WHERE stock_code = $1 ORDER BY trading_date DESC NULLS LAST LIMIT 1
+        ),
+        base_tx AS (
+          SELECT
+            ba.broker_code,
+            ba.broker_name,
+            ba.date,
+            ba.value,
+            ba.lot
+          FROM main.broker_activity ba, max_dt m
+          WHERE ba.stock_code = $1
+            AND CAST(ba.date AS DATE) >= CAST(m.mx AS DATE) - INTERVAL '180 days'
+        ),
+        periods AS (
+          SELECT '1W' AS p_code, 7 AS p_days, 1 AS p_order
+          UNION ALL SELECT '1M', 30, 2
+          UNION ALL SELECT '3M', 90, 3
+          UNION ALL SELECT '6M', 180, 4
+        ),
+        broker_period_agg AS (
+          SELECT
+            p.p_code,
+            p.p_order,
+            b.broker_code,
+            MAX(b.broker_name) AS broker_name,
+            SUM(CASE WHEN b.value > 0 THEN b.value ELSE 0 END)::FLOAT8 AS buy_val,
+            SUM(CASE WHEN b.value > 0 THEN b.lot ELSE 0 END)::FLOAT8 AS buy_lot,
+            ABS(SUM(CASE WHEN b.value < 0 THEN b.value ELSE 0 END))::FLOAT8 AS sell_val,
+            ABS(SUM(CASE WHEN b.value < 0 THEN b.lot ELSE 0 END))::FLOAT8 AS sell_lot,
+            SUM(b.value)::FLOAT8 AS net_val
+          FROM periods p
+          CROSS JOIN base_tx b, max_dt m
+          WHERE CAST(b.date AS DATE) >= CAST(m.mx AS DATE) - (p.p_days || ' days')::INTERVAL
+          GROUP BY p.p_code, p.p_order, b.broker_code
+        ),
+        market_turnover AS (
+          SELECT
+            p.p_code,
+            SUM(CASE WHEN b.value > 0 THEN b.value ELSE 0 END)::FLOAT8 AS total_market_val
+          FROM periods p
+          CROSS JOIN base_tx b, max_dt m
+          WHERE CAST(b.date AS DATE) >= CAST(m.mx AS DATE) - (p.p_days || ' days')::INTERVAL
+          GROUP BY p.p_code
+        ),
+        ranked_buyers AS (
+          SELECT
+            b.*,
+            m.total_market_val,
+            (b.buy_val / NULLIF(b.buy_lot * 100.0, 0))::FLOAT8 AS buy_avg_price,
+            ROUND(((b.buy_val / NULLIF(m.total_market_val, 0)) * 100)::NUMERIC, 1)::FLOAT8 AS buy_dominance_pct,
+            sp.curr_price,
+            ROUND((((sp.curr_price - (b.buy_val / NULLIF(b.buy_lot * 100.0, 0))) / NULLIF(b.buy_val / NULLIF(b.buy_lot * 100.0, 0), 0)) * 100)::NUMERIC, 1)::FLOAT8 AS buy_pnl_pct,
+            ROW_NUMBER() OVER (PARTITION BY b.p_code ORDER BY b.buy_val DESC NULLS LAST) AS rnk_buy
+          FROM broker_period_agg b
+          JOIN market_turnover m ON b.p_code = m.p_code
+          CROSS JOIN stock_price sp
+          WHERE b.buy_val > 0
+        ),
+        ranked_sellers AS (
+          SELECT
+            b.*,
+            m.total_market_val,
+            (b.sell_val / NULLIF(b.sell_lot * 100.0, 0))::FLOAT8 AS sell_avg_price,
+            ROUND(((b.sell_val / NULLIF(m.total_market_val, 0)) * 100)::NUMERIC, 1)::FLOAT8 AS sell_dominance_pct,
+            ROW_NUMBER() OVER (PARTITION BY b.p_code ORDER BY b.sell_val DESC NULLS LAST) AS rnk_sell
+          FROM broker_period_agg b
+          JOIN market_turnover m ON b.p_code = m.p_code
+          WHERE b.sell_val > 0
+        )
+        SELECT
+          'BUYER' AS role,
+          p_code,
+          p_order,
+          broker_code,
+          broker_name,
+          buy_val AS gross_val,
+          net_val,
+          total_market_val,
+          buy_avg_price AS avg_price,
+          buy_dominance_pct AS dominance_pct,
+          buy_pnl_pct AS pnl_pct
+        FROM ranked_buyers WHERE rnk_buy = 1
+        UNION ALL
+        SELECT
+          'SELLER' AS role,
+          p_code,
+          p_order,
+          broker_code,
+          broker_name,
+          sell_val AS gross_val,
+          net_val,
+          total_market_val,
+          sell_avg_price AS avg_price,
+          sell_dominance_pct AS dominance_pct,
+          NULL::FLOAT8 AS pnl_pct
+        FROM ranked_sellers WHERE rnk_sell = 1
+        ORDER BY role ASC, p_order ASC
+      `, [code]).catch(() => []),
       ])
       // allSettled: foreign-flow / technicals survive even if one sibling query errors.
       const g2 = (i: number) => _r2[i].status === 'fulfilled' ? (_r2[i] as PromiseFulfilledResult<any[]>).value : []
       flowTrendRows = g2(0); concRows = g2(1); instChangeRows = g2(2); stealthRows = g2(3)
-      brokerConsRows = g2(4); volSpikeRows = g2(5); whaleActRows = g2(6)
+      brokerConsRows = g2(4); volSpikeRows = g2(5); whaleActRows = g2(6); dominantBrokerRows = g2(7)
     } catch (e: any) {
       console.error('[stock-detail] Batch 2 failed:', e.message)
     }
@@ -653,6 +758,7 @@ export async function GET(req: NextRequest) {
         brokerConsistency: brokerConsRows,
         volumeSpikes: volSpikeRows,
         whaleActivity: whaleActRows[0] ?? null,
+        dominantBrokers: dominantBrokerRows,
         scorecard: scoreRows[0] ?? null,
         verdict: buildVerdict(scoreRows[0] ?? null, foreignRows[0] ?? null, stealthRows[0] ?? null),
         dataQuality: (() => {

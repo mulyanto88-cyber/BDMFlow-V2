@@ -6,6 +6,7 @@ import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
 import { Building2, Eye, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import { DominantBrokerWidget } from './DominantBrokerWidget'
 
 interface Props { stockCode: string }
 
@@ -15,9 +16,19 @@ export function BroksumWidget({ stockCode }: Props) {
 
   const brokerData = data?.brokerData || []
   const brokerConsistency = data?.brokerConsistency || []
+  const dominantBrokers = data?.dominantBrokers || []
+  const currentPrice = Number(data?.stockData?.close || data?.historyData?.[data.historyData.length - 1]?.close || 0)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* 1. Multi-Period Dominant Broker Matrix */}
+      {dominantBrokers.length > 0 && (
+        <DominantBrokerWidget
+          data={dominantBrokers}
+          stockCode={stockCode}
+          currentPrice={currentPrice}
+        />
+      )}
       {brokerData.length > 0 && (
         <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center gap-2 mb-4">
