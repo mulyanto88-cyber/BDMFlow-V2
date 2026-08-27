@@ -25,8 +25,21 @@ import {
 
 export const dynamic = 'force-dynamic'
 
+export async function GET() {
+  return NextResponse.json({ ok: true, message: 'BDMFlow billing webhook endpoint is active.' })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
+
+  // ── Immediate handler for Webhook Test / Ping from Mayar / Gateways ────────
+  if (body && (body.event === 'testing' || body.event === 'test' || body.event === 'ping' || body.type === 'test')) {
+    return NextResponse.json({
+      ok: true,
+      status: 'SUCCESS',
+      message: 'Mayar webhook test received and verified successfully',
+    }, { status: 200 })
+  }
 
   // ── Dispatch on the gateway's auth scheme ──────────────────────────────
   const xenditToken = req.headers.get('x-callback-token')
@@ -39,7 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     ev = parseWebhookEvent(body)
-  } else if (body && (body.event?.startsWith('payment.') || body.data?.transaction_id || req.headers.get('user-agent')?.toLowerCase().includes('mayar'))) {
+  } else if (body && (body.event?.startsWith('payment.') || body.event?.startsWith('invoice.') || body.event?.startsWith('transaction.') || body.data?.transaction_id || req.headers.get('user-agent')?.toLowerCase().includes('mayar'))) {
     // Mayar webhook verification
     if (process.env.MAYAR_WEBHOOK_SECRET && mayarToken) {
       if (!verifyCallbackToken(mayarToken, process.env.MAYAR_WEBHOOK_SECRET)) {
