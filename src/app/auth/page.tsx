@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
@@ -12,9 +12,11 @@ type Mode = 'login' | 'register'
 
 export default function AuthPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading, signIn, signUp, signInWithGoogle } = useAuth()
 
-  const [mode, setMode]       = useState<Mode>('login')
+  const initialMode: Mode = searchParams.get('mode') === 'register' ? 'register' : 'login'
+  const [mode, setMode]       = useState<Mode>(initialMode)
   const [email, setEmail]     = useState('')
   const [password, setPass]   = useState('')
   const [name, setName]       = useState('')
@@ -22,6 +24,13 @@ export default function AuthPage() {
   const [error, setError]     = useState('')
   const [submitting, setSub]  = useState(false)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    const qMode = searchParams.get('mode')
+    if (qMode === 'register' || qMode === 'login') {
+      setMode(qMode)
+    }
+  }, [searchParams])
 
   // Kalau sudah login, redirect ke homepage
   useEffect(() => {

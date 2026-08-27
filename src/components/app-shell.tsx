@@ -12,7 +12,7 @@ import DataFreshnessBanner from './data-freshness-banner'
 import Sidebar from './sidebar'
 import SignupNudge from './signup-nudge'
 import UpgradeGateOverlay from './upgrade-gate-overlay'
-import { ChevronRight, Bell } from 'lucide-react'
+import { ChevronRight, Bell, LogOut } from 'lucide-react'
 
 // Bare pages (no shell): landing, auth, pricing, and the compliance pages.
 const PUBLIC_ROUTES = ['/', '/auth', '/pricing', '/terms', '/privacy', '/contact']
@@ -61,7 +61,7 @@ const PAGE_META: Record<string, { title: string; parent?: string }> = {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
-  const { user, loading, isPro, trialDaysLeft } = useAuth()
+  const { user, loading, isPro, trialDaysLeft, signOut } = useAuth()
 
   const publicPage = isPublic(pathname)
   const freePage   = isFree(pathname)
@@ -174,25 +174,45 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
 
             {user ? (
-              isPro ? (
-                <span className="px-2 sm:px-2.5 py-1 rounded-md bg-primary/10 text-primary font-black text-[9px] sm:text-[10px] tracking-widest border border-primary/20">
-                  PRO
-                </span>
-              ) : (
+              <div className="flex items-center gap-2">
+                {isPro ? (
+                  <span className="px-2 sm:px-2.5 py-1 rounded-md bg-primary/10 text-primary font-black text-[9px] sm:text-[10px] tracking-widest border border-primary/20">
+                    PRO
+                  </span>
+                ) : (
+                  <Link
+                    href="/pricing"
+                    className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
+                  >
+                    Upgrade
+                  </Link>
+                )}
+
+                <button
+                  onClick={() => signOut()}
+                  title={`Keluar (${user.email})`}
+                  aria-label="Logout"
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10.5px] font-bold text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 border border-line-2 hover:border-rose-500/20 transition-all active:scale-95"
+                >
+                  <LogOut size={13} />
+                  <span className="hidden sm:inline">Keluar</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
                 <Link
-                  href="/pricing"
+                  href="/auth?mode=login"
+                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-surface-3 transition-colors"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/auth?mode=register"
                   className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
                 >
-                  Upgrade
+                  Daftar
                 </Link>
-              )
-            ) : (
-              <Link
-                href="/auth"
-                className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-black text-slate-950 whitespace-nowrap bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all"
-              >
-                Daftar
-              </Link>
+              </div>
             )}
           </div>
         </header>

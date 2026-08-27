@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Search, Globe, Crown, Activity,
   PieChart, LineChart, Shield, Calculator, Bell,
   Menu, ChevronLeft, Zap, Eye, BarChart2, Brain,
-  TrendingUp, Star, X,
+  TrendingUp, Star, X, LogOut, User,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/auth-context'
@@ -81,7 +81,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const { isPro } = useAuth()
+  const { user, isPro, signOut } = useAuth()
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
@@ -246,12 +246,12 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* Bottom: plan status — Pro subscribers see their status, everyone else sees the upgrade path */}
-        {!collapsed && (
-          <div className="p-3 shrink-0" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+        {/* Bottom: plan status & user account */}
+        {!collapsed ? (
+          <div className="p-3 shrink-0 space-y-2" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
             {isPro ? (
               <div className="rounded-xl p-3 bg-gradient-to-br from-amber-500/8 to-amber-500/3 border border-amber-500/15">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-1.5">
                   <Star size={11} className="text-amber-400 fill-amber-400" />
                   <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.14em]">Pro Aktif</span>
                 </div>
@@ -264,7 +264,7 @@ export default function Sidebar() {
                 href="/pricing"
                 className="block rounded-xl p-3 bg-gradient-to-br from-amber-500/8 to-amber-500/3 border border-amber-500/15 hover:border-amber-500/35 transition-colors"
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-1.5">
                   <Crown size={11} className="text-amber-400" />
                   <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.14em]">Upgrade ke Pro</span>
                 </div>
@@ -273,7 +273,52 @@ export default function Sidebar() {
                 </p>
               </Link>
             )}
+
+            {/* User Profile & Logout */}
+            {user ? (
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-surface-2/70 border border-line-2 text-xs">
+                <div className="min-w-0 flex-1 pr-2">
+                  <div className="text-[10.5px] font-bold truncate text-foreground/90">{user.email?.split('@')[0]}</div>
+                  <div className="text-[9px] text-muted-foreground/50 truncate">{user.email}</div>
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  title={`Keluar (${user.email})`}
+                  className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 pt-0.5">
+                <Link
+                  href="/auth?mode=login"
+                  className="flex-1 py-1.5 text-center rounded-lg text-[10.5px] font-bold bg-surface-2 hover:bg-surface-3 text-foreground/80 transition-colors border border-line-2"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/auth?mode=register"
+                  className="flex-1 py-1.5 text-center rounded-lg text-[10.5px] font-black bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-xs transition-opacity hover:opacity-90"
+                >
+                  Daftar
+                </Link>
+              </div>
+            )}
           </div>
+        ) : (
+          /* Collapsed bottom avatar/logout */
+          user && (
+            <div className="p-2 flex justify-center" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+              <button
+                onClick={() => signOut()}
+                title={`Keluar (${user.email})`}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          )
         )}
       </aside>
 
@@ -347,9 +392,11 @@ export default function Sidebar() {
                 </div>
               ))}
 
+              {/* Upgrade Banner in drawer */}
               {!isPro && (
                 <Link
                   href="/pricing"
+                  onClick={() => setDrawerOpen(false)}
                   className="flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border border-amber-500/25 active:scale-[0.98] transition-all"
                 >
                   <div className="flex items-center gap-2.5">
@@ -362,6 +409,49 @@ export default function Sidebar() {
                   <ChevronLeft size={14} className="text-amber-400 rotate-180" />
                 </Link>
               )}
+
+              {/* User Account & Logout in drawer */}
+              <div className="pt-2">
+                {user ? (
+                  <div className="p-3 rounded-xl bg-surface-2/90 border border-line-2 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 pr-2">
+                        <div className="text-xs font-bold text-foreground truncate">{user.email?.split('@')[0]}</div>
+                        <div className="text-[10px] text-muted-foreground/60 truncate">{user.email}</div>
+                      </div>
+                      {isPro && (
+                        <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-black text-[9px] uppercase tracking-wider">
+                          PRO
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => { signOut(); setDrawerOpen(false) }}
+                      className="w-full py-2 rounded-lg text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 flex items-center justify-center gap-1.5 transition-colors active:scale-98"
+                    >
+                      <LogOut size={13} />
+                      <span>Keluar dari Akun</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href="/auth?mode=login"
+                      onClick={() => setDrawerOpen(false)}
+                      className="py-2.5 rounded-xl text-xs font-bold text-center bg-surface-2 hover:bg-surface-3 text-foreground border border-line-2 transition-colors"
+                    >
+                      Masuk
+                    </Link>
+                    <Link
+                      href="/auth?mode=register"
+                      onClick={() => setDrawerOpen(false)}
+                      className="py-2.5 rounded-xl text-xs font-black text-center text-slate-950 btn-gradient-gold shadow-md shadow-amber-500/20"
+                    >
+                      Daftar
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import FeatureShowcase from '@/components/feature-showcase'
 import TrackLink from '@/components/track-link'
+import LandingNav from '@/components/landing-nav'
 
 // ── Features data ─────────────────────────────────────────────────────────────
 const FEATURES = [
@@ -104,10 +105,14 @@ const PRO_FEATURES = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
-    <div className="max-w-[1120px] mx-auto pb-24 animate-fade-in">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* ════════════════════ TOP NAVBAR ════════════════════ */}
+      <LandingNav />
 
-      {/* ════════════════════ HERO ════════════════════ */}
-      <section className="hero-mesh pt-16 md:pt-24 pb-12 px-4 md:px-6 text-center space-y-8 rounded-3xl mb-16">
+      <div className="max-w-[1120px] mx-auto px-2 sm:px-4 pb-24 animate-fade-in">
+
+        {/* ════════════════════ HERO ════════════════════ */}
+        <section className="hero-mesh pt-12 md:pt-20 pb-12 px-4 md:px-6 text-center space-y-8 rounded-3xl mb-16">
 
         {/* Platform badge */}
         <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-primary/20 bg-primary/[0.06] text-[11px] font-black uppercase tracking-[0.20em] text-primary/90 animate-slide-up">
@@ -247,7 +252,7 @@ export default function LandingPage() {
       </section>
 
       {/* ════════════════════ FEATURES BENTO ════════════════════ */}
-      <section className="px-4 md:px-6 mb-20 space-y-8">
+      <section id="fitur" className="px-4 md:px-6 mb-20 space-y-8 scroll-mt-24">
         <div className="text-center space-y-3">
           <div className="eyebrow justify-center">Fitur Platform</div>
           <h2 className="text-3xl md:text-4xl font-black text-foreground">
@@ -551,6 +556,7 @@ export default function LandingPage() {
         </div>
       </div>
 
+      </div>
     </div>
   )
 }
