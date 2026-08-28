@@ -12,6 +12,7 @@ import DataFreshnessBanner from './data-freshness-banner'
 import Sidebar from './sidebar'
 import SignupNudge from './signup-nudge'
 import UpgradeGateOverlay from './upgrade-gate-overlay'
+import ActivityTracker from './activity-tracker'
 import { ChevronRight, Bell, LogOut } from 'lucide-react'
 
 // Bare pages (no shell): landing, auth, pricing, and the compliance pages.
@@ -125,7 +126,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-frame flex min-h-[calc(100vh_-_1.5rem)] text-foreground selection:bg-primary/20" style={{ background: 'hsl(var(--background))' }}>
-      
+      <ActivityTracker />
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">

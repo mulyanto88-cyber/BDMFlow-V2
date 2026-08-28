@@ -274,6 +274,20 @@ export default function Sidebar() {
               </Link>
             )}
 
+            {/* Admin Live Tracker Link (Exclusive to mulyanto.my88@gmail.com) */}
+            {user?.email?.toLowerCase() === 'mulyanto.my88@gmail.com' && (
+              <Link
+                href="/admin"
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[10.5px] font-black text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 transition-all"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Shield size={12} />
+                  <span>Admin Live Tracker</span>
+                </div>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              </Link>
+            )}
+
             {/* User Profile & Logout */}
             {user ? (
               <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-surface-2/70 border border-line-2 text-xs">
