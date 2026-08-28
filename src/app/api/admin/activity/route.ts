@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Database service role unavailable.' }, { status: 500 })
   }
 
-  // Verify that the user is the admin
+  // Verify that the caller is the administrator
   const { data: userRecord, error: userErr } = await admin.auth.admin.getUserById(viewer.userId)
   const email = userRecord?.user?.email?.toLowerCase()
 
@@ -29,23 +29,27 @@ export async function GET(req: NextRequest) {
 
   const searchParams = req.nextUrl.searchParams
   const filterEmail = searchParams.get('email')
-  const limit = Math.min(Number(searchParams.get('limit')) || 100, 300)
+  const limit = Math.min(Number(searchParams.get('limit')) || 150, 300)
 
-  // 1. Fetch activities with user email
+  // 1. Fetch activities with user email or guest id
   let query = admin
     .from('user_activities')
-    .select('id, user_id, path, page_title, metadata, created_at')
+    .select('id, user_id, guest_id, path, page_title, metadata, created_at')
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (filterEmail) {
-    // Look up user id by email
+  if (filterEmail === 'GUESTS') {
+    query = query.is('user_id', null)
+  } else if (filterEmail === 'MEMBERS') {
+    query = query.not('user_id', 'is', null)
+  } else if (filterEmail && filterEmail !== 'ALL') {
+    // Look up user id by specific email
     const { data: targetUsers } = await admin.auth.admin.listUsers()
     const target = targetUsers?.users.find((u) => u.email?.toLowerCase() === filterEmail.toLowerCase())
     if (target) {
       query = query.eq('user_id', target.id)
     } else {
-      return NextResponse.json({ activities: [], users: [], topPages: [] })
+      return NextResponse.json({ activities: [], users: [], topPages: [], totalActivities: 0 })
     }
   }
 
@@ -82,6 +86,20 @@ export async function GET(req: NextRequest) {
   })
 
   const enrichedActivities = (activities || []).map((a) => {
+    if (!a.user_id) {
+      const guestShortId = (a.guest_id || 'anon').replace(/^guest_/, '').slice(0, 6)
+      return {
+        id: a.id,
+        userId: null,
+        guestId: a.guest_id,
+        email: `Tamu / Guest #${guestShortId}`,
+        path: a.path,
+        pageTitle: a.page_title,
+        createdAt: a.created_at,
+        plan: 'GUEST' as const,
+      }
+    }
+
     const u = userMap.get(a.user_id)
     const p = profileMap.get(a.user_id)
     const isPro = p?.plan === 'pro' && (!p?.planExpiresAt || new Date(p.planExpiresAt).getTime() > Date.now())
@@ -90,33 +108,35 @@ export async function GET(req: NextRequest) {
     return {
       id: a.id,
       userId: a.user_id,
-      email: u?.email || 'Unknown User',
+      guestId: null,
+      email: u?.email || 'User Terdaftar',
       path: a.path,
       pageTitle: a.page_title,
       createdAt: a.created_at,
-      plan: isPro ? 'PRO' : isTrial ? 'TRIAL' : 'FREE',
+      plan: (isPro ? 'PRO' : isTrial ? 'TRIAL' : 'FREE') as 'PRO' | 'TRIAL' | 'FREE',
     }
   })
 
   // 3. Aggregate top visited paths
-  const pathCounts: Record<string, { count: number; uniqueUsers: Set<string> }> = {}
+  const pathCounts: Record<string, { count: number; uniqueVisitors: Set<string> }> = {}
   enrichedActivities.forEach((a) => {
     if (!pathCounts[a.path]) {
-      pathCounts[a.path] = { count: 0, uniqueUsers: new Set() }
+      pathCounts[a.path] = { count: 0, uniqueVisitors: new Set() }
     }
     pathCounts[a.path].count += 1
-    pathCounts[a.path].uniqueUsers.add(a.userId)
+    const visitorKey = a.userId || a.guestId || a.id
+    pathCounts[a.path].uniqueVisitors.add(visitorKey)
   })
 
   const topPages = Object.entries(pathCounts)
     .map(([path, data]) => ({
       path,
       views: data.count,
-      uniqueUsers: data.uniqueUsers.size,
+      uniqueUsers: data.uniqueVisitors.size,
     }))
     .sort((a, b) => b.views - a.views)
 
-  // 4. Summarized list of users
+  // 4. Summarized list of registered users
   const userList = (allUsers?.users || []).map((u) => {
     const p = profileMap.get(u.id)
     const isPro = p?.plan === 'pro' && (!p?.planExpiresAt || new Date(p.planExpiresAt).getTime() > Date.now())
@@ -127,7 +147,7 @@ export async function GET(req: NextRequest) {
       email: u.email || '',
       createdAt: u.created_at,
       lastSignIn: u.last_sign_in_at || null,
-      status: isPro ? 'PRO' : isTrial ? 'TRIAL' : 'FREE',
+      status: (isPro ? 'PRO' : isTrial ? 'TRIAL' : 'FREE') as 'PRO' | 'TRIAL' | 'FREE',
     }
   })
 

@@ -99,7 +99,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Bare public pages (landing, auth, pricing) — no shell.
   if (publicPage) {
-    return <main className="w-full">{children}</main>
+    return (
+      <>
+        <ActivityTracker />
+        <main className="w-full">{children}</main>
+      </>
+    )
   }
 
   // Loading / blocked
