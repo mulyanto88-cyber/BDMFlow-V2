@@ -398,37 +398,37 @@ export default function FeatureShowcase() {
 
       </div>
 
-      {/* ════════════════════ FULLSCREEN LIGHTBOX MODAL ════════════════════ */}
+      {/* ════════════════════ FULLSCREEN LIGHTBOX MODAL (WIDE HORIZONTAL 96vw) ════════════════════ */}
       {isLightboxOpen && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-3 sm:p-6 pt-4 sm:pt-6 pb-8 sm:pb-12 animate-fade-in select-none cursor-pointer"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-xl p-2 sm:p-4 cursor-zoom-out select-none animate-fade-in"
           onClick={() => setIsLightboxOpen(false)} // CLICK ANYWHERE OUTSIDE CLOSES INSTANTLY!
         >
-          {/* Main Modal Box — Slightly lifted up for perfect eye-level centering */}
+          {/* Main Modal Box — Expands to maximum screen width & height */}
           <div
-            className="relative max-w-6xl w-full flex flex-col items-center cursor-default -translate-y-4 sm:-translate-y-7 md:-translate-y-9"
+            className="relative w-full max-w-[96vw] xl:max-w-[1550px] h-[92vh] flex flex-col items-center justify-between cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Bar with Title & Close Button */}
-            <div className="w-full flex items-center justify-between gap-3 pb-3 text-white">
+            <div className="w-full flex items-center justify-between gap-3 pb-2 text-white shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-xs font-mono shrink-0">
                   {activeIdx + 1} / {filteredShots.length}
                 </span>
-                <div className="min-w-0 truncate">
+                <div className="min-w-0 flex items-center gap-2">
                   <h4 className="text-sm sm:text-base font-black text-white truncate">
                     {currentShot.title}
                   </h4>
-                  <p className="text-xs text-white/70 truncate hidden sm:block">
-                    {currentShot.desc}
-                  </p>
+                  <span className="text-xs text-white/60 hidden md:inline truncate">
+                    — {currentShot.desc}
+                  </span>
                 </div>
               </div>
 
               {/* Close Button */}
               <button
                 onClick={() => setIsLightboxOpen(false)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/15 hover:bg-rose-500 hover:text-white text-white/90 border border-white/20 transition-all text-xs font-bold shrink-0"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/15 hover:bg-rose-500 hover:text-white text-white font-bold text-xs transition-all shrink-0 shadow-lg cursor-pointer active:scale-95"
                 title="Tutup (Esc atau klik di luar)"
               >
                 <span>Tutup</span>
@@ -436,19 +436,19 @@ export default function FeatureShowcase() {
               </button>
             </div>
 
-            {/* Image Stage Container */}
-            <div className="relative w-full aspect-[16/9] max-h-[75vh] rounded-2xl overflow-hidden border-2 border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)] bg-slate-950">
+            {/* Image Stage Container — Maximized horizontally & vertically */}
+            <div className="relative w-full flex-1 rounded-2xl overflow-hidden border-2 border-white/20 shadow-[0_0_80px_rgba(0,0,0,0.95)] bg-slate-950 flex items-center justify-center">
               {/* Prev Button */}
               <button
                 onClick={handlePrev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-black/80 hover:bg-amber-500 hover:text-black border border-white/20 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-3.5 rounded-full bg-black/80 hover:bg-amber-500 hover:text-black border border-white/25 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl cursor-pointer"
                 title="Sebelumnya (←)"
                 aria-label="Sebelumnya"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={28} />
               </button>
 
-              {/* The Big Picture */}
+              {/* The Big Picture — Fits width & height without letterbox constraint */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={currentShot.src}
@@ -459,18 +459,34 @@ export default function FeatureShowcase() {
               {/* Next Button */}
               <button
                 onClick={handleNext}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-3.5 rounded-full bg-black/80 hover:bg-amber-500 hover:text-black border border-white/20 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-3.5 rounded-full bg-black/80 hover:bg-amber-500 hover:text-black border border-white/25 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl cursor-pointer"
                 title="Berikutnya (→)"
                 aria-label="Berikutnya"
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={28} />
               </button>
             </div>
 
-            {/* Footer Prompt */}
-            <p className="text-[11px] text-white/50 text-center pt-3 flex items-center justify-center gap-1.5">
-              <span>💡</span> Klik di mana pun di luar kotak gambar atau tekan <kbd className="px-1.5 py-0.5 rounded bg-white/15 text-white/80 font-mono text-[10px]">ESC</kbd> untuk kembali ke landing page.
-            </p>
+            {/* Bottom Bar Hints & Indicators */}
+            <div className="w-full flex items-center justify-between px-2 pt-2 text-[11px] text-white/50 shrink-0">
+              <p className="flex items-center gap-1.5">
+                <span>💡</span> Klik di mana pun di luar kotak gambar atau tekan <kbd className="px-1.5 py-0.5 rounded bg-white/15 text-white/80 font-mono text-[10px]">ESC</kbd> untuk menutup.
+              </p>
+              <div className="hidden sm:flex items-center gap-1.5">
+                {filteredShots.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveIdx(i)}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      i === activeIdx
+                        ? 'w-6 bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
+                        : 'w-1.5 bg-white/30 hover:bg-white/60'
+                    }`}
+                    title={`Lihat #${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
