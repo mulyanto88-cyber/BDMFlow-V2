@@ -379,24 +379,38 @@ export default function BacktestPage() {
   const [validationLoading, setValidationLoading] = useState(false)
 
   const loadValidationData = useCallback(async () => {
-    if (validationData) return
     setValidationLoading(true)
     try {
       const data = await mdQuery('backtest.signalValidation', [])
-      setValidationData((data || []) as unknown as ValidationRow[])
+      if (Array.isArray(data)) {
+        const parsed: ValidationRow[] = data.map((r: any) => ({
+          signal_name: String(r.signal_name || ''),
+          n_signal: Number(r.n_signal) || 0,
+          avg_ret_20d_on: Number(r.avg_ret_20d_on) || 0,
+          median_20d_on: Number(r.median_20d_on) || 0,
+          avg_ret_5d_on: Number(r.avg_ret_5d_on) || 0,
+          hit_20d_on: Number(r.hit_20d_on) || 0,
+          avg_ret_20d_off: Number(r.avg_ret_20d_off) || 0,
+          hit_20d_off: Number(r.hit_20d_off) || 0,
+          edge_20d: Number(r.edge_20d) || 0,
+          edge_hit_20d: Number(r.edge_hit_20d) || 0,
+          refreshed_at: String(r.refreshed_at || ''),
+        }))
+        setValidationData(parsed)
+      }
     } catch (e: any) {
       if (e instanceof UpgradeRequiredError) setBlocked(true)
       else setError(e.message)
     } finally {
       setValidationLoading(false)
     }
-  }, [validationData])
+  }, [])
 
   useEffect(() => {
-    if (mode === 'validation') {
+    if (mode === 'validation' && !validationData) {
       loadValidationData()
     }
-  }, [mode, loadValidationData])
+  }, [mode, validationData, loadValidationData])
 
   const chartRef = useRef<HTMLDivElement>(null)
   const [chartScriptLoaded, setChartScriptLoaded] = useState(false)
@@ -1404,7 +1418,7 @@ ${signalResults.slice(0, 5).map((s, i) => {
       {/* ═══════════════════════════════════════════════════════════════════════
           TAB 2 & 3: SINGLE STOCK STRATEGY & BUY-AND-HOLD SIMULATION
       ═══════════════════════════════════════════════════════════════════════ */}
-      {mode !== 'signal' && (
+      {(mode === 'strategy' || mode === 'bnh') && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* ══ LEFT — Settings Panel ══ */}
