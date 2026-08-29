@@ -2,209 +2,143 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Image as ImageIcon, X, ChevronLeft, ChevronRight, Maximize2,
-  Sparkles, ArrowRight, CheckCircle2, Shield, Eye, Flame, PieChart,
-  Search, Brain, Globe, BarChart2, Layers
+  X, ChevronLeft, ChevronRight, Maximize2,
+  Sparkles, Eye, CheckCircle2
 } from 'lucide-react'
-import Link from 'next/link'
 
 interface ShotItem {
   id: string
   src: string
-  fallbackSrc: string
   title: string
-  category: 'sinyal' | 'funda' | 'whale' | 'flow'
-  categoryLabel: string
   tag?: string
+  tagColor?: string
   desc: string
-  highlights: string[]
 }
-
-const CATEGORIES = [
-  { key: 'all', label: 'Semua Fitur (14)' },
-  { key: 'sinyal', label: '🎯 Sinyal & Backtest' },
-  { key: 'funda', label: '📊 Fundamental' },
-  { key: 'whale', label: '🐋 Smart Money & Broker' },
-  { key: 'flow', label: '🌐 Foreign & Institusi' },
-]
 
 const SHOTS: ShotItem[] = [
   {
     id: 'backtest-lab',
     src: '/screenshots/backtest-lab.webp',
-    fallbackSrc: '/screenshots/backtest-lab.png',
     title: 'Backtest Lab & Signal Accuracy',
-    category: 'sinyal',
-    categoryLabel: 'Akurasi Sinyal',
     tag: 'HOT',
-    desc: 'Uji akurasi 10 preset sinyal smart money terhadap 900+ saham IDX secara historis. Ketahui Win Rate riil, Max Potential Gain, dan Drawdown sebelum trading dengan modal nyata.',
-    highlights: ['Win Rate Historis 80.0%', 'Multi-Stock Forward Return', 'Max Potential Gain (MFE)'],
+    tagColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    desc: 'Uji akurasi 10 preset sinyal smart money terhadap 900+ saham IDX. Ukur Win Rate riil, Max Potential Gain, dan Drawdown sebelum trading dengan modal nyata.',
   },
   {
     id: 'screener-fundamental',
     src: '/screenshots/screener-fundamental.webp',
-    fallbackSrc: '/screenshots/screener-fundamental.png',
     title: 'Fundamental & Valuation Screener',
-    category: 'funda',
-    categoryLabel: 'Fundamental',
     tag: 'NEW',
-    desc: 'Screening 46 rasio keuangan komprehensif. Saring emiten undervalue (PER, PBV, PEG), profitabilitas tinggi (ROE, ROA, NPM), serta struktur modal aman (DER, Current Ratio, Altman Z).',
-    highlights: ['46 Rasio Keuangan Lengkap', 'Piotroski F-Score & Altman Z', 'Free Cash Flow Tracker'],
+    tagColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    desc: 'Screening 46 rasio keuangan komprehensif: PER, PBV, ROE, NPM, DER, Current Ratio, Piotroski F-Score, Altman Z-Score, hingga Free Cash Flow.',
   },
   {
     id: 'keystats-stock-detail',
     src: '/screenshots/keystats-stock-detail.webp',
-    fallbackSrc: '/screenshots/keystats-stock-detail.png',
-    title: 'Key Stats & Valuation Detail',
-    category: 'funda',
-    categoryLabel: 'Fundamental',
+    title: 'Key Stats & Diagnosa Fundamental',
     tag: 'NEW',
-    desc: 'Diagnosa fundamental instan berbasis AI, Skor Kesehatan Fundamental (0-100), dan visualisasi traffic light (🟢 Hijau = Sehat, 🟡 Kuning = Wajar, 🔴 Merah = Waspada).',
-    highlights: ['Skor Kesehatan 0-100', 'Highlight Traffic Light', 'AI-Style Diagnosis Verdict'],
+    tagColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    desc: 'Diagnosa fundamental instan berbasis AI, Skor Kesehatan Fundamental (0-100), dan visualisasi traffic light hijau/kuning/merah per emiten.',
   },
   {
     id: 'screener-pro',
     src: '/screenshots/screener-pro.webp',
-    fallbackSrc: '/screenshots/screener-pro.png',
     title: 'Screener Pro IDX',
-    category: 'sinyal',
-    categoryLabel: 'Screener',
     tag: 'PRO',
-    desc: 'Filter 900+ saham IDX dengan 15+ sinyal smart money dan teknikal terintegrasi dalam satu lembar kerja interaktif.',
-    highlights: ['15+ Kombinasi Sinyal', 'Volume & AOV Filter', 'Realtime Multi-Condition'],
+    tagColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    desc: 'Filter 900+ saham IDX dengan 15+ sinyal smart money, whale detector, dan indikator teknikal dalam satu lembar kerja interaktif.',
   },
   {
     id: 'foreign-flow',
     src: '/screenshots/foreign-flow-inteligence.webp',
-    fallbackSrc: '/screenshots/foreign-flow-inteligence.png',
     title: 'Foreign Flow Intelligence',
-    category: 'flow',
-    categoryLabel: 'Foreign Flow',
-    desc: 'Grafik harga vs kumulatif net foreign buy/sell harian. Deteksi akumulasi senyap investor asing sebelum harga bergerak.',
-    highlights: ['Kumulatif Net Foreign Flow', 'Divergensi Harga vs Flow', 'Filter Sektor Asing'],
+    tag: 'PRO',
+    tagColor: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
+    desc: 'Grafik harga vs kumulatif net foreign buy/sell harian per saham dan sektor. Deteksi akumulasi senyap investor asing.',
   },
   {
     id: 'broker-summary',
     src: '/screenshots/broker-summary.webp',
-    fallbackSrc: '/screenshots/broker-summary.png',
     title: 'Broker Summary & Top Accumulation',
-    category: 'whale',
-    categoryLabel: 'Bandarmologi',
-    desc: 'Bedah broker dominan, pembeli dan penjual terbesar, serta konsistensi akumulasi dan distribusi per emiten harian.',
-    highlights: ['Top 5 Net Buyer & Seller', 'Broker Average Price', 'Klasifikasi Smart Broker'],
+    tag: 'PRO',
+    tagColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    desc: 'Bedah broker dominan, top pembeli dan penjual terbesar, serta konsistensi akumulasi dan distribusi per emiten harian.',
   },
   {
     id: 'inventory-analysis',
     src: '/screenshots/inventory-broker-analysis.webp',
-    fallbackSrc: '/screenshots/inventory-broker-analysis.png',
-    title: 'Inventory Broker Analysis',
-    category: 'whale',
-    categoryLabel: 'Bandarmologi',
-    desc: 'Lacak grafik kepemilikan kumulatif tiap broker dari waktu ke waktu untuk mengetahui apakah bandar sedang menimbun atau melepas barang.',
-    highlights: ['Garis Inventory Kumulatif', 'Overlay Candle Harga', 'Deteksi Distribusi Halus'],
+    title: 'Inventory Analysis Broker',
+    desc: 'Garis inventory kumulatif tiap broker — lacak siapa bandar yang sedang akumulasi dan siapa yang sedang distribusi dari waktu ke waktu.',
   },
   {
     id: 'broker-concentration',
     src: '/screenshots/broker-consentration-screener.webp',
-    fallbackSrc: '/screenshots/broker-consentration-screener.png',
     title: 'Broker Concentration Screener',
-    category: 'whale',
-    categoryLabel: 'Bandarmologi',
-    desc: 'Saring saham-saham dengan konsentrasi broker tertinggi, peringkat skor Smart Money, dan net foreign flow positif.',
-    highlights: ['Skor Konsentrasi Bandar', 'Whale Volume Detector', 'Filter Dominasi Akumulasi'],
+    desc: 'Saring kandidat akumulasi broker berperingkat skor smart money tinggi, dominasi whale, dan net asing positif.',
   },
   {
     id: 'ksei-intelligence',
     src: '/screenshots/ksei-1persen-inteligence.webp',
-    fallbackSrc: '/screenshots/ksei-1persen-inteligence.png',
     title: 'KSEI >1% Ownership Intelligence',
-    category: 'flow',
-    categoryLabel: 'Kepemilikan',
-    desc: 'Pantau data kepemilikan investor besar KSEI di atas 1%, deteksi perpindahan saham, dan lacak Major Holder 900+ emiten.',
-    highlights: ['Data KSEI >1% Harian', 'Perubahan Bulanan Pemegang Saham', 'Stealth Accumulation Alert'],
+    tag: 'PRO',
+    tagColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    desc: 'Data kepemilikan investor besar KSEI >1%, perpindahan pemegang saham bulanan, dan stealth accumulation alert untuk 900+ emiten.',
   },
   {
     id: 'group-intelligence',
     src: '/screenshots/group-inteligence.webp',
-    fallbackSrc: '/screenshots/group-inteligence.png',
     title: 'Group Intelligence Konglomerat',
-    category: 'flow',
-    categoryLabel: 'Konglomerasi',
-    desc: 'Analisis perputaran dana per grup konglomerasi besar di Indonesia: Barito, Sinarmas, Salim, Astra, Djarum, Bakrie, dan lainnya.',
-    highlights: ['Tracking Grup Konglomerat', 'Net Flow per Ekosistem', 'Rotasi Sektor & Induk Usaha'],
+    desc: 'Lacak aliran dana per grup konglomerasi besar: Barito, Sinarmas, Salim, Astra, Djarum, Bakrie, dan konglomerasi IDX lainnya.',
   },
   {
     id: 'screener-msci',
     src: '/screenshots/screener-msci.webp',
-    fallbackSrc: '/screenshots/screener-msci.png',
     title: 'MSCI Eligibility Screener',
-    category: 'flow',
-    categoryLabel: 'Indeks Global',
-    desc: 'Deteksi dini calon emiten yang berpotensi masuk (Inclusion) atau keluar (Exclusion) dari indeks global MSCI Indonesia.',
-    highlights: ['Kalkulasi Bobot Free Float', 'Skor Kelayakan MSCI', 'Peluang Inflow Asing Masif'],
+    desc: 'Deteksi dini kandidat emiten yang berpotensi masuk (Inclusion) atau keluar (Exclusion) dari indeks global MSCI Indonesia.',
   },
   {
     id: 'screener-ftse',
     src: '/screenshots/screener-ftse.webp',
-    fallbackSrc: '/screenshots/screener-ftse.png',
     title: 'FTSE GEIS Screener',
-    category: 'flow',
-    categoryLabel: 'Indeks Global',
-    desc: 'Saring kelayakan emiten terhadap kriteria FTSE GEIS: uji likuiditas median bulanan, free float, dan batas minimum kapitalisasi pasar.',
-    highlights: ['Liquidity Rule Testing', 'Large/Mid/Small Cap Filter', 'Proyeksi Rebalancing'],
+    desc: 'Saring kelayakan FTSE: uji likuiditas median bulanan, free float, dan batas minimum kapitalisasi pasar.',
   },
   {
     id: 'screener-breakout',
     src: '/screenshots/screener-breakout.webp',
-    fallbackSrc: '/screenshots/screener-breakout.png',
     title: 'Breakout & Volume Anomaly Scanner',
-    category: 'sinyal',
-    categoryLabel: 'Teknikal',
-    desc: 'Kombinasi anomali Average Order Value (AOV), ledakan volume transaksi, dan penembusan level resisten teknikal.',
-    highlights: ['AOV Surge Detector', 'Volume Spike vs Rata-rata 20 Hari', 'Resistance Breakout Alert'],
+    desc: 'Deteksi lonjakan Average Order Value (AOV), anomali volume transaksi harian, dan konfirmasi breakout resisten teknikal.',
   },
   {
     id: 'right-issue',
     src: '/screenshots/right-issue-calc.webp',
-    fallbackSrc: '/screenshots/right-issue-calc.png',
     title: 'Rights Issue Calculator',
-    category: 'funda',
-    categoryLabel: 'Aksi Korporasi',
     desc: 'Kalkulator cerdas menghitung harga teoretis tebus, potensi efek dilusi kepemilikan, dan estimasi modal yang dibutuhkan.',
-    highlights: ['Harga Teoretis Otomatis', 'Kalkulasi Dilusi Persentase', 'Estimasi Kebutuhan Dana'],
   },
 ]
 
 export default function FeatureShowcase() {
-  const [activeCategory, setActiveCategory] = useState('all')
-  const [activeIdx, setActiveIdx] = useState(0)
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
-
-  const filteredShots = activeCategory === 'all'
-    ? SHOTS
-    : SHOTS.filter(s => s.category === activeCategory)
-
-  const currentShot = filteredShots[activeIdx] || filteredShots[0] || SHOTS[0]
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
 
   const handleNext = useCallback(() => {
-    setActiveIdx((prev) => (prev + 1) % filteredShots.length)
-  }, [filteredShots.length])
+    if (lightboxIdx === null) return
+    setLightboxIdx((prev) => (prev !== null ? (prev + 1) % SHOTS.length : 0))
+  }, [lightboxIdx])
 
   const handlePrev = useCallback(() => {
-    setActiveIdx((prev) => (prev - 1 + filteredShots.length) % filteredShots.length)
-  }, [filteredShots.length])
+    if (lightboxIdx === null) return
+    setLightboxIdx((prev) => (prev !== null ? (prev - 1 + SHOTS.length) % SHOTS.length : 0))
+  }, [lightboxIdx])
 
-  // Keyboard navigation
+  // Keyboard navigation & body scroll lock
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isLightboxOpen) {
-        if (e.key === 'Escape') setIsLightboxOpen(false)
-        if (e.key === 'ArrowRight') handleNext()
-        if (e.key === 'ArrowLeft') handlePrev()
-      }
+      if (lightboxIdx === null) return
+      if (e.key === 'Escape') setLightboxIdx(null)
+      if (e.key === 'ArrowRight') handleNext()
+      if (e.key === 'ArrowLeft') handlePrev()
     }
 
-    if (isLightboxOpen) {
+    if (lightboxIdx !== null) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
@@ -215,291 +149,161 @@ export default function FeatureShowcase() {
       document.body.style.overflow = 'unset'
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isLightboxOpen, handleNext, handlePrev])
+  }, [lightboxIdx, handleNext, handlePrev])
 
   return (
     <section className="space-y-8 scroll-mt-24" id="showcase">
-      {/* Header */}
+      {/* Section Header */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[11px] font-black uppercase tracking-[0.20em] text-primary">
           <Sparkles size={12} />
-          Cuplikan Nyata Dari Dalam Platform
+          Cuplikan Nyata Platform
         </div>
         <h2 className="text-3xl md:text-4xl font-black text-foreground">
-          Eksplorasi Fitur &amp; Tampilan Visual
+          Lihat Langsung Dari Dalam Platform
         </h2>
         <p className="text-xs sm:text-sm text-muted-foreground/75 max-w-xl mx-auto leading-relaxed">
-          Pilih kategori di bawah untuk melihat layar fitur dalam resolusi HD. Klik gambar untuk mode layar penuh.
+          Semua fitur dirancang khusus untuk kenyamanan riset investor IDX. Klik gambar mana saja untuk melihat dalam resolusi HD penuh.
         </p>
-
-        {/* Category Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.key}
-              onClick={() => {
-                setActiveCategory(cat.key)
-                setActiveIdx(0)
-              }}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                activeCategory === cat.key
-                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25 scale-105'
-                  : 'bg-surface-2 hover:bg-surface-3 border border-border/50 text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* ════════════════════ MAIN HERO STAGE ════════════════════ */}
-      <div className="bento-card p-4 sm:p-6 border border-amber-500/30 bg-card/80 shadow-2xl relative overflow-hidden">
-        
-        {/* Glow */}
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none bg-amber-400" />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          
-          {/* Left / Info Side */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 font-mono text-[10px] font-black uppercase">
-                {currentShot.categoryLabel}
-              </span>
-              {currentShot.tag && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black">
-                  {currentShot.tag}
+      {/* 2-Column Responsive Card Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {SHOTS.map((shot, idx) => (
+          <div
+            key={shot.id}
+            onClick={() => setLightboxIdx(idx)}
+            className="group bento-card p-0 rounded-2xl overflow-hidden border border-border/70 hover:border-amber-500/60 transition-all duration-300 cursor-pointer hover:shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col bg-card/80"
+          >
+            {/* Browser Mockup Window Bar */}
+            <div className="px-4 py-2.5 bg-surface-2/90 border-b border-border/50 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                <span className="ml-2 text-[10px] font-mono text-muted-foreground/60 truncate">
+                  bdmflow.web.id/{shot.id}
                 </span>
-              )}
-              <span className="text-[10px] font-mono text-muted-foreground/60 ml-auto">
-                {activeIdx + 1} / {filteredShots.length}
-              </span>
-            </div>
-
-            <div>
-              <h3 className="text-xl sm:text-2xl font-black text-foreground leading-tight">
-                {currentShot.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed mt-2">
-                {currentShot.desc}
-              </p>
-            </div>
-
-            {/* Highlights bullet points */}
-            <div className="space-y-2 pt-1 border-t border-border/40">
-              {currentShot.highlights.map((h) => (
-                <div key={h} className="flex items-center gap-2 text-xs font-bold text-foreground/90">
-                  <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-                  <span>{h}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 pt-3">
-              <button
-                onClick={() => setIsLightboxOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-xs text-slate-950 btn-gradient-gold shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
-              >
-                <Maximize2 size={14} />
-                <span>Buka Layar Penuh (Zoom)</span>
-              </button>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handlePrev}
-                  className="p-3 rounded-xl bg-surface-2 hover:bg-surface-3 border border-border/50 text-foreground transition-all active:scale-90"
-                  title="Fitur Sebelumnya"
-                  aria-label="Sebelumnya"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="p-3 rounded-xl bg-surface-2 hover:bg-surface-3 border border-border/50 text-foreground transition-all active:scale-90"
-                  title="Fitur Berikutnya"
-                  aria-label="Berikutnya"
-                >
-                  <ChevronRight size={16} />
-                </button>
               </div>
-            </div>
-          </div>
-
-          {/* Right / Big Screen Preview */}
-          <div className="lg:col-span-8">
-            <div
-              onClick={() => setIsLightboxOpen(true)}
-              className="group relative aspect-[16/9] rounded-2xl overflow-hidden border-2 border-border/70 hover:border-amber-500/70 transition-all duration-300 cursor-pointer shadow-2xl bg-slate-950"
-            >
-              {/* Browser bar */}
-              <div className="absolute top-0 left-0 right-0 z-10 px-3.5 py-2 bg-slate-950/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
-                  <span className="ml-2 text-[10px] font-mono text-slate-400 truncate">
-                    https://bdmflow.web.id/{currentShot.id}
+              <div className="flex items-center gap-2">
+                {shot.tag && (
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${shot.tagColor || 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                    {shot.tag}
                   </span>
-                </div>
-                <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                  <Eye size={12} />
-                  <span>Klik untuk Zoom</span>
+                )}
+                <span className="text-[10px] font-mono text-muted-foreground/50">
+                  #{idx + 1}
                 </span>
               </div>
+            </div>
 
-              {/* Direct image without opacity blocker */}
+            {/* Image Preview Container */}
+            <div className="relative aspect-[16/9] bg-slate-950 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={currentShot.src}
-                alt={currentShot.title}
-                className="w-full h-full object-cover object-top pt-7 group-hover:scale-[1.015] transition-transform duration-500"
+                src={shot.src}
+                alt={shot.title}
+                loading="lazy"
+                className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-500"
               />
 
               {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center backdrop-blur-[2px]">
                 <span className="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-2xl scale-95 group-hover:scale-100 transition-transform">
-                  <Maximize2 size={15} />
-                  Perbesar Resolusi HD Penuh
+                  <Maximize2 size={14} />
+                  Klik untuk Perbesar
                 </span>
               </div>
             </div>
-          </div>
 
-        </div>
-
-        {/* Thumbnail Selector Strip */}
-        <div className="mt-6 pt-5 border-t border-border/40">
-          <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin">
-            {filteredShots.map((shot, idx) => {
-              const isSelected = idx === activeIdx
-              return (
-                <button
-                  key={shot.id}
-                  onClick={() => setActiveIdx(idx)}
-                  className={`flex-shrink-0 w-36 sm:w-44 rounded-xl overflow-hidden text-left border transition-all ${
-                    isSelected
-                      ? 'border-amber-500 ring-2 ring-amber-500/30 scale-105 shadow-lg shadow-amber-500/15'
-                      : 'border-border/50 opacity-60 hover:opacity-100 hover:border-border'
-                  }`}
-                >
-                  <div className="aspect-[16/9] bg-slate-950 overflow-hidden relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={shot.src}
-                      alt={shot.title}
-                      className="w-full h-full object-cover object-top"
-                    />
-                  </div>
-                  <div className="p-2 bg-surface-2">
-                    <p className="text-[10px] sm:text-[11px] font-bold text-foreground truncate">
-                      {shot.title}
-                    </p>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-      </div>
-
-      {/* ════════════════════ LIGHTBOX / FULLSCREEN MODAL ════════════════════ */}
-      {isLightboxOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl p-2 sm:p-5 animate-fade-in select-none"
-          onClick={() => setIsLightboxOpen(false)}
-        >
-          {/* Header */}
-          <div
-            className="w-full max-w-7xl flex items-center justify-between gap-3 py-2 px-4 rounded-2xl bg-white/[0.08] border border-white/10 text-white shrink-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider shrink-0">
-                {activeIdx + 1} / {filteredShots.length}
-              </span>
-              <div className="min-w-0 truncate">
-                <h4 className="text-xs sm:text-sm font-black text-white truncate">
-                  {currentShot.title}
-                </h4>
-                <p className="text-[10px] sm:text-xs text-white/70 truncate hidden sm:block">
-                  {currentShot.desc}
+            {/* Card Content Description */}
+            <div className="p-4 flex-1 flex flex-col justify-between bg-surface-1">
+              <div>
+                <h3 className="text-sm font-black text-foreground group-hover:text-amber-400 transition-colors mb-1">
+                  {shot.title}
+                </h3>
+                <p className="text-xs text-muted-foreground/75 leading-relaxed">
+                  {shot.desc}
                 </p>
               </div>
             </div>
+          </div>
+        ))}
+      </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href="/auth?mode=register"
-                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-slate-950 btn-gradient-gold shadow-md"
-              >
-                <span>Mulai Free Trial 7 Hari</span>
-                <ArrowRight size={13} />
-              </Link>
+      {/* ════════════════════ FULLSCREEN LIGHTBOX MODAL ════════════════════ */}
+      {lightboxIdx !== null && (
+        <div
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl p-3 sm:p-6 animate-fade-in select-none cursor-zoom-out"
+          onClick={() => setLightboxIdx(null)} // Click outside closes immediately!
+        >
+          {/* Main Modal Box — Stop propagation so clicking inside doesn't close */}
+          <div
+            className="relative max-w-6xl w-full flex flex-col items-center cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Bar with Title & Close Button */}
+            <div className="w-full flex items-center justify-between gap-3 pb-3 text-white">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-xs font-mono shrink-0">
+                  {lightboxIdx + 1} / {SHOTS.length}
+                </span>
+                <div className="min-w-0 truncate">
+                  <h4 className="text-sm sm:text-base font-black text-white truncate">
+                    {SHOTS[lightboxIdx].title}
+                  </h4>
+                  <p className="text-xs text-white/70 truncate hidden sm:block">
+                    {SHOTS[lightboxIdx].desc}
+                  </p>
+                </div>
+              </div>
 
+              {/* Close Button */}
               <button
-                onClick={() => setIsLightboxOpen(false)}
-                className="p-2 rounded-xl bg-white/15 hover:bg-rose-500 hover:text-white text-white transition-colors"
-                title="Tutup (Esc)"
+                onClick={() => setLightboxIdx(null)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-rose-500 hover:text-white text-white/90 border border-white/15 transition-all text-xs font-bold shrink-0"
+                title="Tutup (Esc atau klik di luar)"
               >
-                <X size={18} />
+                <span>Tutup</span>
+                <X size={16} />
               </button>
             </div>
-          </div>
 
-          {/* Large Image Container */}
-          <div
-            className="relative w-full max-w-7xl flex-1 flex items-center justify-center my-2 sm:my-3 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Prev */}
-            <button
-              onClick={handlePrev}
-              className="absolute left-2 sm:left-4 z-20 p-3.5 rounded-full bg-black/75 hover:bg-amber-500 hover:text-black border border-white/20 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl"
-              title="Sebelumnya (←)"
-            >
-              <ChevronLeft size={24} />
-            </button>
+            {/* Image Stage Container */}
+            <div className="relative w-full aspect-[16/9] max-h-[75vh] rounded-2xl overflow-hidden border-2 border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)] bg-slate-950">
+              {/* Prev Button */}
+              <button
+                onClick={handlePrev}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/75 hover:bg-amber-500 hover:text-black border border-white/20 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl"
+                title="Sebelumnya (←)"
+                aria-label="Sebelumnya"
+              >
+                <ChevronLeft size={24} />
+              </button>
 
-            {/* Picture */}
-            <div className="relative max-h-full max-w-full rounded-2xl overflow-hidden border border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.95)] bg-slate-950">
+              {/* The Big Picture */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={currentShot.src}
-                alt={currentShot.title}
-                className="max-h-[78vh] w-auto max-w-full object-contain rounded-2xl animate-scale-up"
+                src={SHOTS[lightboxIdx].src}
+                alt={SHOTS[lightboxIdx].title}
+                className="w-full h-full object-contain bg-slate-950"
               />
+
+              {/* Next Button */}
+              <button
+                onClick={handleNext}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/75 hover:bg-amber-500 hover:text-black border border-white/20 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl"
+                title="Berikutnya (→)"
+                aria-label="Berikutnya"
+              >
+                <ChevronRight size={24} />
+              </button>
             </div>
 
-            {/* Next */}
-            <button
-              onClick={handleNext}
-              className="absolute right-2 sm:right-4 z-20 p-3.5 rounded-full bg-black/75 hover:bg-amber-500 hover:text-black border border-white/20 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl"
-              title="Berikutnya (→)"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
-
-          {/* Indicator dots */}
-          <div
-            className="w-full max-w-7xl flex items-center justify-center gap-1.5 py-1 shrink-0 overflow-x-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {filteredShots.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveIdx(i)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === activeIdx
-                    ? 'w-8 bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
-                    : 'w-2 bg-white/30 hover:bg-white/60'
-                }`}
-                title={`Lihat #${i + 1}`}
-              />
-            ))}
+            {/* Footer Prompt */}
+            <p className="text-[11px] text-white/50 text-center pt-3 flex items-center justify-center gap-1.5">
+              <span>💡</span> Klik di mana pun di luar kotak gambar atau tekan <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 font-mono text-[10px]">ESC</kbd> untuk kembali ke landing page.
+            </p>
           </div>
         </div>
       )}
