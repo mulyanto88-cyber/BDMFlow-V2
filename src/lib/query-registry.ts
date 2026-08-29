@@ -187,9 +187,10 @@ export const QUERIES = {
           d.aov_ratio_ma20,
           cp.group_name,
           cp.sector,
-          cp.free_float
+          COALESCE(ks.free_float_pct, cp.free_float, 0) AS free_float
         FROM market.daily_transactions d
         JOIN market.company_profile cp ON d.stock_code = cp.stock_code
+        LEFT JOIN market.company_keystats ks ON ks.stock_code = d.stock_code
         WHERE d.trading_date = (SELECT max_date FROM latest)
           AND cp.group_name != 'Others'
       ),

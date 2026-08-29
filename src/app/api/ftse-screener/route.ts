@@ -32,10 +32,12 @@ export async function GET(request: NextRequest) {
       -- free-float shares per stock (total listed shares × free_float%)
       ffs AS (
         SELECT b.stock_code,
-               (b.tradeable_shares * cp.free_float / 100.0) AS ff_shares
+               (COALESCE(ks.shares_outstanding_b * 1e9, b.tradeable_shares) * COALESCE(ks.free_float_pct, cp.free_float, 0) / 100.0) AS ff_shares,
+               COALESCE(ks.free_float_pct, cp.free_float, 0) AS free_float_pct
         FROM base_data b
-        JOIN market.company_profile cp ON cp.stock_code = b.stock_code
-        WHERE cp.free_float > 0
+        LEFT JOIN market.company_keystats ks ON ks.stock_code = b.stock_code
+        LEFT JOIN market.company_profile cp ON cp.stock_code = b.stock_code
+        WHERE COALESCE(ks.free_float_pct, cp.free_float, 0) > 0
       ),
       -- monthly median of daily volume over the trailing 12 calendar months
       month_vol AS (
@@ -71,8 +73,8 @@ export async function GET(request: NextRequest) {
         cp.group_name    AS company_name,
         cp.sector,
         b.close::FLOAT8  AS close,
-        b.tradeable_shares::BIGINT AS tradeable_shares,
-        cp.free_float::FLOAT8      AS free_float,
+        COALESCE(ks.shares_outstanding_b * 1e9, b.tradeable_shares)::BIGINT AS tradeable_shares,
+        COALESCE(ks.free_float_pct, cp.free_float, 0)::FLOAT8 AS free_float,
         COALESCE(l.n_months, 0)         AS n_months,
         COALESCE(l.months_entry, 0)     AS months_entry,
         COALESCE(l.months_retain, 0)    AS months_retain,
@@ -81,11 +83,12 @@ export async function GET(request: NextRequest) {
         td.target_date
       FROM base_data b
       CROSS JOIN td
+      LEFT JOIN market.company_keystats ks ON ks.stock_code  = b.stock_code
       LEFT JOIN market.company_profile cp  ON cp.stock_code  = b.stock_code
       LEFT JOIN liq l                      ON l.stock_code   = b.stock_code
       LEFT JOIN hsc h                      ON h.share_code   = b.stock_code
-      WHERE b.tradeable_shares > 0
-        AND cp.free_float > 0
+      WHERE (b.tradeable_shares > 0 OR ks.shares_outstanding_b > 0)
+        AND (COALESCE(ks.free_float_pct, cp.free_float, 0) > 0)
         AND b.close > 0
     `;
 

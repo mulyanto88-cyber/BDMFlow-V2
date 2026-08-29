@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation'
 import {
   Target, Building2, Activity, Globe,
   TrendingUp, Users, Key, BarChart as BarChartIcon,
-  Loader2, AlertTriangle
+  Loader2, AlertTriangle, PieChart
 } from 'lucide-react'
 import nextDynamic from 'next/dynamic'
 
@@ -15,6 +15,7 @@ const WidgetSkeleton = () => <div className="h-48 shimmer rounded-xl w-full" />
 const ScorecardWidget = nextDynamic(() => import('@/components/widgets/ScorecardWidget').then(m => m.ScorecardWidget), { loading: () => <WidgetSkeleton /> })
 const ChartWidget = nextDynamic(() => import('@/components/widgets/ChartWidget').then(m => m.ChartWidget), { loading: () => <WidgetSkeleton /> })
 const OverviewSignalsWidget = nextDynamic(() => import('@/components/widgets/OverviewSignalsWidget').then(m => m.OverviewSignalsWidget), { loading: () => <WidgetSkeleton /> })
+const KeyStatsWidget = nextDynamic(() => import('@/components/widgets/KeyStatsWidget').then(m => m.KeyStatsWidget), { loading: () => <WidgetSkeleton /> })
 const BrokerDNAWidget = nextDynamic(() => import('@/components/widgets/BrokerDNAWidget').then(m => m.BrokerDNAWidget), { loading: () => <WidgetSkeleton /> })
 const BroksumWidget = nextDynamic(() => import('@/components/widgets/BroksumWidget').then(m => m.BroksumWidget), { loading: () => <WidgetSkeleton /> })
 const ForeignFlowWidget = nextDynamic(() => import('@/components/widgets/ForeignFlowWidget').then(m => m.ForeignFlowWidget), { loading: () => <WidgetSkeleton /> })
@@ -27,14 +28,15 @@ import { useTerminalStore } from '@/store/terminal-store'
 
 // ─── Tab Definitions ──────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview',   label: 'Overview',   icon: Target },
-  { id: 'broker',     label: 'Broker DNA', icon: Building2 },
-  { id: 'broksum',    label: 'Broksum',    icon: Activity },
-  { id: 'flow',       label: 'Foreign',    icon: Globe },
-  { id: 'ksei',       label: 'KSEI Intel', icon: TrendingUp },
-  { id: 'insider',    label: 'Insider',    icon: Key },
-  { id: 'ownership',  label: 'Ownership',  icon: Users },
-  { id: 'technicals', label: 'Technicals', icon: BarChartIcon },
+  { id: 'overview',   label: 'Overview',            icon: Target },
+  { id: 'keystats',   label: 'Key Stats & Valuasi', icon: PieChart },
+  { id: 'broker',     label: 'Broker DNA',          icon: Building2 },
+  { id: 'broksum',    label: 'Broksum',             icon: Activity },
+  { id: 'flow',       label: 'Foreign',             icon: Globe },
+  { id: 'ksei',       label: 'KSEI Intel',          icon: TrendingUp },
+  { id: 'insider',    label: 'Insider',             icon: Key },
+  { id: 'ownership',  label: 'Ownership',           icon: Users },
+  { id: 'technicals', label: 'Technicals',          icon: BarChartIcon },
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -106,6 +108,7 @@ export default function StockDetailPage() {
           <ChartWidget stockCode={stockCode} />
         </div>
       )}
+      {activeTab === 'keystats'   && <KeyStatsWidget stockCode={stockCode} />}
       {activeTab === 'broker'     && <BrokerDNAWidget stockCode={stockCode} />}
       {activeTab === 'broksum'    && <BroksumWidget stockCode={stockCode} />}
       {activeTab === 'flow'       && <ForeignFlowWidget stockCode={stockCode} />}

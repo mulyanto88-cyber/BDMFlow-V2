@@ -271,6 +271,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: rows })
   }
 
+  // ── Key Stats & Fundamental ────────────────────────────────────────────────
+  if (action === 'keystats') {
+    const rows = await run(`
+      SELECT *
+      FROM market.company_keystats
+      WHERE stock_code = $1
+      LIMIT 1
+    `, [code]).catch(() => [])
+    return NextResponse.json({ data: rows[0] ?? null })
+  }
+
   if (action) {
     return NextResponse.json({ error: 'Unknown action', action }, { status: 400 })
   }
@@ -408,10 +419,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: errMsg }, { status: 404 })
     }
 
-    // Batch 2 — Rich data (8 queries)
+    // Batch 2 — Rich data (9 queries)
     let flowTrendRows: any[] = [], concRows: any[] = [], instChangeRows: any[] = [],
         stealthRows: any[] = [], brokerConsRows: any[] = [],
-        volSpikeRows: any[] = [], whaleActRows: any[] = [], dominantBrokerRows: any[] = [];
+        volSpikeRows: any[] = [], whaleActRows: any[] = [], dominantBrokerRows: any[] = [],
+        keystatsRows: any[] = [];
     try {
       const _r2 = await Promise.allSettled([
       run(`
@@ -750,49 +762,54 @@ export async function GET(req: NextRequest) {
         FROM ranked_sellers WHERE rnk_sell = 1
         ORDER BY role ASC, p_order ASC
       `, [code])).catch(() => []),
+
+      // 16. Key Stats & Fundamental
+      run(`SELECT * FROM market.company_keystats WHERE stock_code = $1 LIMIT 1`, [code]).catch(() => []),
       ])
       // allSettled: foreign-flow / technicals survive even if one sibling query errors.
       const g2 = (i: number) => _r2[i].status === 'fulfilled' ? (_r2[i] as PromiseFulfilledResult<any[]>).value : []
       flowTrendRows = g2(0); concRows = g2(1); instChangeRows = g2(2); stealthRows = g2(3)
       brokerConsRows = g2(4); volSpikeRows = g2(5); whaleActRows = g2(6); dominantBrokerRows = g2(7)
+      keystatsRows = g2(8)
     } catch (e: any) {
       console.error('[stock-detail] Batch 2 failed:', e.message)
     }
 
-    if (!latestRows.length) {
-      return NextResponse.json({ error: `Stock ${code} not found` }, { status: 404 })
-    }
-
-    return NextResponse.json(
-      {
-        stockData: latestRows[0] ?? null,
-        smartMoneyIndex: smRows[0] ?? null,
-        historyData: histRows,
-        brokerData: brokerRows,
-        ownershipDetails: ownerRows,
-        whaleMovement: whaleRows,
-        foreignDivergence: foreignRows[0] ?? null,
-        foreignFlowTrend: flowTrendRows,
-        concentrationIndex: concRows[0] ?? null,
-        institutionalChange: instChangeRows,
-        stealthDivergence: stealthRows[0] ?? null,
-        brokerConsistency: brokerConsRows,
-        volumeSpikes: volSpikeRows,
-        whaleActivity: whaleActRows[0] ?? null,
-        dominantBrokers: dominantBrokerRows,
-        scorecard: scoreRows[0] ?? null,
-        verdict: buildVerdict(scoreRows[0] ?? null, foreignRows[0] ?? null, stealthRows[0] ?? null),
-        dataQuality: (() => {
-          const action = detectUnadjustedAction(histRows)
-          return action ? { unadjustedAction: action, returnsUnreliable: true } : null
-        })(),
-      },
-      {
-        headers: {
-          'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800',
-        },
+      if (!latestRows.length) {
+        return NextResponse.json({ error: `Stock ${code} not found` }, { status: 404 })
       }
-    )
+
+      return NextResponse.json(
+        {
+          stockData: latestRows[0] ?? null,
+          smartMoneyIndex: smRows[0] ?? null,
+          historyData: histRows,
+          brokerData: brokerRows,
+          ownershipDetails: ownerRows,
+          whaleMovement: whaleRows,
+          foreignDivergence: foreignRows[0] ?? null,
+          foreignFlowTrend: flowTrendRows,
+          concentrationIndex: concRows[0] ?? null,
+          institutionalChange: instChangeRows,
+          stealthDivergence: stealthRows[0] ?? null,
+          brokerConsistency: brokerConsRows,
+          volumeSpikes: volSpikeRows,
+          whaleActivity: whaleActRows[0] ?? null,
+          dominantBrokers: dominantBrokerRows,
+          keyStats: keystatsRows[0] ?? null,
+          scorecard: scoreRows[0] ?? null,
+          verdict: buildVerdict(scoreRows[0] ?? null, foreignRows[0] ?? null, stealthRows[0] ?? null),
+          dataQuality: (() => {
+            const action = detectUnadjustedAction(histRows)
+            return action ? { unadjustedAction: action, returnsUnreliable: true } : null
+          })(),
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800',
+          },
+        }
+      )
   } catch (err: any) {
     const msg = err.message || String(err)
     console.error('[stock-detail]', { code, message: msg })

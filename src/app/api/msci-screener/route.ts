@@ -77,8 +77,8 @@ export async function GET(request: NextRequest) {
         cp.group_name    AS company_name,
         cp.sector,
         b.close::FLOAT8  AS close,
-        b.tradeable_shares::BIGINT AS tradeable_shares,
-        cp.free_float::FLOAT8      AS free_float,
+        COALESCE(ks.shares_outstanding_b * 1e9, b.tradeable_shares)::BIGINT AS tradeable_shares,
+        COALESCE(ks.free_float_pct, cp.free_float, 0)::FLOAT8 AS free_float,
         COALESCE(a3.days_3m, 0)        AS days_3m,
         mc.total_days_3m,
         COALESCE(am.med_sum_3m, 0)    AS med_sum_3m,
@@ -90,12 +90,13 @@ export async function GET(request: NextRequest) {
       FROM base_data b
       CROSS JOIN td
       CROSS JOIN market_cal mc
+      LEFT JOIN market.company_keystats ks ON ks.stock_code  = b.stock_code
       LEFT JOIN market.company_profile cp  ON cp.stock_code  = b.stock_code
       LEFT JOIN fot_3m   a3               ON a3.stock_code  = b.stock_code
       LEFT JOIN atvr_med am               ON am.stock_code  = b.stock_code
       LEFT JOIN hsc h                     ON h.share_code   = b.stock_code
-      WHERE b.tradeable_shares > 0
-        AND cp.free_float > 0
+      WHERE (b.tradeable_shares > 0 OR ks.shares_outstanding_b > 0)
+        AND (COALESCE(ks.free_float_pct, cp.free_float, 0) > 0)
         AND b.close > 0
     `;
 
