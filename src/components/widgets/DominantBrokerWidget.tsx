@@ -7,7 +7,7 @@ import { getBrokerBadgeStyle } from '@/lib/broker-colors'
 
 export interface DominantBrokerRow {
   role: 'BUYER' | 'SELLER'
-  p_code: '1W' | '1M' | '3M' | '6M'
+  p_code: '1W' | '2W' | '1M' | '3M' | '6M'
   p_order: number
   broker_code: string
   broker_name: string
@@ -25,7 +25,7 @@ interface Props {
   currentPrice?: number
 }
 
-const PERIODS: Array<'1W' | '1M' | '3M' | '6M'> = ['1W', '1M', '3M', '6M']
+const PERIODS: Array<'1W' | '2W' | '1M' | '3M' | '6M'> = ['1W', '2W', '1M', '3M', '6M']
 
 function formatVal(val: number | null | undefined): string {
   if (val == null || isNaN(val)) return '—'
@@ -55,7 +55,7 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
   })
 
   // Insight narrative generator
-  const b1m = buyerMap['1M'] || buyerMap['1W']
+  const b1m = buyerMap['1M'] || buyerMap['2W'] || buyerMap['1W']
   const pnl = b1m?.pnl_pct
 
   return (

@@ -626,7 +626,27 @@ export async function GET(req: NextRequest) {
       `, [code]),
 
       // 15. Dominant Brokers Matrix (Multi-Period 1W, 1M, 3M, 6M)
+      // Dominant brokers: first attempt pre-materialized tb_dominant_brokers_multiperiod, fallback to dynamic CTE (1W, 2W, 1M, 3M, 6M)
       run(`
+        SELECT
+          role,
+          p_code,
+          p_order,
+          broker_code,
+          broker_name,
+          gross_val,
+          net_val,
+          total_market_val,
+          avg_price,
+          dominance_pct,
+          pnl_pct
+        FROM market.tb_dominant_brokers_multiperiod
+        WHERE stock_code = $1
+        ORDER BY role ASC, p_order ASC
+      `, [code]).then((rows) => {
+        if (rows && rows.length > 0) return rows;
+        throw new Error('Fallback to dynamic computation');
+      }).catch(() => run(`
         WITH max_dt AS (
           SELECT MAX(date) AS mx FROM main.broker_activity
         ),
@@ -646,9 +666,10 @@ export async function GET(req: NextRequest) {
         ),
         periods AS (
           SELECT '1W' AS p_code, 7 AS p_days, 1 AS p_order
-          UNION ALL SELECT '1M', 30, 2
-          UNION ALL SELECT '3M', 90, 3
-          UNION ALL SELECT '6M', 180, 4
+          UNION ALL SELECT '2W', 14, 2
+          UNION ALL SELECT '1M', 30, 3
+          UNION ALL SELECT '3M', 90, 4
+          UNION ALL SELECT '6M', 180, 5
         ),
         broker_period_agg AS (
           SELECT
@@ -728,7 +749,7 @@ export async function GET(req: NextRequest) {
           NULL::FLOAT8 AS pnl_pct
         FROM ranked_sellers WHERE rnk_sell = 1
         ORDER BY role ASC, p_order ASC
-      `, [code]).catch(() => []),
+      `, [code])).catch(() => []),
       ])
       // allSettled: foreign-flow / technicals survive even if one sibling query errors.
       const g2 = (i: number) => _r2[i].status === 'fulfilled' ? (_r2[i] as PromiseFulfilledResult<any[]>).value : []

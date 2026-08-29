@@ -428,6 +428,24 @@ export const QUERIES = {
   },
 
   // ── Backtest ──────────────────────────────────────────────────────────────
+  'backtest.signalValidation': {
+    sql: `
+      SELECT
+        signal_name,
+        n_signal,
+        avg_ret_20d_on,
+        median_20d_on,
+        avg_ret_5d_on,
+        hit_20d_on,
+        avg_ret_20d_off,
+        hit_20d_off,
+        edge_20d,
+        edge_hit_20d,
+        CAST(refreshed_at AS VARCHAR) AS refreshed_at
+      FROM market.tb_signal_validation
+      ORDER BY edge_20d DESC`,
+    pro: true,
+  },
   'backtest.tradingDates': {
     sql: `
       SELECT DISTINCT CAST(trading_date AS VARCHAR) AS trading_date

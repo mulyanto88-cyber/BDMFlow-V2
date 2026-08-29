@@ -33,7 +33,21 @@ const BROKER_FEE_BUY  = 0.0015  // 0.15%
 const BROKER_FEE_SELL = 0.0025  // 0.25% (includes PPh 0.1%)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Mode = 'signal' | 'strategy' | 'bnh'
+type Mode = 'signal' | 'strategy' | 'bnh' | 'validation'
+
+interface ValidationRow {
+  signal_name: string
+  n_signal: number
+  avg_ret_20d_on: number
+  median_20d_on: number
+  avg_ret_5d_on: number
+  hit_20d_on: number
+  avg_ret_20d_off: number
+  hit_20d_off: number
+  edge_20d: number
+  edge_hit_20d: number
+  refreshed_at: string
+}
 
 interface SignalStockResult {
   stock_code: string
@@ -227,6 +241,105 @@ const SIGNAL_CATEGORIES = [
 
 const ALL_PRESETS_FLAT = SIGNAL_CATEGORIES.flatMap(c => c.presets)
 
+const SIGNAL_LABEL_MAP: Record<string, { label: string; desc: string; badge: string; color: string }> = {
+  triple_confluence: {
+    label: 'Triple Confluence',
+    desc: 'Whale Alert + Net Foreign Inflow + Price > VWMA',
+    badge: 'Elite Alpha',
+    color: 'text-amber-500 bg-amber-500/10 border-amber-500/25',
+  },
+  whale_x_foreign: {
+    label: 'Whale × Foreign Inflow',
+    desc: 'Whale Signal terkonfirmasi Net Foreign Buy > 0',
+    badge: 'Smart Money',
+    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/25',
+  },
+  whale_x_vwma: {
+    label: 'Whale × Above VWMA',
+    desc: 'Whale Signal dengan tren harga di atas VWMA 20D',
+    badge: 'Momentum',
+    color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/25',
+  },
+  aov3_x_foreign20: {
+    label: 'AOV ≥ 3.0x × Foreign 20D Inflow',
+    desc: 'Order Jumbo AOV ≥ 3.0x didukung Foreign Flow 20D positif',
+    badge: 'Institutional',
+    color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/25',
+  },
+  aov3_x_vwma: {
+    label: 'AOV ≥ 3.0x × Above VWMA',
+    desc: 'Order Jumbo AOV ≥ 3.0x dengan harga holding di atas VWMA',
+    badge: 'Breakout',
+    color: 'text-blue-500 bg-blue-500/10 border-blue-500/25',
+  },
+  aov_ge_3p0: {
+    label: 'AOV Ratio ≥ 3.0x',
+    desc: 'Lonjakan nilai rata-rata per transaksi > 3x normal',
+    badge: 'Big Order',
+    color: 'text-purple-500 bg-purple-500/10 border-purple-500/25',
+  },
+  aov_ge_2p0: {
+    label: 'AOV Ratio ≥ 2.0x',
+    desc: 'Lonjakan nilai rata-rata per transaksi > 2x normal',
+    badge: 'Big Order',
+    color: 'text-purple-400 bg-purple-500/10 border-purple-500/25',
+  },
+  aov_ge_1p5: {
+    label: 'AOV Ratio ≥ 1.5x',
+    desc: 'Lonjakan nilai rata-rata per transaksi > 1.5x normal',
+    badge: 'Big Order',
+    color: 'text-purple-400 bg-purple-500/10 border-purple-500/25',
+  },
+  big_player_anomaly: {
+    label: 'Big Player Anomaly',
+    desc: 'Anomali akumulasi bandar skala besar (min Rp 2 Miliar)',
+    badge: 'Whale Anomaly',
+    color: 'text-pink-500 bg-pink-500/10 border-pink-500/25',
+  },
+  whale_signal: {
+    label: 'Whale Signal',
+    desc: 'Aktivitas akumulasi transaksi paus (min Rp 500 Juta)',
+    badge: 'Whale Alert',
+    color: 'text-amber-500 bg-amber-500/10 border-amber-500/25',
+  },
+  foreign_20d_pos: {
+    label: 'Foreign Flow 20D Positif',
+    desc: 'Net Foreign akumulasi 20 hari bursa berturut-turut',
+    badge: 'Foreign Inflow',
+    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/25',
+  },
+  foreign_5d_pos: {
+    label: 'Foreign Flow 5D Positif',
+    desc: 'Net Foreign akumulasi 5 hari bursa berturut-turut',
+    badge: 'Foreign Inflow',
+    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/25',
+  },
+  above_vwma: {
+    label: 'Price Above VWMA 20D',
+    desc: 'Harga closing berada di atas Volume-Weighted MA 20',
+    badge: 'Trend Support',
+    color: 'text-sky-500 bg-sky-500/10 border-sky-500/25',
+  },
+  signal_akumulasi: {
+    label: 'Sinyal Akumulasi',
+    desc: 'Status sinyal harian terdeteksi Akumulasi',
+    badge: 'Bandarmologi',
+    color: 'text-teal-500 bg-teal-500/10 border-teal-500/25',
+  },
+  foreign_buy_day: {
+    label: 'Foreign Net Buy Day',
+    desc: 'Hari di mana asing melakukan net buy positif',
+    badge: 'Foreign Flow',
+    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/25',
+  },
+  vol_spike_1p5: {
+    label: 'Volume Spike ≥ 1.5x MA20',
+    desc: 'Volume perdagangan melonjak di atas 150% rata-rata 20 hari',
+    badge: 'Volume Surge',
+    color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/25',
+  },
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function BacktestPage() {
   // ── Mode Switcher ──────────────────────────────────────────────────────────
@@ -260,6 +373,30 @@ export default function BacktestPage() {
   const [endDate, setEndDate] = useState('')
   const [lotsBnH, setLotsBnH] = useState(10)
   const [bnhResult, setBnHResult] = useState<BnHResult | null>(null)
+
+  // ── Tab 4: Quant Edge Matrix State ──────────────────────────────────────────
+  const [validationData, setValidationData] = useState<ValidationRow[] | null>(null)
+  const [validationLoading, setValidationLoading] = useState(false)
+
+  const loadValidationData = useCallback(async () => {
+    if (validationData) return
+    setValidationLoading(true)
+    try {
+      const data = await mdQuery('backtest.signalValidation', [])
+      setValidationData((data || []) as unknown as ValidationRow[])
+    } catch (e: any) {
+      if (e instanceof UpgradeRequiredError) setBlocked(true)
+      else setError(e.message)
+    } finally {
+      setValidationLoading(false)
+    }
+  }, [validationData])
+
+  useEffect(() => {
+    if (mode === 'validation') {
+      loadValidationData()
+    }
+  }, [mode, loadValidationData])
 
   const chartRef = useRef<HTMLDivElement>(null)
   const [chartScriptLoaded, setChartScriptLoaded] = useState(false)
@@ -694,12 +831,13 @@ ${signalResults.slice(0, 5).map((s, i) => {
           </div>
         </div>
 
-        {/* 3 Modern Navigation Tabs */}
+        {/* 4 Modern Navigation Tabs */}
         <div className="flex bg-surface-2 p-1 rounded-xl border border-line-2 w-full md:w-auto overflow-x-auto">
           {[
             { id: 'signal', label: '🎯 Signal Accuracy (Multi-Stock)' },
             { id: 'strategy', label: '📊 Single Stock Sim' },
             { id: 'bnh', label: '📈 Buy & Hold vs IHSG' },
+            { id: 'validation', label: '🔬 Quant Edge Matrix (730D)' },
           ].map(t => (
             <button
               key={t.id}
@@ -1545,6 +1683,193 @@ ${signalResults.slice(0, 5).map((s, i) => {
 
           </div>
 
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          TAB 4: 730D QUANT SIGNAL EDGE & STATISTICAL PROOF MATRIX
+      ═══════════════════════════════════════════════════════════════════════ */}
+      {mode === 'validation' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Header Banner */}
+          <div className="rounded-3xl p-5 sm:p-6 border border-line-2 bg-gradient-to-b from-surface-1 via-surface-1/60 to-surface-2/40 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shrink-0">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base sm:text-lg font-black text-foreground">
+                      Matriks Validasi Edge Sinyal Kuantitatif (730 Hari Bursa)
+                    </h2>
+                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      Statistical Proof
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Bukti matematis keunggulan (*alpha return*) &amp; *win-rate* setiap sinyal dihitung dari 530.000+ baris data transaksi bursa nyata.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={loadValidationData}
+                disabled={validationLoading}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-2 hover:bg-surface-3 border border-line-2 text-xs font-bold text-foreground transition-all shrink-0 self-start sm:self-auto"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${validationLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh Matriks</span>
+              </button>
+            </div>
+
+            {/* Quick KPI Highlights */}
+            {validationData && validationData.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 border-l-4 border-l-amber-500">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    🏆 Top Outperformer (Alpha Edge)
+                  </div>
+                  <div className="text-xl font-black text-foreground mt-1">
+                    {SIGNAL_LABEL_MAP[validationData[0]?.signal_name]?.label || validationData[0]?.signal_name}
+                  </div>
+                  <div className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    +{validationData[0]?.edge_20d.toFixed(2)}% Alpha Return (20D)
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 border-l-4 border-l-emerald-500">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    🎯 Highest Win Rate (Hit Rate)
+                  </div>
+                  {(() => {
+                    const topHit = [...validationData].sort((a, b) => b.hit_20d_on - a.hit_20d_on)[0]
+                    return (
+                      <>
+                        <div className="text-xl font-black text-foreground mt-1">
+                          {SIGNAL_LABEL_MAP[topHit?.signal_name]?.label || topHit?.signal_name}
+                        </div>
+                        <div className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                          {topHit?.hit_20d_on.toFixed(1)}% Win Rate (vs {topHit?.hit_20d_off.toFixed(1)}% Market)
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+
+                <div className="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 border-l-4 border-l-cyan-500">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                    📊 Sampel Data Diuji
+                  </div>
+                  <div className="text-xl font-black text-foreground mt-1">
+                    {validationData.reduce((s, r) => s + r.n_signal, 0).toLocaleString('id-ID')} Trigger
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    16 Kombinasi Sinyal · 730 Hari Bursa Terakhir
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Validation Table */}
+          <div className="rounded-2xl border border-line-2 bg-card overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-line-2 bg-surface-2/70 text-[10.5px] font-black uppercase tracking-wider text-muted-foreground">
+                    <th className="py-3 px-4 min-w-[220px]">Kombinasi Sinyal</th>
+                    <th className="py-3 px-3 text-center min-w-[90px]">Sample (N)</th>
+                    <th className="py-3 px-3 text-center min-w-[120px]">Win Rate 20D</th>
+                    <th className="py-3 px-3 text-center min-w-[100px]">Edge Win Rate</th>
+                    <th className="py-3 px-3 text-right min-w-[110px]">Avg Return 20D</th>
+                    <th className="py-3 px-3 text-right min-w-[110px]">Alpha Edge 20D</th>
+                    <th className="py-3 px-3 text-right min-w-[100px]">Avg 5D</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line-2 tabular-nums">
+                  {validationLoading && (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                        <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-500" />
+                        <p className="font-bold text-xs">Memuat data validasi kuantitatif...</p>
+                      </td>
+                    </tr>
+                  )}
+
+                  {!validationLoading && validationData && validationData.map((row) => {
+                    const meta = SIGNAL_LABEL_MAP[row.signal_name] || {
+                      label: row.signal_name,
+                      desc: 'Indikator momentum bursa',
+                      badge: 'Signal',
+                      color: 'text-muted-foreground bg-surface-2 border-line-2',
+                    }
+                    const isEdgePos = row.edge_20d > 0
+                    const isHitPos = row.edge_hit_20d > 0
+
+                    return (
+                      <tr key={row.signal_name} className="hover:bg-surface-2/40 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${meta.color}`}>
+                              {meta.badge}
+                            </span>
+                            <span className="font-black text-foreground">{meta.label}</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground/80 mt-0.5">{meta.desc}</p>
+                        </td>
+
+                        <td className="py-3 px-3 text-center font-bold text-muted-foreground font-mono">
+                          {row.n_signal.toLocaleString('id-ID')}
+                        </td>
+
+                        <td className="py-3 px-3 text-center">
+                          <div className="inline-flex flex-col items-center">
+                            <span className="font-black text-foreground">
+                              {row.hit_20d_on.toFixed(1)}%
+                            </span>
+                            <span className="text-[9px] text-muted-foreground/60">
+                              vs {row.hit_20d_off.toFixed(1)}% market
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3 text-center">
+                          <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10.5px] font-black ${
+                            isHitPos
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                          }`}>
+                            {isHitPos ? `+${row.edge_hit_20d.toFixed(1)}%` : `${row.edge_hit_20d.toFixed(1)}%`}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-3 text-right">
+                          <span className={`font-black ${row.avg_ret_20d_on >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                            {row.avg_ret_20d_on >= 0 ? '+' : ''}{row.avg_ret_20d_on.toFixed(2)}%
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-3 text-right">
+                          <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md font-mono text-xs font-black ${
+                            isEdgePos
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                              : 'text-muted-foreground'
+                          }`}>
+                            {isEdgePos ? `+${row.edge_20d.toFixed(2)}%` : `${row.edge_20d.toFixed(2)}%`}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-3 text-right font-medium text-muted-foreground">
+                          {row.avg_ret_5d_on >= 0 ? '+' : ''}{row.avg_ret_5d_on.toFixed(2)}%
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
