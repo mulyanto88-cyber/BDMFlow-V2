@@ -21,6 +21,15 @@ interface ThemeConfig {
 
 const THEMES: ThemeConfig[] = [
   {
+    key: 'dark',
+    label: 'Cyber Terminal',
+    desc: 'Deep Emerald Obsidian · Cyber Gold',
+    icon: <Sparkles size={14} className="text-amber-400" />,
+    preview: '#06181d',
+    bg: 'bg-gradient-to-br from-[#06181d] via-[#0b232a] to-[#153b47]',
+    accent: '#fbbf24',
+  },
+  {
     key: 'light',
     label: 'Geist Light',
     desc: 'Swiss minimal · Grid engineering',
@@ -28,15 +37,6 @@ const THEMES: ThemeConfig[] = [
     preview: '#f8fafc',
     bg: 'bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]',
     accent: '#0f172a',
-  },
-  {
-    key: 'dark',
-    label: 'Dark Obsidian',
-    desc: 'Deep navy · Gold accents',
-    icon: <Moon size={14} className="text-amber-400" />,
-    preview: '#030712',
-    bg: 'bg-gradient-to-br from-[#030712] via-[#090e1a] to-[#1e293b]',
-    accent: '#fbbf24',
   },
   {
     key: 'blue',
@@ -51,7 +51,7 @@ const THEMES: ThemeConfig[] = [
     key: 'purple',
     label: 'Ungu Velvet',
     desc: 'Royal purple · Auth theme',
-    icon: <Sparkles size={14} className="text-purple-400" />,
+    icon: <Moon size={14} className="text-purple-400" />,
     preview: '#070310',
     bg: 'bg-gradient-to-br from-[#070310] via-[#120826] to-[#28124d]',
     accent: '#c084fc',
