@@ -1,8 +1,8 @@
-name: 🔄 Refresh Materialized Tables — 19:50 WIB
+name: 🔄 Refresh Materialized Tables — 18:30 WIB
 
 on:
   schedule:
-    - cron: '50 12 * * 1-5'  # 19:50 WIB, Senin-Jumat
+    - cron: '30 11 * * 1-5'  # 18:30 WIB, Senin-Jumat
   workflow_dispatch:
 
 concurrency:
