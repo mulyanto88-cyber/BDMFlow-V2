@@ -91,38 +91,38 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
       {/* 1. PEMBELI DOMINAN (TOP BUYER TABLE) */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+          <h3 className="text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
             Pembeli Dominan (Top Accumulator)
           </h3>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-line-2 bg-card/60">
+        <div className="overflow-x-auto rounded-2xl border border-line-2 bg-card shadow-xs">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-line-2 bg-surface-2/70 text-[11px] font-black uppercase text-muted-foreground">
+              <tr className="border-b border-line-2 bg-slate-100/90 dark:bg-surface-2/70 text-[11px] font-black uppercase text-slate-700 dark:text-muted-foreground">
                 <th className="py-3 px-4 min-w-[130px]">Metrik</th>
                 {PERIODS.map((p) => (
-                  <th key={p} className="py-3 px-3 text-center min-w-[90px] tracking-wider text-foreground">
+                  <th key={p} className="py-3 px-3 text-center min-w-[90px] tracking-wider text-slate-900 dark:text-foreground">
                     {p}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-line-2 font-mono">
+            <tbody className="divide-y divide-line-2 tabular-nums">
               {/* Row 1: Kode & Nama Broker */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-3 px-4 font-sans font-bold text-muted-foreground">Kode Broker</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-3 px-4 font-bold text-slate-700 dark:text-muted-foreground">Kode Broker</td>
                 {PERIODS.map((p) => {
                   const b = buyerMap[p]
                   return (
                     <td key={p} className="py-3 px-3 text-center">
                       {b?.broker_code ? (
                         <div className="inline-flex flex-col items-center">
-                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-red-500/15 text-red-400 border border-red-500/30">
+                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 border border-slate-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30">
                             {b.broker_code}
                           </span>
-                          <span className="text-[8.5px] font-sans text-muted-foreground/70 truncate max-w-[85px] mt-0.5">
+                          <span className="text-[9px] font-medium text-slate-500 dark:text-muted-foreground/70 truncate max-w-[85px] mt-0.5">
                             {b.broker_name || '—'}
                           </span>
                         </div>
@@ -135,22 +135,22 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 2: Nilai Beli Kotor */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Nilai Beli</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Nilai Beli</td>
                 {PERIODS.map((p) => (
-                  <td key={p} className="py-2.5 px-3 text-center text-foreground font-medium">
+                  <td key={p} className="py-2.5 px-3 text-center text-foreground font-semibold">
                     {formatVal(buyerMap[p]?.gross_val)}
                   </td>
                 ))}
               </tr>
 
               {/* Row 3: Nilai Beli Bersih */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Nilai Beli Bersih</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Nilai Beli Bersih</td>
                 {PERIODS.map((p) => {
                   const val = buyerMap[p]?.net_val
                   return (
-                    <td key={p} className="py-2.5 px-3 text-center font-bold text-emerald-400">
+                    <td key={p} className="py-2.5 px-3 text-center font-black text-emerald-700 dark:text-emerald-400">
                       {val != null ? `+${formatVal(val)}` : '—'}
                     </td>
                   )
@@ -158,18 +158,18 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 4: Total Nilai Pasar */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Total Nilai Pasar</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Total Nilai Pasar</td>
                 {PERIODS.map((p) => (
-                  <td key={p} className="py-2.5 px-3 text-center text-muted-foreground/80">
+                  <td key={p} className="py-2.5 px-3 text-center text-slate-500 dark:text-muted-foreground/80 font-medium">
                     {formatVal(buyerMap[p]?.total_market_val)}
                   </td>
                 ))}
               </tr>
 
               {/* Row 5: Harga Beli Rata-rata */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Harga Beli Rata-rata</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Harga Beli Rata-rata</td>
                 {PERIODS.map((p) => {
                   const avg = buyerMap[p]?.avg_price
                   return (
@@ -181,8 +181,8 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 6: Estimasi Laba/Rugi % */}
-              <tr className="hover:bg-surface-2/30 transition-colors bg-surface-1/40">
-                <td className="py-3 px-4 font-sans font-bold text-foreground flex items-center gap-1.5">
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors bg-slate-50/50 dark:bg-surface-1/40">
+                <td className="py-3 px-4 font-bold text-foreground flex items-center gap-1.5">
                   <span>Estimasi Laba/Rugi</span>
                   <Info className="w-3 h-3 text-muted-foreground/60" />
                 </td>
@@ -193,10 +193,10 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
                   return (
                     <td key={p} className="py-3 px-3 text-center">
                       <span
-                        className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10.5px] font-black ${
+                        className={`inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black ${
                           isProfit
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
+                            : 'bg-rose-50 text-rose-800 border border-rose-300 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30'
                         }`}
                       >
                         {isProfit ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
@@ -208,12 +208,12 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 7: Dominasi % */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Dominasi (%)</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Dominasi (%)</td>
                 {PERIODS.map((p) => {
                   const dom = buyerMap[p]?.dominance_pct
                   return (
-                    <td key={p} className="py-2.5 px-3 text-center font-black text-amber-400">
+                    <td key={p} className="py-2.5 px-3 text-center font-black text-amber-800 dark:text-amber-400">
                       {dom != null ? `${dom.toFixed(0)}%` : '—'}
                     </td>
                   )
@@ -227,38 +227,38 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
       {/* 2. PENJUAL DOMINAN (TOP SELLER TABLE) */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-rose-500" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-rose-400">
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm" />
+          <h3 className="text-xs font-black uppercase tracking-widest text-rose-700 dark:text-rose-400">
             Penjual Dominan (Top Distributor)
           </h3>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-line-2 bg-card/60">
+        <div className="overflow-x-auto rounded-2xl border border-line-2 bg-card shadow-xs">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-line-2 bg-surface-2/70 text-[11px] font-black uppercase text-muted-foreground">
+              <tr className="border-b border-line-2 bg-slate-100/90 dark:bg-surface-2/70 text-[11px] font-black uppercase text-slate-700 dark:text-muted-foreground">
                 <th className="py-3 px-4 min-w-[130px]">Metrik</th>
                 {PERIODS.map((p) => (
-                  <th key={p} className="py-3 px-3 text-center min-w-[90px] tracking-wider text-foreground">
+                  <th key={p} className="py-3 px-3 text-center min-w-[90px] tracking-wider text-slate-900 dark:text-foreground">
                     {p}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-line-2 font-mono">
+            <tbody className="divide-y divide-line-2 tabular-nums">
               {/* Row 1: Kode & Nama Broker */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-3 px-4 font-sans font-bold text-muted-foreground">Kode Broker</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-3 px-4 font-bold text-slate-700 dark:text-muted-foreground">Kode Broker</td>
                 {PERIODS.map((p) => {
                   const s = sellerMap[p]
                   return (
                     <td key={p} className="py-3 px-3 text-center">
                       {s?.broker_code ? (
                         <div className="inline-flex flex-col items-center">
-                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 border border-slate-300 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30">
                             {s.broker_code}
                           </span>
-                          <span className="text-[8.5px] font-sans text-muted-foreground/70 truncate max-w-[85px] mt-0.5">
+                          <span className="text-[9px] font-medium text-slate-500 dark:text-muted-foreground/70 truncate max-w-[85px] mt-0.5">
                             {s.broker_name || '—'}
                           </span>
                         </div>
@@ -271,22 +271,22 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 2: Nilai Jual Kotor */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Nilai Jual</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Nilai Jual</td>
                 {PERIODS.map((p) => (
-                  <td key={p} className="py-2.5 px-3 text-center text-foreground font-medium">
+                  <td key={p} className="py-2.5 px-3 text-center text-foreground font-semibold">
                     {formatVal(sellerMap[p]?.gross_val)}
                   </td>
                 ))}
               </tr>
 
               {/* Row 3: Nilai Jual Bersih */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Nilai Jual Bersih</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Nilai Jual Bersih</td>
                 {PERIODS.map((p) => {
                   const val = sellerMap[p]?.net_val
                   return (
-                    <td key={p} className="py-2.5 px-3 text-center font-bold text-rose-400">
+                    <td key={p} className="py-2.5 px-3 text-center font-black text-rose-700 dark:text-rose-400">
                       {val != null ? `-${formatVal(Math.abs(val))}` : '—'}
                     </td>
                   )
@@ -294,18 +294,18 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 4: Total Nilai Pasar */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Total Nilai Pasar</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Total Nilai Pasar</td>
                 {PERIODS.map((p) => (
-                  <td key={p} className="py-2.5 px-3 text-center text-muted-foreground/80">
+                  <td key={p} className="py-2.5 px-3 text-center text-slate-500 dark:text-muted-foreground/80 font-medium">
                     {formatVal(sellerMap[p]?.total_market_val)}
                   </td>
                 ))}
               </tr>
 
               {/* Row 5: Harga Jual Rata-rata */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Harga Jual Rata-rata</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Harga Jual Rata-rata</td>
                 {PERIODS.map((p) => {
                   const avg = sellerMap[p]?.avg_price
                   return (
@@ -317,12 +317,12 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
               </tr>
 
               {/* Row 6: Dominasi % */}
-              <tr className="hover:bg-surface-2/30 transition-colors">
-                <td className="py-2.5 px-4 font-sans text-muted-foreground">Dominasi (%)</td>
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <td className="py-2.5 px-4 text-slate-600 dark:text-muted-foreground">Dominasi (%)</td>
                 {PERIODS.map((p) => {
                   const dom = sellerMap[p]?.dominance_pct
                   return (
-                    <td key={p} className="py-2.5 px-3 text-center font-black text-rose-400/90">
+                    <td key={p} className="py-2.5 px-3 text-center font-black text-rose-700 dark:text-rose-400">
                       {dom != null ? `${dom.toFixed(0)}%` : '—'}
                     </td>
                   )
@@ -335,13 +335,13 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
 
       {/* 3. INSIGHT FOOTER NARRATIVE */}
       {b1m && (
-        <div className="p-3.5 rounded-2xl bg-surface-2/70 border border-line-2 flex items-start gap-3 text-xs leading-relaxed text-muted-foreground">
-          <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-slate-100/90 dark:bg-surface-2/70 border border-line-2 flex items-start gap-3 text-xs leading-relaxed text-slate-600 dark:text-muted-foreground">
+          <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold text-foreground">Insight Bandar: </span>
-            Dalam periode 1 Bulan terakhir, broker <strong className="text-amber-400">{b1m.broker_code} ({b1m.broker_name || 'Bandar Utama'})</strong> memegang akumulasi beli terbesar senilai <strong className="text-foreground">{formatVal(b1m.gross_val)}</strong> dengan harga modal rata-rata <strong className="text-foreground">Rp {b1m.avg_price?.toFixed(2)}</strong> (
+            <span className="font-bold text-slate-900 dark:text-foreground">Insight Bandar: </span>
+            Dalam periode 1 Bulan terakhir, broker <strong className="text-amber-700 dark:text-amber-400">{b1m.broker_code} ({b1m.broker_name || 'Bandar Utama'})</strong> memegang akumulasi beli terbesar senilai <strong className="text-slate-900 dark:text-foreground">{formatVal(b1m.gross_val)}</strong> dengan harga modal rata-rata <strong className="text-slate-900 dark:text-foreground">Rp {b1m.avg_price?.toFixed(2)}</strong> (
             {pnl != null ? (
-              <span className={pnl >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+              <span className={pnl >= 0 ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-rose-700 dark:text-rose-400 font-bold'}>
                 {pnl >= 0 ? `Floating Profit +${pnl.toFixed(0)}%` : `Floating Loss ${pnl.toFixed(0)}%`}
               </span>
             ) : null}

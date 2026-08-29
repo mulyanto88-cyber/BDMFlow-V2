@@ -10,57 +10,57 @@
 
 @layer base {
 
-  /* ── 1. LIGHT: Premium Silver Lustre & Gold ───────────────── */
+  /* ── 1. LIGHT: Premium Institutional Soft Canvas & Crisp Contrast ─── */
   :root {
-    --background:           210 40% 98%;      /* Geist Light: crisp slate-50 canvas (#f8fafc) */
-    --foreground:           222 47% 11%;      /* Deep slate ink (#0f172a) */
-    --card:                 0   0%  100%;     /* Pure clean card (#ffffff) */
+    --background:           215 28% 97%;      /* Soft calm slate canvas (#f4f6f8) — eliminates white glare */
+    --foreground:           222 47% 11%;      /* Deep institutional slate ink (#0f172a) */
+    --card:                 0   0%  100%;     /* Pure clean elevated card (#ffffff) */
     --card-foreground:      222 47% 11%;
     --popover:              0   0%  100%;
     --popover-foreground:   222 47% 11%;
-    --primary:              222 47% 11%;      /* Premium neutral ink — primary action (#0f172a) */
+    --primary:              222 47% 11%;      /* Premium neutral ink (#0f172a) */
     --primary-foreground:   210 40% 98%;
     --secondary:            214 32% 91%;      /* Subtle slate silver (#e2e8f0) */
     --secondary-foreground: 222 47% 11%;
     --muted:                214 32% 91%;
-    --muted-foreground:     215 25% 30%;      /* Ultra-high contrast readable dark slate (#334155) */
+    --muted-foreground:     215 25% 28%;      /* High contrast readable slate (#334155) */
     --accent:               214 32% 91%;
     --accent-foreground:    222 47% 11%;
     --destructive:          0   84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border:               214 32% 91%;      /* Hairline slate border (#e2e8f0) */
-    --input:                215 16% 85%;      /* Input stroke (#cbd5e1) */
+    --border:               214 32% 88%;      /* Clearly defined slate border (#cbd5e1) */
+    --input:                215 16% 82%;      /* Input stroke (#94a3b8) */
     --ring:                 243 75% 59%;      /* Indigo focus ring (#4f46e5) */
 
-    /* Glass — neo-card: solid surface + inset ring (restraint, no glow) */
-    --glass-bg:           rgba(255, 255, 255, 0.85);
-    --glass-border:       rgba(15, 23, 42, 0.06);
+    /* Glass — neo-card: clean surface + clear hairline boundary */
+    --glass-bg:           rgba(255, 255, 255, 0.95);
+    --glass-border:       rgba(100, 116, 139, 0.20);
     --glass-border-top:   rgba(255, 255, 255, 1);
-    --glass-shadow:       0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -12px rgba(15, 23, 42, 0.08);
+    --glass-shadow:       0 1px 3px rgba(15, 23, 42, 0.05), 0 8px 24px -8px rgba(15, 23, 42, 0.08);
     --glass-hover-bg:     rgba(255, 255, 255, 1);
-    --glass-hover-border: rgba(15, 23, 42, 0.10);
-    --glass-hover-shadow: 0 12px 32px -12px rgba(15,23,42,0.12);
+    --glass-hover-border: rgba(100, 116, 139, 0.32);
+    --glass-hover-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.12);
 
     /* Panel */
-    --panel-bg:     rgba(248, 250, 252, 0.92);
-    --panel-border: rgba(15, 23, 42, 0.06);
+    --panel-bg:     rgba(255, 255, 255, 0.95);
+    --panel-border: rgba(100, 116, 139, 0.18);
 
     /* Body gradient accents */
-    --grad-1: rgba(245, 158, 11, 0.06);
-    --grad-2: rgba(59, 130, 246, 0.04);
-    --grad-3: rgba(16, 185, 129, 0.04);
+    --grad-1: rgba(245, 158, 11, 0.04);
+    --grad-2: rgba(59, 130, 246, 0.03);
+    --grad-3: rgba(16, 185, 129, 0.03);
 
     /* Header */
-    --header-bg:     rgba(255, 255, 255, 0.85);
-    --header-border: rgba(15, 23, 42, 0.06);
+    --header-bg:     rgba(255, 255, 255, 0.92);
+    --header-border: rgba(100, 116, 139, 0.18);
 
     /* Sidebar */
     --sidebar-bg:     rgba(255, 255, 255, 0.98);
-    --sidebar-border: rgba(15, 23, 42, 0.06);
+    --sidebar-border: rgba(100, 116, 139, 0.18);
 
-    /* Shadows — tight ambient (premium via restraint) */
-    --shadow-xs:   0 1px 2px  rgba(15,23,42,0.04);
-    --shadow-sm:   0 2px 6px  rgba(15,23,42,0.06);
+    /* Shadows — refined ambient */
+    --shadow-xs:   0 1px 2px  rgba(15,23,42,0.05);
+    --shadow-sm:   0 2px 6px  rgba(15,23,42,0.07);
     --shadow-md:   0 8px 20px -6px  rgba(15,23,42,0.10);
     --shadow-lg:   0 16px 40px -10px rgba(15,23,42,0.14);
     --shadow-xl:   0 28px 64px -16px rgba(15,23,42,0.18);
@@ -68,8 +68,8 @@
     --shadow-glow: 0 0 16px rgba(var(--primary-glow-rgb),0.14);
 
     /* Ticker */
-    --ticker-bg:    rgba(248, 250, 252, 0.90);
-    --ticker-border:rgba(15, 23, 42, 0.06);
+    --ticker-bg:    rgba(255, 255, 255, 0.92);
+    --ticker-border:rgba(100, 116, 139, 0.18);
 
     /* Radii system */
     --radius:     0.75rem;
@@ -93,22 +93,18 @@
     --scrollbar-bg:    transparent;
 
     /* ── Semantic surfaces & hairlines ──────────────────────────
-       Components used to hardcode bg-white/[0.0x] + border-white/[..],
-       which only read on a dark ground and forced a large !important
-       override layer for light mode. These flip per theme instead.
-       Light values keep the tuning the old overrides had: black reads
-       heavier than white at equal alpha, and hairlines use slate. */
-    --surface-1: rgba(0,0,0,0.025);
-    --surface-2: rgba(0,0,0,0.030);
-    --surface-3: rgba(0,0,0,0.040);
-    --surface-4: rgba(0,0,0,0.050);
-    --surface-5: rgba(0,0,0,0.055);
-    --line-1:    rgba(100,116,139,0.12);
-    --line-2:    rgba(100,116,139,0.15);
-    --line-3:    rgba(100,116,139,0.18);
-    --line-4:    rgba(100,116,139,0.22);
-    --line-5:    rgba(100,116,139,0.26);
-    --line-6:    rgba(100,116,139,0.38);
+       Optimized for crisp delineation and eye comfort in light mode. */
+    --surface-1: rgba(15, 23, 42, 0.035);
+    --surface-2: rgba(15, 23, 42, 0.055);
+    --surface-3: rgba(15, 23, 42, 0.080);
+    --surface-4: rgba(15, 23, 42, 0.100);
+    --surface-5: rgba(15, 23, 42, 0.125);
+    --line-1:    rgba(100, 116, 139, 0.15);
+    --line-2:    rgba(100, 116, 139, 0.22);
+    --line-3:    rgba(100, 116, 139, 0.30);
+    --line-4:    rgba(100, 116, 139, 0.38);
+    --line-5:    rgba(100, 116, 139, 0.46);
+    --line-6:    rgba(100, 116, 139, 0.55);
 
   }
 

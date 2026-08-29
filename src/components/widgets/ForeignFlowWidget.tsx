@@ -35,8 +35,8 @@ export function ForeignFlowWidget({ stockCode }: Props) {
             { l: '7D', v: flow7d }, { l: '30D', v: flow30d }, { l: '60D', v: flow60d },
           ].map(p => (
             <div key={p.l} className="p-3 rounded-xl bg-surface-2 border border-line-2 text-center">
-              <p className="text-[9px] text-muted-foreground uppercase">{p.l}</p>
-              <p className={`text-sm font-black mt-1 ${p.v>=0?'text-emerald-400':'text-red-400'}`}>{formatRupiah(p.v)}</p>
+              <p className="text-[9px] text-muted-foreground uppercase font-bold">{p.l}</p>
+              <p className={`text-sm font-black tabular-nums mt-1 ${p.v>=0?'text-emerald-700 dark:text-emerald-400':'text-rose-600 dark:text-rose-400'}`}>{formatRupiah(p.v)}</p>
             </div>
           ))}
         </div>
@@ -46,23 +46,23 @@ export function ForeignFlowWidget({ stockCode }: Props) {
         <div className="glass rounded-2xl p-5 border border-line-3">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h2 className="text-sm font-black uppercase tracking-widest">Divergensi Harga vs Foreign · 30D</h2>
-            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-400 border border-amber-500/25">
               {String(foreignDivergence.divergence_type||'NEUTRAL').replace(/_/g,' ')} · {foreignDivergence.signal_strength}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-3 mb-3">
             {[
-              { l:'Foreign 30D', v: formatRupiah(Number(foreignDivergence.foreign_30d_net)||0), c:(Number(foreignDivergence.foreign_30d_net)||0)>=0?'text-emerald-400':'text-red-400' },
-              { l:'Harga 30D', v:`${Number(foreignDivergence.price_chg_30d)>=0?'+':''}${Number(foreignDivergence.price_chg_30d||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_30d)>=0?'text-emerald-400':'text-red-400' },
-              { l:'Harga 1D', v:`${Number(foreignDivergence.price_chg_pct)>=0?'+':''}${Number(foreignDivergence.price_chg_pct||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_pct)>=0?'text-emerald-400':'text-red-400' },
+              { l:'Foreign 30D', v: formatRupiah(Number(foreignDivergence.foreign_30d_net)||0), c:(Number(foreignDivergence.foreign_30d_net)||0)>=0?'text-emerald-700 dark:text-emerald-400':'text-rose-600 dark:text-rose-400' },
+              { l:'Harga 30D', v:`${Number(foreignDivergence.price_chg_30d)>=0?'+':''}${Number(foreignDivergence.price_chg_30d||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_30d)>=0?'text-emerald-700 dark:text-emerald-400':'text-rose-600 dark:text-rose-400' },
+              { l:'Harga 1D', v:`${Number(foreignDivergence.price_chg_pct)>=0?'+':''}${Number(foreignDivergence.price_chg_pct||0).toFixed(2)}%`, c:Number(foreignDivergence.price_chg_pct)>=0?'text-emerald-700 dark:text-emerald-400':'text-rose-600 dark:text-rose-400' },
             ].map(m => (
               <div key={m.l} className="p-3 rounded-xl bg-surface-2 border border-line-2 text-center">
-                <p className="text-[9px] text-muted-foreground uppercase">{m.l}</p>
-                <p className={`text-sm font-black mt-1 ${m.c}`}>{m.v}</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-bold">{m.l}</p>
+                <p className={`text-sm font-black tabular-nums mt-1 ${m.c}`}>{m.v}</p>
               </div>
             ))}
           </div>
-          <div className="p-3 rounded-xl bg-teal-500/[0.05] border border-teal-500/15 text-[11px] text-teal-200/80 flex items-start gap-2">
+          <div className="p-3 rounded-xl bg-teal-500/[0.06] border border-teal-500/20 text-[11px] text-slate-700 dark:text-teal-200/90 flex items-start gap-2">
             <span>💡</span><span>{foreignDivergence.interpretation}</span>
           </div>
         </div>

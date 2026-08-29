@@ -45,8 +45,8 @@ export function KSEIIntelWidget({ stockCode }: Props) {
                 {l:'Foreign Smart',       v: d.foreign_smart},
               ].map(item => (
                 <div key={item.l} className="flex items-center justify-between text-xs py-1 border-b border-line-1 last:border-0">
-                  <span className="text-muted-foreground">{item.l}</span>
-                  <span className={`font-bold ${Number(item.v)>=0?'text-emerald-400':'text-red-400'}`}>
+                  <span className="text-muted-foreground font-medium">{item.l}</span>
+                  <span className={`font-bold tabular-nums ${Number(item.v)>=0?'text-emerald-700 dark:text-emerald-400':'text-rose-600 dark:text-rose-400'}`}>
                     {Number(item.v)>=0?'+':''}{Number(item.v||0).toFixed(2)} M
                   </span>
                 </div>
