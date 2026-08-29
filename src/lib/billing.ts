@@ -192,7 +192,7 @@ export function verifyMidtransSignature(body: unknown, serverKey: string | null)
 
 // ── Gateway clients ─────────────────────────────────────────────────────────
 
-const MAYAR_BASE = process.env.MAYAR_API_BASE ?? 'https://pub.mayar.id/api/v1'
+const MAYAR_BASE = process.env.MAYAR_API_BASE ?? 'https://api.mayar.id/hl/v1'
 const XENDIT_BASE = process.env.XENDIT_API_BASE ?? 'https://api.xendit.co'
 const MIDTRANS_BASE = process.env.MIDTRANS_API_BASE ?? 'https://app.midtrans.com'
 
@@ -204,7 +204,7 @@ export type PaymentResult =
 export function activeGateway(): 'mayar' | 'midtrans' | 'xendit' | null {
   if (process.env.MAYAR_API_KEY) return 'mayar'
   if (process.env.MIDTRANS_SERVER_KEY) return 'midtrans'
-  if (process.env.XENDIT_API_KEY) return 'xendit'
+  if (process.env.XENDIT_SECRET_KEY) return 'xendit'
   return null
 }
 
@@ -217,8 +217,8 @@ export async function createPayment(opts: {
   planKey?: PlanKey
   successRedirectUrl: string
 }): Promise<PaymentResult> {
-  const plan = opts.planKey && PRO_PLANS[opts.planKey] ? PRO_PLANS[opts.planKey] : PRO_PLAN
   const gw = activeGateway()
+  const plan = opts.planKey ? (PRO_PLANS[opts.planKey] || PRO_PLAN) : PRO_PLAN
   if (gw === 'mayar') return createMayarPayment({ ...opts, plan })
   if (gw === 'midtrans') return createMidtransTransaction({ ...opts, plan })
   if (gw === 'xendit') return createXenditInvoice({ ...opts, plan })
@@ -227,6 +227,7 @@ export async function createPayment(opts: {
 
 /**
  * Create a Mayar payment link (Single Payment / Invoice).
+ * Supports Mayar Headless API (api.mayar.id/hl/v1) and fallback to pub.mayar.id
  */
 export async function createMayarPayment(opts: {
   externalId: string
@@ -234,49 +235,73 @@ export async function createMayarPayment(opts: {
   plan?: PlanItem
   successRedirectUrl: string
 }): Promise<PaymentResult> {
-  const key = process.env.MAYAR_API_KEY
-  if (!key) {
-    return { ok: false, reason: 'PAYMENT_NOT_CONFIGURED', message: 'Payment gateway Mayar belum dikonfigurasi.' }
+  const rawKey = process.env.MAYAR_API_KEY?.trim()
+  if (!rawKey) {
+    return { ok: false, reason: 'PAYMENT_NOT_CONFIGURED', message: 'API Key Mayar (MAYAR_API_KEY) belum dikonfigurasi di server.' }
   }
 
   const p = opts.plan ?? PRO_PLAN
 
-  try {
-    const res = await fetch(`${MAYAR_BASE}/payment/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
+  // Try primary endpoint (api.mayar.id/hl/v1) then fallback (pub.mayar.id/api/v1)
+  const endpoints = [
+    `${MAYAR_BASE}/payment/create`,
+    'https://api.mayar.id/hl/v1/payment/create',
+    'https://pub.mayar.id/api/v1/payment/create',
+  ]
+
+  // Remove duplicates
+  const uniqueEndpoints = Array.from(new Set(endpoints))
+
+  let lastErrorMsg = 'Gagal menghubungi payment gateway Mayar.'
+
+  for (const url of uniqueEndpoints) {
+    try {
+      const payload = {
         name: opts.email.split('@')[0] || 'Customer BDMFlow',
         email: opts.email,
         amount: p.priceIdr,
-        description: `${p.label} (${opts.externalId})`,
+        description: `Langganan ${p.label} - BDMFlow IDX Intelligence (${opts.externalId})`,
         redirectUrl: opts.successRedirectUrl,
         expiredAt: new Date(Date.now() + p.invoiceDurationSec * 1000).toISOString(),
-      }),
-    })
+      }
 
-    if (!res.ok) {
-      console.error('[billing] mayar create payment failed:', res.status, await res.text().catch(() => ''))
-      return { ok: false, reason: 'GATEWAY_ERROR', message: 'Gagal membuat pembayaran Mayar. Coba lagi nanti.' }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${rawKey}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '')
+        console.error(`[billing] Mayar payment attempt at ${url} failed: HTTP ${res.status}`, errText)
+        let parsedErr = ''
+        try {
+          const parsed = JSON.parse(errText)
+          parsedErr = parsed?.messages?.[0] || parsed?.message || parsed?.error || ''
+        } catch {}
+        lastErrorMsg = parsedErr ? `Mayar: ${parsedErr}` : `Gagal membuat pembayaran Mayar (HTTP ${res.status}).`
+        continue
+      }
+
+      const json = await res.json()
+      const paymentUrl = json?.data?.link || json?.data?.url || json?.data?.paymentUrl || json?.link || json?.url
+      const gatewayRef = json?.data?.id || json?.id || opts.externalId
+
+      if (paymentUrl) {
+        return { ok: true, paymentUrl, gatewayRef }
+      } else {
+        console.error('[billing] Mayar response missing paymentUrl:', json)
+      }
+    } catch (err: unknown) {
+      console.error(`[billing] Mayar network fetch error for ${url}:`, (err as Error)?.message)
+      lastErrorMsg = `Koneksi ke Mayar terputus: ${(err as Error)?.message}`
     }
-
-    const json = await res.json()
-    const paymentUrl = json?.data?.link || json?.data?.url || json?.link || json?.url
-    const gatewayRef = json?.data?.id || json?.id || opts.externalId
-
-    if (!paymentUrl) {
-      console.error('[billing] mayar response missing paymentUrl:', json)
-      return { ok: false, reason: 'GATEWAY_ERROR', message: 'Respon gateway Mayar tidak lengkap. Coba lagi nanti.' }
-    }
-
-    return { ok: true, paymentUrl, gatewayRef }
-  } catch (err: unknown) {
-    console.error('[billing] mayar request failed:', (err as Error)?.message)
-    return { ok: false, reason: 'GATEWAY_ERROR', message: 'Gagal menghubungi payment gateway Mayar.' }
   }
+
+  return { ok: false, reason: 'GATEWAY_ERROR', message: lastErrorMsg }
 }
 
 /**
