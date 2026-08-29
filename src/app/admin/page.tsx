@@ -2,13 +2,14 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Shield, Users, Activity, Eye, RefreshCw,
   Search, Crown, Clock, ArrowRight, AlertTriangle,
-  Flame, Filter, CheckCircle2, Lock
+  Flame, Filter, CheckCircle2, Lock,
+  ChevronDown, ChevronUp, ChevronsDown, ChevronsUp
 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { authFetch } from '@/lib/api'
@@ -51,6 +52,27 @@ export default function AdminActivityPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedEmail, setSelectedEmail] = useState<string>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const activityListRef = useRef<HTMLDivElement>(null)
+
+  const handleScrollDown = () => {
+    if (!activityListRef.current) return
+    activityListRef.current.scrollBy({ top: 350, behavior: 'smooth' })
+  }
+
+  const handleScrollUp = () => {
+    if (!activityListRef.current) return
+    activityListRef.current.scrollBy({ top: -350, behavior: 'smooth' })
+  }
+
+  const handleScrollToBottom = () => {
+    if (!activityListRef.current) return
+    activityListRef.current.scrollTo({ top: activityListRef.current.scrollHeight, behavior: 'smooth' })
+  }
+
+  const handleScrollToTop = () => {
+    if (!activityListRef.current) return
+    activityListRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())
 
@@ -258,15 +280,40 @@ export default function AdminActivityPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Column: Live Activity Feed (2 Cols on lg) */}
-        <div className="lg:col-span-2 glass rounded-3xl p-6 border border-border/40 space-y-4">
-          <div className="flex items-center justify-between border-b border-line-2 pb-3">
+        <div className="lg:col-span-2 glass rounded-3xl p-6 border border-border/40 space-y-4 relative">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-2 pb-3">
             <h2 className="text-sm font-black text-foreground flex items-center gap-2">
               <Clock size={15} className="text-primary" />
               <span>Linimasa Aktivitas Real-time</span>
             </h2>
-            <span className="text-[11px] text-muted-foreground font-mono">
-              {filteredActivities.length} data ditampilkan
-            </span>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-muted-foreground font-mono mr-1">
+                {filteredActivities.length} data ditampilkan
+              </span>
+
+              {/* Header Scroll Navigation Buttons */}
+              {filteredActivities.length > 4 && (
+                <div className="flex items-center gap-1 bg-surface-2 p-1 rounded-xl border border-line-2">
+                  <button
+                    onClick={handleScrollUp}
+                    className="p-1.5 rounded-lg hover:bg-surface-3 text-muted-foreground hover:text-foreground transition-all flex items-center gap-1 text-[11px] font-bold cursor-pointer active:scale-95"
+                    title="Scroll ke Atas (↑)"
+                  >
+                    <ChevronUp size={14} />
+                    <span className="hidden sm:inline">Atas</span>
+                  </button>
+                  <button
+                    onClick={handleScrollDown}
+                    className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 transition-all flex items-center gap-1 text-[11px] font-bold border border-amber-500/30 shadow-sm cursor-pointer active:scale-95"
+                    title="Scroll ke Bawah (↓)"
+                  >
+                    <ChevronDown size={14} className="animate-pulse" />
+                    <span>Scroll Bawah ↓</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {loading ? (
@@ -289,53 +336,89 @@ export default function AdminActivityPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
-              {filteredActivities.map((act) => {
-                const dateObj = new Date(act.createdAt)
-                const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+            <div className="relative">
+              {/* Activity List Container with wide high-contrast scrollbar */}
+              <div
+                ref={activityListRef}
+                className="space-y-2 max-h-[600px] overflow-y-auto pr-3 admin-scrollbar"
+              >
+                {filteredActivities.map((act) => {
+                  const dateObj = new Date(act.createdAt)
+                  const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                  const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
 
-                return (
-                  <div
-                    key={act.id}
-                    className="p-3 rounded-2xl bg-surface-2/60 hover:bg-surface-3/80 border border-line-2 flex items-center justify-between gap-3 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-foreground truncate">{act.email}</span>
-                        <span
-                          className={`text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded border ${
-                            act.plan === 'PRO'
-                              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                              : act.plan === 'TRIAL'
-                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                              : act.plan === 'GUEST'
-                              ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
-                              : 'bg-surface-3 text-muted-foreground border-line-2'
-                          }`}
-                        >
-                          {act.plan}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
-                        <span className="px-2 py-0.5 rounded-md bg-surface-1 font-semibold text-primary/90 border border-line-2">
-                          {act.path}
-                        </span>
-                        {act.pageTitle && act.pageTitle !== act.path && (
-                          <span className="text-muted-foreground/60 truncate max-w-[200px]">
-                            {act.pageTitle}
+                  return (
+                    <div
+                      key={act.id}
+                      className="p-3 rounded-2xl bg-surface-2/60 hover:bg-surface-3/80 border border-line-2 flex items-center justify-between gap-3 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-foreground truncate">{act.email}</span>
+                          <span
+                            className={`text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded border ${
+                              act.plan === 'PRO'
+                                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                                : act.plan === 'TRIAL'
+                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                : act.plan === 'GUEST'
+                                ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                                : 'bg-surface-3 text-muted-foreground border-line-2'
+                            }`}
+                          >
+                            {act.plan}
                           </span>
-                        )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
+                          <span className="px-2 py-0.5 rounded-md bg-surface-1 font-semibold text-primary/90 border border-line-2">
+                            {act.path}
+                          </span>
+                          {act.pageTitle && act.pageTitle !== act.path && (
+                            <span className="text-muted-foreground/60 truncate max-w-[200px]">
+                              {act.pageTitle}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-xs font-mono font-bold text-foreground/80">{timeStr}</div>
+                        <div className="text-[10px] text-muted-foreground/50">{dateStr}</div>
                       </div>
                     </div>
+                  )
+                })}
+              </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="text-xs font-mono font-bold text-foreground/80">{timeStr}</div>
-                      <div className="text-[10px] text-muted-foreground/50">{dateStr}</div>
-                    </div>
-                  </div>
-                )
-              })}
+              {/* Floating Quick Scroll Controls at Bottom-Right */}
+              {filteredActivities.length > 5 && (
+                <div className="absolute right-5 bottom-5 flex flex-col items-center gap-2 z-20 pointer-events-auto">
+                  <button
+                    onClick={handleScrollUp}
+                    className="w-8 h-8 rounded-full bg-slate-900/90 hover:bg-amber-500 hover:text-slate-950 text-foreground border border-amber-500/40 backdrop-blur-md shadow-lg flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                    title="Scroll ke Atas (↑)"
+                  >
+                    <ChevronUp size={16} />
+                  </button>
+
+                  <button
+                    onClick={handleScrollDown}
+                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xl shadow-amber-500/30 border border-amber-300 transition-all active:scale-90 hover:scale-105 cursor-pointer"
+                    title="Scroll ke Bawah (↓)"
+                  >
+                    <ChevronDown size={16} className="animate-bounce" />
+                    <span>Ke Bawah</span>
+                  </button>
+
+                  <button
+                    onClick={handleScrollToBottom}
+                    className="px-2 py-0.5 rounded-md bg-slate-900/90 hover:bg-surface-3 text-muted-foreground hover:text-foreground text-[9px] font-mono border border-border/80 backdrop-blur shadow cursor-pointer transition-all active:scale-95"
+                    title="Langsung ke data paling bawah"
+                  >
+                    Mentok Bawah ⤓
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

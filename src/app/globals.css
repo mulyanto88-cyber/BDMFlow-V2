@@ -1378,3 +1378,32 @@ a[role="button"]:active {
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* ============================================================
+   👑 ADMIN ACTIVITY SCROLLBAR: Prominent, wide, high-contrast
+   ============================================================ */
+.admin-scrollbar {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(251, 191, 36, 0.5) rgba(255, 255, 255, 0.05);
+}
+
+.admin-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 9999px;
+  margin: 4px 0;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(251, 191, 36, 0.45);
+  border-radius: 9999px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 191, 36, 0.8);
+}
+
