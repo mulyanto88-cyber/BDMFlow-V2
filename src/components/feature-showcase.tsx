@@ -105,6 +105,14 @@ export default function FeatureShowcase() {
 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
+                  ref={(el) => {
+                    // Cached images can finish loading BEFORE React attaches
+                    // onLoad — without this check the thumbnail stays at
+                    // opacity-0 with an eternal spinner on repeat visits.
+                    if (el && el.complete && el.naturalWidth > 0) {
+                      setLoadedMap(prev => (prev[shot.src] ? prev : { ...prev, [shot.src]: true }))
+                    }
+                  }}
                   src={shot.src}
                   alt={`Screenshot — ${shot.title}`}
                   loading="lazy"
@@ -203,7 +211,7 @@ export default function FeatureShowcase() {
               <img
                 src={SHOTS[selectedIndex].src}
                 alt={SHOTS[selectedIndex].title}
-                className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl animate-scale-up"
+                className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl animate-fade"
               />
             </div>
 
