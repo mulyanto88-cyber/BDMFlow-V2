@@ -25,13 +25,14 @@ const navGroups = [
   {
     title: 'Screeners',
     items: [
-      { href: '/screener',      label: 'Pro Screener',        icon: Search,    badge: null },
-      { href: '/volume-aov',    label: 'Breakout Scanner',    icon: Zap,       badge: null },
-      { href: '/smart-money',   label: 'Smart Money Matrix',  icon: Brain,     badge: null },
-      { href: '/radar',         label: 'Watchlist Radar',     icon: Activity,  badge: null },
-      { href: '/msci-screener', label: 'MSCI Screener',       icon: Shield,    badge: null },
-      { href: '/ftse-screener', label: 'FTSE Screener',       icon: Globe,     badge: null },
-      { href: '/backtest',      label: 'Backtest Lab',        icon: Calculator, badge: 'HOT' },
+      { href: '/screener',              label: 'Pro Screener',          icon: Search,    badge: null },
+      { href: '/screener-fundamental',  label: 'Fundamental Screener', icon: PieChart,  badge: 'HOT' },
+      { href: '/volume-aov',            label: 'Breakout Scanner',      icon: Zap,       badge: null },
+      { href: '/smart-money',           label: 'Smart Money Matrix',    icon: Brain,     badge: null },
+      { href: '/radar',                 label: 'Watchlist Radar',       icon: Activity,  badge: null },
+      { href: '/msci-screener',         label: 'MSCI Screener',         icon: Shield,    badge: null },
+      { href: '/ftse-screener',         label: 'FTSE Screener',         icon: Globe,     badge: null },
+      { href: '/backtest',              label: 'Backtest Lab',          icon: Calculator, badge: 'HOT' },
     ]
   },
   {
