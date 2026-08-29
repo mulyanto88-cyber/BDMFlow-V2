@@ -21,6 +21,7 @@ import { formatRupiah, formatNumber } from '@/lib/utils';
 import { authFetch } from '@/lib/api';
 import { InventoryChart, type InvCandle, type InvBrokerRow } from '@/components/inventory-chart';
 import { DominantBrokerWidget, type DominantBrokerRow } from '@/components/widgets/DominantBrokerWidget';
+import { getBrokerBadgeStyle } from '@/lib/broker-colors';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -486,7 +487,9 @@ const TopBrokerCards = ({
               <span className={`text-xs font-black w-4 text-center ${
                 i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : 'text-amber-700'
               }`}>{i + 1}</span>
-              <span className="text-sm font-black text-white w-14 shrink-0">{r.broker_code}</span>
+              <span className={`text-xs font-black px-2 py-0.5 rounded border shadow-2xs w-12 text-center shrink-0 ${getBrokerBadgeStyle(r.broker_code)}`}>
+                {r.broker_code}
+              </span>
               <div className="flex-1 h-2 bg-background rounded-full overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${barPct}%`, backgroundColor: colors.fill }} />
               </div>
@@ -1199,7 +1202,11 @@ function VerdictStrip({ buyers, sellers, divergence, stockCtx }: {
         {top1 && (
           <div className="flex flex-col gap-1 min-w-[120px]">
             <p className="text-[9px] uppercase text-gray-500 tracking-widest">Top Buyer</p>
-            <p className="text-sm font-black text-white font-mono">{top1.broker_code}</p>
+            <div className="flex items-center">
+              <span className={`text-xs font-black px-2 py-0.5 rounded border shadow-2xs ${getBrokerBadgeStyle(top1.broker_code)}`}>
+                {top1.broker_code}
+              </span>
+            </div>
             <p className="text-[10px] text-gray-400">Top-3 dominasi: <span className="text-yellow-400 font-bold">{top3Pct.toFixed(0)}%</span></p>
           </div>
         )}
@@ -1964,8 +1971,10 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
               {data.map((r, i) => (
                 <div key={r.broker_code} className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-1">
                   <span className="text-[10px] text-gray-600 w-4 font-mono">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-white">{r.broker_code}</p>
+                  <div className="flex-1 min-w-0 flex items-center gap-2">
+                    <span className={`text-xs font-black px-2 py-0.5 rounded border shadow-2xs ${getBrokerBadgeStyle(r.broker_code)}`}>
+                      {r.broker_code}
+                    </span>
                     {r.broker_name && <p className="text-[9px] text-gray-500 truncate max-w-[160px]">{r.broker_name}</p>}
                   </div>
                   <div className="text-right">
@@ -2003,8 +2012,12 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
                   <tr key={r.broker_code} className="hover:bg-surface-1">
                     <td className="px-4 py-2.5 text-gray-600 font-mono">{i + 1}</td>
                     <td className="px-4 py-2.5">
-                      <p className="font-black text-white">{r.broker_code}</p>
-                      {r.broker_name && <p className="text-[9px] text-gray-500 truncate max-w-[160px]">{r.broker_name}</p>}
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-black px-2 py-0.5 rounded border shadow-2xs ${getBrokerBadgeStyle(r.broker_code)}`}>
+                          {r.broker_code}
+                        </span>
+                        {r.broker_name && <p className="text-[9px] text-gray-500 truncate max-w-[160px]">{r.broker_name}</p>}
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -2055,8 +2068,12 @@ function MarketIntelTab({ brokerIntel, marketBreadth, brokerAlpha, loading, erro
                   <tr key={r.broker_code} className="hover:bg-surface-1">
                     <td className="px-4 py-2.5 text-gray-600 font-mono">{i + 1}</td>
                     <td className="px-4 py-2.5">
-                      <p className="font-black text-white">{r.broker_code}</p>
-                      {r.broker_name && <p className="text-[9px] text-gray-500 truncate max-w-[160px]">{r.broker_name}</p>}
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-black px-2 py-0.5 rounded border shadow-2xs ${getBrokerBadgeStyle(r.broker_code)}`}>
+                          {r.broker_code}
+                        </span>
+                        {r.broker_name && <p className="text-[9px] text-gray-500 truncate max-w-[160px]">{r.broker_name}</p>}
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <span className={`font-black font-mono ${r.alpha_score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -2696,8 +2713,10 @@ export default function BrokerTrackerPage() {
                         onClick={() => setOpenBroker(r.broker_code)}
                         className="text-left group/btn"
                       >
-                        <span className="font-black text-white text-xs group-hover/btn:text-yellow-400 transition-colors flex items-center gap-1.5">
-                          {r.broker_code}
+                        <span className="font-black text-xs group-hover/btn:opacity-90 transition-opacity flex items-center gap-1.5">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-black border shadow-2xs ${getBrokerBadgeStyle(r.broker_code)}`}>
+                            {r.broker_code}
+                          </span>
                           {/* ★ Local/Foreign badge */}
                           {r.broker_lf && (
                             <span className={`text-[8px] font-black px-1 py-0 rounded ${

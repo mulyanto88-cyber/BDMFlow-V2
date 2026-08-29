@@ -7,6 +7,7 @@ import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
 import Link from 'next/link'
 import { ResponsiveContainer, BarChart, Bar, ReferenceLine, Cell } from 'recharts'
+import { getBrokerBadgeStyle } from '@/lib/broker-colors'
 
 // ─── Scorecard helpers ──────────────────────────────────────────────────────
 function tierCls(t: string): string {
@@ -260,9 +261,11 @@ export function OverviewSignalsWidget({ stockCode }: Props) {
             <div className="space-y-2">
               {brokerData.map((b: any, i: number) => (
                 <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-surface-2/50 border border-line-2 transition-colors hover:bg-surface-2/80">
-                  <div className="min-w-0">
-                    <p className="text-[10.5px] font-bold text-foreground truncate">{b.kode_broker}</p>
-                    <p className="text-[8px] text-muted-foreground truncate max-w-[130px] font-medium">{b.nama_broker}</p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border shadow-2xs ${getBrokerBadgeStyle(b.kode_broker)}`}>
+                      {b.kode_broker}
+                    </span>
+                    <p className="text-[9px] text-muted-foreground truncate max-w-[130px] font-medium">{b.nama_broker}</p>
                   </div>
                   <span className={`text-[10.5px] font-black tabular-nums shrink-0 ml-2 ${Number(b.net_value) >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {formatRupiah(Number(b.net_value))}

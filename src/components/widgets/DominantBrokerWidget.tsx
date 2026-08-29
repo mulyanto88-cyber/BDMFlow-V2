@@ -3,6 +3,7 @@
 import React from 'react'
 import { formatRupiah } from '@/lib/utils'
 import { Building2, TrendingUp, TrendingDown, Percent, ShieldCheck, Sparkles, ArrowUpRight, ArrowDownRight, Info } from 'lucide-react'
+import { getBrokerBadgeStyle } from '@/lib/broker-colors'
 
 export interface DominantBrokerRow {
   role: 'BUYER' | 'SELLER'
@@ -119,7 +120,7 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
                     <td key={p} className="py-3 px-3 text-center">
                       {b?.broker_code ? (
                         <div className="inline-flex flex-col items-center">
-                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          <span className={`text-xs font-black px-2.5 py-0.5 rounded-md border shadow-2xs ${getBrokerBadgeStyle(b.broker_code)}`}>
                             {b.broker_code}
                           </span>
                           <span className="text-[9px] font-medium text-muted-foreground truncate max-w-[85px] mt-0.5">
@@ -255,7 +256,7 @@ export function DominantBrokerWidget({ data = [], stockCode, currentPrice }: Pro
                     <td key={p} className="py-3 px-3 text-center">
                       {s?.broker_code ? (
                         <div className="inline-flex flex-col items-center">
-                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                          <span className={`text-xs font-black px-2.5 py-0.5 rounded-md border shadow-2xs ${getBrokerBadgeStyle(s.broker_code)}`}>
                             {s.broker_code}
                           </span>
                           <span className="text-[9px] font-medium text-muted-foreground truncate max-w-[85px] mt-0.5">
