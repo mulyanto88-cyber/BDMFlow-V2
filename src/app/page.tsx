@@ -136,23 +136,23 @@ export default function LandingPage() {
 
           {/* Headline */}
           <div className="space-y-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.04]">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight leading-[1.10] sm:leading-[1.04]">
               <span className="block gradient-gold">Analisis Institusional</span>
               <span className="block text-foreground/90">untuk Investor IDX</span>
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground/75 max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="text-xs sm:text-base md:text-lg text-muted-foreground/75 max-w-2xl mx-auto leading-relaxed font-medium px-1 sm:px-0">
               Lacak <strong className="text-foreground/90 font-black">Smart Money</strong>, Foreign Flow, Fundamental Intelligence, dan KSEI secara akurat.
               Data pasar terpadu dan <strong className="text-amber-400 font-bold">Backtest Lab Akurasi Sinyal</strong> — update setiap hari pukul 18:00 WIB.
             </p>
           </div>
 
-          {/* Hero Action Buttons (Softened, focused on exploring & Free Trial) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          {/* Hero Action Buttons (Mobile Full-Width Responsive) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 animate-slide-up max-w-md sm:max-w-none mx-auto w-full" style={{ animationDelay: '0.2s' }}>
             <TrackLink
               href="/auth?mode=register"
               event="cta_click"
               data={{ cta: 'hero_free_trial' }}
-              className="group flex items-center gap-2.5 px-8 py-4 rounded-2xl font-black text-sm text-black transition-all duration-200 active:scale-95 btn-gradient-gold shadow-[0_8px_32px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.5)]"
+              className="group flex items-center justify-center gap-2 px-7 py-3.5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm text-black transition-all duration-200 active:scale-95 btn-gradient-gold shadow-[0_8px_32px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.5)] w-full sm:w-auto"
             >
               Mulai Free Trial 7 Hari
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -160,7 +160,7 @@ export default function LandingPage() {
 
             <a
               href="#fitur"
-              className="flex items-center gap-2 px-7 py-4 rounded-2xl text-sm font-bold text-foreground/80 border border-line-5 bg-surface-3 hover:bg-surface-4 hover:text-foreground transition-all duration-200"
+              className="flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-2xl text-xs sm:text-sm font-bold text-foreground/80 border border-line-5 bg-surface-3 hover:bg-surface-4 hover:text-foreground transition-all duration-200 w-full sm:w-auto"
             >
               <ArrowDown size={14} className="text-amber-500 animate-bounce" />
               Lihat Cuplikan Fitur Terlebih Dahulu
