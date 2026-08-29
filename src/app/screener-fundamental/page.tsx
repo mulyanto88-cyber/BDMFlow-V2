@@ -217,7 +217,7 @@ export default function FundamentalScreenerPage() {
                   Fundamental &amp; Valuation Screener
                 </h1>
                 <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                  Stockbit Intel
+                  BDM Fundamental Intel
                 </span>
                 <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                   46 Metrik Lengkap

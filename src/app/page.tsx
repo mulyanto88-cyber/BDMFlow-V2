@@ -42,7 +42,7 @@ const FEATURES = [
     tag: 'NEW',
     tagColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
     title: 'Fundamental & Valuation Screener',
-    desc: '46 rasio keuangan terlengkap (Stockbit Intel) — saring saham undervalue (PER/PBV), efisiensi tinggi (ROE/NPM), solvabilitas aman (DER/Altman Z), hingga Free Cash Flow.',
+    desc: '46 rasio keuangan komprehensif — saring saham undervalue (PER/PBV), efisiensi tinggi (ROE/NPM), solvabilitas aman (DER/Altman Z), hingga Free Cash Flow.',
     size: 'sm',
   },
   {
@@ -103,7 +103,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   'Semua fitur Free',
   '🎯 Backtest Lab (Multi-Stock Signal Accuracy & Win Rate)',
-  '📊 Fundamental & Valuation Screener (46 Rasio Keuangan Stockbit Intel)',
+  '📊 Fundamental & Valuation Screener (46 Rasio Keuangan Komprehensif)',
   'Screener Pro (900+ saham, 15+ sinyal)',
   'Smart Money Matrix & Whale Tracker',
   'Foreign Flow Intelligence + Stock Chart',
@@ -357,7 +357,7 @@ export default function LandingPage() {
                 accent: '#38bdf8',
                 accentRgb: '56,189,248',
                 title: 'Keputusan Lebih Terinformasi',
-                desc: 'Gabungkan data Smart Money, Foreign Flow, Fundamental Stockbit, dan Backtest Signal dalam satu analisis terpadu. Kurangi noise, fokus pada sinyal berkualitas tinggi.',
+                desc: 'Gabungkan data Smart Money, Foreign Flow, Fundamental Valuation, dan Backtest Signal dalam satu analisis terpadu. Kurangi noise, fokus pada sinyal berkualitas tinggi.',
               },
             ].map((v) => {
               const Icon = v.icon
@@ -508,7 +508,7 @@ export default function LandingPage() {
                 <span className="gradient-gold">Dengan Free Trial 7 Hari</span>
               </h2>
               <p className="text-sm md:text-base text-muted-foreground/60 max-w-lg mx-auto leading-relaxed font-medium">
-                Bergabung dengan investor IDX yang sudah menggunakan data institusional, analisa fundamental Stockbit, dan backtest sinyal untuk keputusan investasi yang lebih terinformasi.
+                Bergabung dengan investor IDX yang sudah menggunakan data institusional, analisa fundamental komprehensif, dan backtest sinyal untuk keputusan investasi yang lebih terinformasi.
               </p>
             </div>
 
