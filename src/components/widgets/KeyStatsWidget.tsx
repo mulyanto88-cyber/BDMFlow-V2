@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/api'
 import {
   TrendingUp, TrendingDown, DollarSign, ShieldCheck, ShieldAlert,
   Percent, PieChart, Layers, ArrowUpRight, Scale, CheckCircle2,
@@ -104,7 +105,7 @@ export function KeyStatsWidget({ stockCode, initialData }: KeyStatsWidgetProps) 
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch(`/api/stock-detail?code=${stockCode}&action=keystats`)
+        const res = await authFetch(`/api/stock-detail?code=${stockCode}&action=keystats`)
         if (!res.ok) throw new Error('Gagal memuat data fundamental')
         const json = await res.json()
         if (isMounted) {

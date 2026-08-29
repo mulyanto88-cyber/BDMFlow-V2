@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import { authFetch } from '@/lib/api'
 import {
   PieChart, Filter, Search, ArrowUpDown, ChevronRight, ShieldCheck,
   TrendingUp, DollarSign, Percent, Scale, RefreshCw, Zap, Download,
@@ -102,7 +103,7 @@ export default function FundamentalScreenerPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/screener-fundamental?preset=${selectedPreset}`)
+      const res = await authFetch(`/api/screener-fundamental?preset=${selectedPreset}`)
       if (!res.ok) throw new Error('Gagal mengambil data screener')
       const json = await res.json()
       setData(json.data || [])

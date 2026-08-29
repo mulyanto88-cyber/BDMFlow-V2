@@ -48,6 +48,7 @@ const PAGE_META: Record<string, { title: string; parent?: string }> = {
   '/radar':           { title: 'Watchlist Radar',    parent: 'Screeners' },
   '/msci-screener':   { title: 'MSCI Screener',      parent: 'Screeners' },
   '/ftse-screener':   { title: 'FTSE Screener',      parent: 'Screeners' },
+  '/screener-fundamental': { title: 'Fundamental Screener', parent: 'Screeners' },
   '/backtest':        { title: 'Backtest Lab',       parent: 'Screeners' },
   '/foreign-flow':    { title: 'Foreign Flow',       parent: 'Aliran Dana' },
   '/broker-flow':     { title: 'Broker Flow Harian', parent: 'Aliran Dana' },
@@ -57,6 +58,7 @@ const PAGE_META: Record<string, { title: string; parent?: string }> = {
   '/insider':         { title: 'Insider Radar',      parent: 'KSEI' },
   '/watchlist':       { title: 'Watchlist & Alerts', parent: 'Tools' },
   '/right-issue-calc':{ title: 'Right Issue Calc',   parent: 'Tools' },
+  '/admin':           { title: 'Admin Analytics',    parent: 'Tools' },
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

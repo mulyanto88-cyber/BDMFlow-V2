@@ -19,7 +19,7 @@ const nextConfig = {
         // good copy instead of an error). max-age=300 lets browsers skip the round-trip on quick
         // back-and-forth navigation. User-specific routes (watchlist, auth) and the raw-SQL POST
         // endpoint (motherduck) are excluded so nothing is shared-cached.
-        source: '/api/:route(bandarmologi|broker-flow|broker-tracker|composite|foreign-flow|insider|ksei-monthly|msci-screener|ftse-screener|radar|stock-detail|volume-aov|morning-brief)',
+        source: '/api/:route(bandarmologi|broker-flow|broker-tracker|composite|foreign-flow|insider|ksei-monthly|msci-screener|ftse-screener|radar|screener-fundamental|stock-detail|volume-aov|morning-brief)',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=604800' },
         ],

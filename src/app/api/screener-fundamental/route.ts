@@ -1,4 +1,7 @@
-export const dynamic = 'force-dynamic'
+// Fundamental data comes from a weekly ETL (Saturday) — an hour of caching is
+// always "fresh enough", and the edge cache in next.config.js keeps repeat
+// clicks off MotherDuck entirely.
+export const revalidate = 3600
 
 import { NextRequest, NextResponse } from 'next/server'
 import { run } from '@/lib/db'
@@ -89,7 +92,8 @@ export async function GET(request: NextRequest) {
     const data = await run(sql)
     return NextResponse.json({ data, total: data.length })
   } catch (err: any) {
+    // Generic message — DB internals stay server-side.
     console.error('[screener-fundamental]', err.message)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal mengambil data. Silakan coba lagi.' }, { status: 500 })
   }
 }
