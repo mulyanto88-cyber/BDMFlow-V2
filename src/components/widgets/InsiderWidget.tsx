@@ -30,11 +30,11 @@ export function InsiderWidget({ stockCode }: Props) {
         </div>
       )}
       <div className="glass rounded-2xl border border-line-3 overflow-hidden">
-        <div className="px-3 py-2.5 border-b border-line-2 bg-slate-100/90 dark:bg-surface-1 text-xs font-bold text-slate-800 dark:text-gold-400">Transaksi Insider (Komisaris/Direksi/Pengendali)</div>
+        <div className="px-3 py-2.5 border-b border-line-2 bg-surface-1 text-xs font-bold text-foreground">Transaksi Insider (Komisaris/Direksi/Pengendali)</div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-line-2 bg-slate-50 dark:bg-surface-2 text-[9px] text-slate-600 dark:text-muted-foreground uppercase tracking-wider font-bold">
+              <tr className="border-b border-line-2 bg-surface-2 text-[9px] text-muted-foreground uppercase tracking-wider font-bold">
                 <th className="text-left px-3 py-2">Tanggal</th>
                 <th className="text-left px-3 py-2">Nama</th>
                 <th className="text-left px-3 py-2">Role</th>
@@ -47,14 +47,14 @@ export function InsiderWidget({ stockCode }: Props) {
               {insiderFeed.length === 0 ? (
                 <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">Belum ada data insider untuk saham ini</td></tr>
               ) : insiderFeed.map((ins: any, i:number) => (
-                <tr key={i} className="border-b border-line-1 hover:bg-slate-50/80 dark:hover:bg-surface-2/30 transition-colors">
+                <tr key={i} className="border-b border-line-1 hover:bg-surface-2/30 transition-colors">
                   <td className="px-3 py-2 text-muted-foreground">{String(ins.transaction_date||'').slice(0,10)}</td>
-                  <td className="px-3 py-2 truncate max-w-[140px] font-medium">{ins.insider_name}</td>
+                  <td className="px-3 py-2 truncate max-w-[140px] font-medium text-foreground">{ins.insider_name}</td>
                   <td className="px-3 py-2 text-muted-foreground">{ins.insider_type}</td>
                   <td className="px-3 py-2 text-center">
-                    <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${ins.action_type==='BUY'?'bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/20':'bg-rose-50 text-rose-800 border border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/20'}`}>{ins.action_type}</span>
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${ins.action_type==='BUY'?'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30':'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'}`}>{ins.action_type}</span>
                   </td>
-                  <td className={`px-3 py-2 text-right font-bold ${Number(ins.pct_change)>=0?'text-emerald-700 dark:text-emerald-400':'text-rose-600 dark:text-rose-400'}`}>
+                  <td className={`px-3 py-2 text-right font-bold ${Number(ins.pct_change)>=0?'text-emerald-600 dark:text-emerald-400':'text-rose-600 dark:text-rose-400'}`}>
                     {Number(ins.pct_change)>=0?'+':''}{Number(ins.pct_change).toFixed(3)}%
                   </td>
                   <td className="px-3 py-2 text-right hidden md:table-cell text-muted-foreground">
