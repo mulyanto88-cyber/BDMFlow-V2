@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Maximize2, Sparkles, ArrowRight, Eye } from 'lucide-react'
+import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Maximize2, Sparkles, ArrowRight, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 // Optimized WebP screenshots in /public/screenshots/ (Ultra-lightweight ~70KB each)
@@ -24,7 +24,12 @@ const SHOTS = [
 
 export default function FeatureShowcase() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({})
+  const [imgFailed, setImgFailed] = useState(false)
+
+  // Reset the error fallback whenever a different screenshot is opened.
+  useEffect(() => {
+    setImgFailed(false)
+  }, [selectedIndex])
 
   const handleNext = useCallback(() => {
     if (selectedIndex === null) return
@@ -72,85 +77,72 @@ export default function FeatureShowcase() {
 
       {/* Grid of Screenshots with Mockup Browser Frame */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 stagger">
-        {SHOTS.map((shot, idx) => {
-          const isLoaded = loadedMap[shot.src]
-          return (
-            <div
-              key={shot.src}
-              onClick={() => setSelectedIndex(idx)}
-              className="group rounded-2xl overflow-hidden border border-border/60 hover:border-amber-500/60 transition-all duration-300 cursor-pointer bg-card hover:shadow-[0_16px_36px_rgba(0,0,0,0.45)] flex flex-col"
-            >
-              {/* Browser Window Header Bar */}
-              <div className="px-3.5 py-2.5 bg-surface-2/80 border-b border-border/40 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70 inline-block" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70 inline-block" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70 inline-block" />
-                  <span className="ml-2 text-[10px] font-mono text-muted-foreground/60 truncate">
-                    bdmflow.web.id/{shot.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}
-                  </span>
-                </div>
-                <span className="text-[9px] font-mono font-bold text-amber-500/80 uppercase">
-                  HD #{idx + 1}
+        {SHOTS.map((shot, idx) => (
+          <div
+            key={shot.src}
+            onClick={() => setSelectedIndex(idx)}
+            className="group rounded-2xl overflow-hidden border border-border/60 hover:border-amber-500/60 transition-all duration-300 cursor-pointer bg-card hover:shadow-[0_16px_36px_rgba(0,0,0,0.45)] flex flex-col"
+          >
+            {/* Browser Window Header Bar */}
+            <div className="px-3.5 py-2.5 bg-surface-2/80 border-b border-border/40 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70 inline-block" />
+                <span className="ml-2 text-[10px] font-mono text-muted-foreground/60 truncate">
+                  bdmflow.web.id/{shot.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}
                 </span>
               </div>
+              <span className="text-[9px] font-mono font-bold text-amber-500/80 uppercase">
+                HD #{idx + 1}
+              </span>
+            </div>
 
-              {/* Image Container */}
-              <div className="relative aspect-[16/9] bg-slate-950 overflow-hidden">
-                {!isLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 animate-pulse text-muted-foreground/40">
-                    <ImageIcon size={28} className="animate-spin duration-1000" />
-                  </div>
-                )}
-
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  ref={(el) => {
-                    // Cached images can finish loading BEFORE React attaches
-                    // onLoad — without this check the thumbnail stays at
-                    // opacity-0 with an eternal spinner on repeat visits.
-                    if (el && el.complete && el.naturalWidth > 0) {
-                      setLoadedMap(prev => (prev[shot.src] ? prev : { ...prev, [shot.src]: true }))
-                    }
-                  }}
-                  src={shot.src}
-                  alt={`Screenshot — ${shot.title}`}
-                  loading="lazy"
-                  onLoad={() => setLoadedMap(prev => ({ ...prev, [shot.src]: true }))}
-                  className={`w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-500 ${
-                    isLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-
-                {/* Hover Zoom Overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                  <span className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-xl shadow-amber-500/30 scale-95 group-hover:scale-100 transition-transform">
-                    <Maximize2 size={14} />
-                    Perbesar Screenshot
-                  </span>
-                </div>
+            {/* Image Container — image is NEVER hidden by JS. The skeleton
+                sits UNDER the image, so a slow load shows a shimmer, a failed
+                load shows the alt text, and a cached load is instant. */}
+            <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40">
+                <ImageIcon size={28} className="animate-spin duration-1000" />
               </div>
 
-              {/* Card Footer */}
-              <div className="p-4 flex-1 flex flex-col justify-between bg-surface-1">
-                <div>
-                  <h3 className="text-[13px] font-black text-foreground group-hover:text-amber-400 transition-colors mb-1">
-                    {shot.title}
-                  </h3>
-                  <p className="text-[11.5px] text-muted-foreground/75 leading-relaxed">
-                    {shot.desc}
-                  </p>
-                </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={shot.src}
+                alt={`Screenshot — ${shot.title}`}
+                loading="lazy"
+                draggable={false}
+                className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-500"
+              />
+
+              {/* Hover Zoom Overlay */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                <span className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-xl shadow-amber-500/30 scale-95 group-hover:scale-100 transition-transform">
+                  <Maximize2 size={14} />
+                  Perbesar Screenshot
+                </span>
               </div>
             </div>
-          )
-        })}
+
+            {/* Card Footer */}
+            <div className="p-4 flex-1 flex flex-col justify-between bg-surface-1">
+              <div>
+                <h3 className="text-[13px] font-black text-foreground group-hover:text-amber-400 transition-colors mb-1">
+                  {shot.title}
+                </h3>
+                <p className="text-[11.5px] text-muted-foreground/75 leading-relaxed">
+                  {shot.desc}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ════════════════════ LIGHTBOX / FULLSCREEN ZOOM MODAL ════════════════════ */}
       {selectedIndex !== null && (
         <div
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl p-2 sm:p-6 animate-fade-in select-none"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl p-2 sm:p-6 animate-fade select-none"
           onClick={() => setSelectedIndex(null)}
         >
           {/* Top Bar Controls */}
@@ -193,7 +185,7 @@ export default function FeatureShowcase() {
 
           {/* Main Image Viewer */}
           <div
-            className="relative w-full max-w-6xl flex-1 flex items-center justify-center my-2 sm:my-4 overflow-hidden"
+            className="relative w-full max-w-6xl flex-1 flex items-center justify-center my-2 sm:my-4 overflow-hidden min-h-0"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Prev Button */}
@@ -205,15 +197,42 @@ export default function FeatureShowcase() {
               <ChevronLeft size={22} />
             </button>
 
-            {/* Enlarged Image Container */}
-            <div className="relative max-h-full max-w-full rounded-2xl overflow-hidden border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-slate-950">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={SHOTS[selectedIndex].src}
-                alt={SHOTS[selectedIndex].title}
-                className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl animate-fade"
-              />
-            </div>
+            {imgFailed ? (
+              // Readable fallback — never a black screen.
+              <div className="flex flex-col items-center gap-3 text-center px-6">
+                <span className="inline-flex p-4 rounded-2xl bg-white/10 border border-white/15">
+                  <AlertTriangle size={26} className="text-amber-400" />
+                </span>
+                <p className="text-white font-black text-sm">Gambar gagal dimuat</p>
+                <p className="text-white/60 text-xs max-w-xs leading-relaxed">
+                  Buka fitur langsung: <strong>{SHOTS[selectedIndex].title}</strong>
+                </p>
+                <Link
+                  href="/auth?mode=register"
+                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-slate-950 btn-gradient-gold shadow-md"
+                >
+                  Coba Fitur Ini <ArrowRight size={12} />
+                </Link>
+              </div>
+            ) : (
+              <div className="relative max-w-full max-h-full rounded-2xl overflow-hidden border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-white/5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  key={SHOTS[selectedIndex].src}
+                  ref={(el) => {
+                    // Same race as the grid: a fast failure (abort/404 from
+                    // cache) can fire error before React attaches onError.
+                    if (el && el.complete && el.naturalWidth === 0) setImgFailed(true)
+                  }}
+                  src={SHOTS[selectedIndex].src}
+                  alt={SHOTS[selectedIndex].title}
+                  draggable={false}
+                  onError={() => setImgFailed(true)}
+                  style={{ maxHeight: '78vh', maxWidth: '94vw' }}
+                  className="block w-auto h-auto object-contain"
+                />
+              </div>
+            )}
 
             {/* Next Button */}
             <button
