@@ -5,7 +5,8 @@ import {
   Zap, Globe, BarChart2, Eye, TrendingUp, Calculator,
   Shield, CheckCircle, ArrowRight, Search,
   Activity, Brain, Building2, Lock, Sparkles,
-  ChevronRight, Layers, Target, FlaskConical, Award, Flame
+  ChevronRight, Layers, Target, FlaskConical, Award, Flame,
+  PieChart
 } from 'lucide-react'
 import FeatureShowcase from '@/components/feature-showcase'
 import TrackLink from '@/components/track-link'
@@ -31,6 +32,16 @@ const FEATURES = [
     tagColor: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
     title: 'Backtest Lab & Signal Accuracy',
     desc: 'Uji akurasi 10 sinyal harian (AOV Surge, Whale Alert, Foreign Inflow) terhadap 900+ saham IDX. Hitung Win Rate riil, Max Potential Gain (MFE), dan Max Drawdown.',
+    size: 'sm',
+  },
+  {
+    icon: PieChart,
+    accent: '#10b981',
+    accentRgb: '16,185,129',
+    tag: 'NEW',
+    tagColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    title: 'Fundamental & Valuation Screener',
+    desc: '46 rasio keuangan terlengkap (Stockbit Intel) — saring saham undervalue (PER/PBV), efisiensi tinggi (ROE/NPM), solvabilitas aman (DER/Altman Z), hingga Free Cash Flow.',
     size: 'sm',
   },
   {
@@ -91,6 +102,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   'Semua fitur Free',
   '🎯 Backtest Lab (Multi-Stock Signal Accuracy & Win Rate)',
+  '📊 Fundamental & Valuation Screener (46 Rasio Keuangan Stockbit Intel)',
   'Screener Pro (900+ saham, 15+ sinyal)',
   'Smart Money Matrix & Whale Tracker',
   'Foreign Flow Intelligence + Stock Chart',

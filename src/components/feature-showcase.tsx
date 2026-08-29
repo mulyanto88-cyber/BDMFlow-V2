@@ -6,6 +6,8 @@ import { Image as ImageIcon } from 'lucide-react'
 // Screenshots live in /public/screenshots (1920×1080). Filenames must match exactly.
 const SHOTS = [
   { src: '/screenshots/screener-pro.png',             title: 'Screener Pro',              desc: 'Saring 900+ saham IDX dengan 15+ sinyal smart money dalam satu tampilan.' },
+  { src: '/screenshots/screener-fundamental.png',     title: 'Fundamental & Valuation Screener', desc: 'Screening 46 rasio keuangan lengkap (Stockbit Intel): PER, PBV, ROE, F-Score, hingga Free Cash Flow.' },
+  { src: '/screenshots/keystats-stock-detail.png',    title: 'Key Stats & Valuation Detail', desc: 'Diagnosa fundamental pintar, health score 0-100, dan highlight traffic light hijau/merah per emiten.' },
   { src: '/screenshots/foreign-flow-inteligence.png', title: 'Foreign Flow Intelligence', desc: 'Harga vs kumulatif net foreign, lengkap dengan aliran asing harian per saham.' },
   { src: '/screenshots/screener-msci.png',            title: 'MSCI Eligibility Screener', desc: 'Deteksi kandidat masuk/keluar indeks MSCI + saham yang hampir lolos.' },
   { src: '/screenshots/screener-ftse.png',            title: 'FTSE GEIS Screener',        desc: 'Kelayakan FTSE: uji likuiditas X/12 bulan, free float, & ukuran.' },
