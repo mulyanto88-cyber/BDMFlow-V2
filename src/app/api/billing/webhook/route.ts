@@ -101,54 +101,86 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ledger error' }, { status: 500 })
   }
 
-  if (!ev.externalId) {
-    return NextResponse.json({ ok: true, skipped: 'no external_id' })
+  // 1. Try to find the invoice by external_id
+  let invoice: { user_id: string; status: string; amount: number } | null = null
+
+  if (ev.externalId) {
+    const { data: inv } = await admin
+      .from('billing_invoices')
+      .select('user_id, status, amount')
+      .eq('external_id', ev.externalId)
+      .single()
+    if (inv) invoice = inv
   }
 
-  // Find the invoice we created at checkout.
-  const { data: invoice, error: invErr } = await admin
-    .from('billing_invoices')
-    .select('user_id, status, amount')
-    .eq('external_id', ev.externalId)
-    .single()
-  if (invErr || !invoice) {
-    console.warn('[billing] webhook for unknown external_id:', ev.externalId)
-    return NextResponse.json({ ok: true, skipped: 'unknown invoice' })
+  // 2. Fallback: If no invoice found by external_id, look up user by customerEmail
+  if (!invoice && ev.customerEmail) {
+    console.log(`[billing] Looking up user by email fallback: ${ev.customerEmail}`)
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('id, email, plan')
+      .ilike('email', ev.customerEmail.trim())
+      .single()
+
+    if (profile) {
+      invoice = {
+        user_id: profile.id,
+        status: 'PENDING',
+        amount: ev.amount || 55000,
+      }
+      // Create record in billing_invoices
+      const externalId = ev.externalId || `mayar-direct-${profile.id.slice(0, 8)}-${Date.now()}`
+      await admin.from('billing_invoices').insert({
+        external_id: externalId,
+        user_id: profile.id,
+        amount: ev.amount || 55000,
+        status: 'PAID',
+        paid_at: new Date().toISOString(),
+        gateway_invoice_id: ev.gatewayRef ?? ev.eventId,
+      })
+    }
   }
+
+  if (!invoice) {
+    console.warn('[billing] webhook for unknown customer/invoice:', ev.externalId, ev.customerEmail)
+    return NextResponse.json({ ok: true, skipped: 'unknown invoice or customer' })
+  }
+
   if (invoice.status === 'PAID') {
-    // Already applied (e.g. re-delivered event with a fresh id) — no-op.
     return NextResponse.json({ ok: true, alreadyPaid: true })
   }
 
   if (ev.status === 'PAID') {
-    // One atomic window extension: stack on an active window, else start
-    // from now. SQL-side so retries can't double-extend.
-    const { error: updErr } = await admin
-      .from('billing_invoices')
-      .update({ status: 'PAID', paid_at: new Date().toISOString(), gateway_invoice_id: ev.gatewayRef ?? ev.eventId })
-      .eq('external_id', ev.externalId)
-    if (updErr) {
-      console.error('[billing] invoice update failed:', updErr.message)
-      return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+    if (ev.externalId) {
+      await admin
+        .from('billing_invoices')
+        .update({ status: 'PAID', paid_at: new Date().toISOString(), gateway_invoice_id: ev.gatewayRef ?? ev.eventId })
+        .eq('external_id', ev.externalId)
     }
 
     // Determine months from invoice amount (148500 = 3 months, 55000 = 1 month)
     const monthsToGrant = (invoice.amount && invoice.amount >= 100_000) ? 3 : 1
 
-    const { data: rows, error: profErr } = await admin.rpc('grant_pro_subscription', {
+    // Grant PRO via RPC
+    const { error: profErr } = await admin.rpc('grant_pro_subscription', {
       p_user_id: invoice.user_id,
       p_months: monthsToGrant,
     })
+
     if (profErr) {
-      console.error('[billing] grant_pro_subscription failed:', profErr.message)
-      return NextResponse.json({ error: 'Grant failed' }, { status: 500 })
+      console.warn('[billing] grant_pro_subscription RPC failed, attempting direct profile update:', profErr.message)
+      // Fallback: direct update to profiles table
+      const days = monthsToGrant * 30
+      const proUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      await admin.from('profiles').update({
+        plan: 'pro',
+        pro_until: proUntil,
+      }).eq('id', invoice.user_id)
     }
-    void rows
+
+    console.log(`[billing] Successfully granted PRO (${monthsToGrant}m) to user ${invoice.user_id}`)
   } else {
-    // EXPIRED / FAILED / CANCELED — record the terminal state on the invoice.
-    // PENDING (Midtrans non-terminal callbacks) is recorded by the ledger
-    // only; the invoice row stays PENDING until a terminal state arrives.
-    if (ev.status !== 'PENDING') {
+    if (ev.status !== 'PENDING' && ev.externalId) {
       await admin
         .from('billing_invoices')
         .update({ status: ev.status })

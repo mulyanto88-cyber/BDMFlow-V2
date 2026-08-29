@@ -88,6 +88,8 @@ export type WebhookEvent = {
   /** Gateway's own transaction/invoice id, once known. */
   gatewayRef: string | null
   amount: number
+  /** Customer email from payload if available */
+  customerEmail?: string | null
 }
 
 /** Extract the few fields the ledger cares about. Returns null when the
@@ -104,6 +106,7 @@ export function parseWebhookEvent(body: unknown): WebhookEvent | null {
     externalId: typeof b.external_id === 'string' ? b.external_id : null,
     gatewayRef: String(id),
     amount: Number(b.amount ?? 0),
+    customerEmail: typeof b.payer_email === 'string' ? b.payer_email : null,
   }
 }
 
@@ -112,24 +115,28 @@ export function parseMayarWebhook(body: unknown): WebhookEvent | null {
   const b = body as Record<string, unknown> | null
   if (!b || typeof b !== 'object') return null
   const data = (b.data || b) as Record<string, unknown>
-  const event = String(b.event || b.type || '')
+  const event = String(b.event || b.type || '').toLowerCase()
   const id = data.id ?? data.transaction_id ?? data.payment_id ?? b.id
   const statusStr = String(data.status || event).toUpperCase()
   if (!id) return null
 
-  const isPaid = statusStr.includes('SUCCESS') || statusStr.includes('PAID') || event.includes('payment.received') || event.includes('payment.paid')
+  const isPaid = statusStr.includes('SUCCESS') || statusStr.includes('PAID') || event.includes('payment.received') || event.includes('payment.paid') || event.includes('transaction.paid') || event.includes('invoice.paid')
   const status = isPaid ? 'PAID' : statusStr.includes('EXPIRE') ? 'EXPIRED' : statusStr.includes('FAIL') ? 'FAILED' : 'PENDING'
 
   const desc = String(data.description || data.notes || '')
   const match = desc.match(/bdm-[a-zA-Z0-9_-]+/)
   const externalId = (data.external_id as string) || (match ? match[0] : null) || (data.order_id as string) || null
 
+  const customerObj = (data.customer || b.customer) as Record<string, unknown> | undefined
+  const customerEmail = (data.customer_email as string) || (data.email as string) || (customerObj?.email as string) || (b.customer_email as string) || (b.email as string) || null
+
   return {
     eventId: `mayar:${String(id)}:${status}`,
     status,
     externalId,
     gatewayRef: String(id),
-    amount: Number(data.amount ?? 0),
+    amount: Number(data.amount ?? b.amount ?? 0),
+    customerEmail: customerEmail ? customerEmail.trim().toLowerCase() : null,
   }
 }
 
