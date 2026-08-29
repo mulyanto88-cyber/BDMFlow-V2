@@ -118,21 +118,21 @@ export default function Sidebar() {
     <>
       {/* ── DESKTOP SIDEBAR ── */}
       <aside
-        className={`hidden md:flex flex-col border-r ${mounted ? 'transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]' : ''} ${collapsed ? 'w-[60px]' : 'w-[236px]'} h-[calc(100vh_-_1.5rem)] sticky top-3 shrink-0`}
+        className={`hidden md:flex flex-col border-r ${mounted ? 'transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]' : ''} ${collapsed ? 'w-[64px]' : 'w-[248px]'} h-[calc(100vh_-_1.5rem)] sticky top-3 shrink-0`}
         style={{ background: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
       >
         {/* Logo bar */}
         <div
-          className="h-14 flex items-center justify-between px-3 shrink-0"
+          className="h-16 flex items-center justify-between px-3.5 shrink-0"
           style={{ borderBottom: '1px solid var(--sidebar-border)' }}
         >
           {!collapsed ? (
-            <Link href="/" className="flex items-center gap-2 group">
-              <BrandLogo size="sm" showText={true} />
+            <Link href="/" className="flex items-center gap-2 group overflow-hidden">
+              <BrandLogo size="md" showText={true} />
             </Link>
           ) : (
             <Link href="/" className="mx-auto relative" title="BDMFlow IDX Intelligence">
-              <BrandLogoIcon size={30} />
+              <BrandLogoIcon size={36} />
             </Link>
           )}
 

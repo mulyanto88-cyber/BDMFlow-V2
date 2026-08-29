@@ -9,21 +9,20 @@ interface BrandLogoProps {
   textClassName?: string
 }
 
-export function BrandLogoIcon({ size = 32, className = '' }: { size?: number; className?: string }) {
+export function BrandLogoIcon({ size = 44, className = '' }: { size?: number; className?: string }) {
   return (
     <div
       className={`relative flex items-center justify-center shrink-0 ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: (size * 340) / 290 }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/logo-shield-trans.png"
         alt="BDMFlow Shield"
         width={size}
-        height={size}
-        className="w-full h-full object-contain drop-shadow-[0_4px_10px_rgba(245,158,11,0.35)]"
+        height={Math.round((size * 340) / 290)}
+        className="w-full h-full object-contain drop-shadow-[0_6px_16px_rgba(245,158,11,0.28)] hover:scale-105 transition-transform duration-200"
       />
-      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-background shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse" />
     </div>
   )
 }
@@ -34,27 +33,30 @@ export default function BrandLogo({
   className = '',
   textClassName = ''
 }: BrandLogoProps) {
-  const iconSizes = {
-    sm: 28,
-    md: 36,
-    lg: 44,
-    xl: 54,
+  const configs = {
+    sm: { iconSize: 34, title: 'text-[17px]', sub: 'text-[9px] tracking-[0.22em]' },
+    md: { iconSize: 44, title: 'text-[20px] sm:text-[22px]', sub: 'text-[10px] sm:text-[11px] tracking-[0.24em]' },
+    lg: { iconSize: 56, title: 'text-[26px] sm:text-[28px]', sub: 'text-[12px] sm:text-[13px] tracking-[0.26em]' },
+    xl: { iconSize: 72, title: 'text-[34px] sm:text-[36px]', sub: 'text-[15px] tracking-[0.28em]' },
   }
 
-  const px = iconSizes[size] || 36
+  const cfg = configs[size] || configs.md
 
   return (
-    <div className={`flex items-center gap-2 group select-none shrink-0 whitespace-nowrap ${className}`}>
-      <BrandLogoIcon size={px} />
+    <div className={`flex items-center gap-3 group select-none shrink-0 whitespace-nowrap ${className}`}>
+      <BrandLogoIcon size={cfg.iconSize} />
 
       {showText && (
         <div className={`flex flex-col justify-center text-left ${textClassName}`}>
-          <div className="flex items-center leading-none">
-            <span className="font-black tracking-tight text-[15px] sm:text-[16px] text-foreground">
-              BDM<span className="text-amber-500 dark:text-amber-400">Flow</span>
+          <div className="flex items-center leading-none font-sans">
+            <span className={`font-black tracking-tight ${cfg.title} text-[#0b2742] dark:text-white transition-colors`}>
+              BDM
+            </span>
+            <span className={`font-black tracking-tight ${cfg.title} text-[#0f6d7a] dark:text-[#2dd4bf] transition-colors`}>
+              Flow
             </span>
           </div>
-          <span className="text-[7.5px] sm:text-[8.5px] font-black uppercase tracking-[0.16em] text-cyan-600 dark:text-cyan-400/90 mt-0.5 leading-none">
+          <span className={`font-bold uppercase ${cfg.sub} text-slate-500 dark:text-slate-400 mt-1 leading-none font-mono`}>
             IDX INTELLIGENCE
           </span>
         </div>
