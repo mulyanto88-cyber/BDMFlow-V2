@@ -142,6 +142,7 @@ def fetch_keystats_stock(headers, stock_code):
         'shares_outstanding_b':    shares_out_b,
         'free_float_pct':          free_float,
         
+        # Valuation Ratios
         'pe_ratio_ttm':            item_map.get('Current PE Ratio (TTM)'),
         'pe_ratio_annualized':     item_map.get('Current PE Ratio (Annualised)'),
         'forward_pe':              item_map.get('Forward PE Ratio'),
@@ -153,6 +154,7 @@ def fetch_keystats_stock(headers, stock_code):
         'earnings_yield_pct':      item_map.get('Earnings Yield (TTM)'),
         'p_fcf_ratio':             item_map.get('Current Price To Free Cashflow (TTM)'),
 
+        # Per Share
         'eps_ttm':                 item_map.get('Current EPS (TTM)'),
         'eps_annualized':          item_map.get('Current EPS (Annualised)'),
         'bvps':                    item_map.get('Current Book Value Per Share'),
@@ -160,6 +162,7 @@ def fetch_keystats_stock(headers, stock_code):
         'cash_per_share':          item_map.get('Cash Per Share (Quarter)'),
         'fcf_per_share':           item_map.get('Free Cashflow Per Share (TTM)'),
 
+        # Profitability & Margins
         'roe_ttm_pct':             item_map.get('Return on Equity (TTM)'),
         'roa_ttm_pct':             item_map.get('Return on Assets (TTM)'),
         'roce_ttm_pct':            item_map.get('Return on Capital Employed (TTM)'),
@@ -167,10 +170,12 @@ def fetch_keystats_stock(headers, stock_code):
         'opm_quarter_pct':         item_map.get('Operating Profit Margin (Quarter)'),
         'npm_quarter_pct':         item_map.get('Net Profit Margin (Quarter)'),
 
+        # Growth
         'revenue_growth_yoy_pct':  item_map.get('Revenue (Quarter YoY Growth)'),
         'gross_profit_growth_yoy': item_map.get('Gross Profit (Quarter YoY Growth)'),
         'net_income_growth_yoy':   item_map.get('Net Income (Quarter YoY Growth)'),
 
+        # Solvency & Financial Health
         'debt_to_equity':          item_map.get('Debt to Equity Ratio (Quarter)'),
         'current_ratio':           item_map.get('Current Ratio (Quarter)'),
         'quick_ratio':             item_map.get('Quick Ratio (Quarter)'),
@@ -178,6 +183,7 @@ def fetch_keystats_stock(headers, stock_code):
         'piotroski_f_score':       item_map.get('Piotroski F-Score'),
         'altman_z_score':          item_map.get('Altman Z-Score (Modified)'),
 
+        # Financial Statements (in Billion IDR)
         'revenue_ttm_b':           item_map.get('Revenue (TTM)'),
         'gross_profit_ttm_b':      item_map.get('Gross Profit (TTM)'),
         'ebitda_ttm_b':            item_map.get('EBITDA (TTM)'),
@@ -191,6 +197,7 @@ def fetch_keystats_stock(headers, stock_code):
         'cash_from_ops_ttm_b':     item_map.get('Cash From Operations (TTM)'),
         'free_cash_flow_ttm_b':    item_map.get('Free cash flow (TTM)'),
 
+        # Metadata
         'period_latest':           latest_period,
         'updated_at':              datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     }
@@ -212,60 +219,14 @@ def main():
     con = duckdb.connect(f'md:{MOTHERDUCK_DB}?motherduck_token={MOTHERDUCK_TOKEN}')
     con.execute(f"CREATE SCHEMA IF NOT EXISTS {MD_SCHEMA}")
 
-    con.execute(f"""
-        CREATE TABLE IF NOT EXISTS {MD_SCHEMA}.{MD_TABLE} (
-            stock_code VARCHAR PRIMARY KEY,
-            market_cap_b DOUBLE,
-            enterprise_value_b DOUBLE,
-            shares_outstanding_b DOUBLE,
-            free_float_pct DOUBLE,
-            pe_ratio_ttm DOUBLE,
-            pe_ratio_annualized DOUBLE,
-            forward_pe DOUBLE,
-            pbv_ratio DOUBLE,
-            ps_ratio DOUBLE,
-            ev_ebitda DOUBLE,
-            ev_ebit DOUBLE,
-            peg_ratio DOUBLE,
-            earnings_yield_pct DOUBLE,
-            p_fcf_ratio DOUBLE,
-            eps_ttm DOUBLE,
-            eps_annualized DOUBLE,
-            bvps DOUBLE,
-            revenue_per_share DOUBLE,
-            cash_per_share DOUBLE,
-            fcf_per_share DOUBLE,
-            roe_ttm_pct DOUBLE,
-            roa_ttm_pct DOUBLE,
-            roce_ttm_pct DOUBLE,
-            gpm_quarter_pct DOUBLE,
-            opm_quarter_pct DOUBLE,
-            npm_quarter_pct DOUBLE,
-            revenue_growth_yoy_pct DOUBLE,
-            gross_profit_growth_yoy DOUBLE,
-            net_income_growth_yoy DOUBLE,
-            debt_to_equity DOUBLE,
-            current_ratio DOUBLE,
-            quick_ratio DOUBLE,
-            interest_coverage DOUBLE,
-            piotroski_f_score DOUBLE,
-            altman_z_score DOUBLE,
-            revenue_ttm_b DOUBLE,
-            gross_profit_ttm_b DOUBLE,
-            ebitda_ttm_b DOUBLE,
-            net_income_ttm_b DOUBLE,
-            cash_quarter_b DOUBLE,
-            total_assets_b DOUBLE,
-            total_liabilities_b DOUBLE,
-            total_equity_b DOUBLE,
-            total_debt_b DOUBLE,
-            net_debt_b DOUBLE,
-            cash_from_ops_ttm_b DOUBLE,
-            free_cash_flow_ttm_b DOUBLE,
-            period_latest VARCHAR,
-            updated_at TIMESTAMP
-        )
-    """)
+    # Check if existing table has outdated column count, auto drop to migrate
+    try:
+        col_count = len(con.execute(f"PRAGMA table_info('{MD_SCHEMA}.{MD_TABLE}')").fetchall())
+        if 0 < col_count != 46:
+            print(f"🔄 Menyesuaikan schema tabel {MD_SCHEMA}.{MD_TABLE} ({col_count} -> 46 kolom)...")
+            con.execute(f"DROP TABLE {MD_SCHEMA}.{MD_TABLE}")
+    except Exception:
+        pass
 
     # 3. Stock List
     args = sys.argv[1:]
@@ -313,8 +274,9 @@ def main():
                 df = pd.DataFrame(results)
                 con.register('df_batch', df)
                 con.execute(f"""
-                    INSERT OR REPLACE INTO {MD_SCHEMA}.{MD_TABLE}
-                    SELECT * FROM df_batch
+                    CREATE TABLE IF NOT EXISTS {MD_SCHEMA}.{MD_TABLE} AS SELECT * FROM df_batch LIMIT 0;
+                    DELETE FROM {MD_SCHEMA}.{MD_TABLE} WHERE stock_code IN (SELECT stock_code FROM df_batch);
+                    INSERT INTO {MD_SCHEMA}.{MD_TABLE} SELECT * FROM df_batch;
                 """)
                 con.unregister('df_batch')
                 print(f"   💾 [DB] Tersimpan batch {len(results)} saham ke MotherDuck!")
