@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   X, ChevronLeft, ChevronRight, Maximize2,
-  Sparkles, ArrowRight, CheckCircle2, Eye, RotateCw
+  Sparkles, CheckCircle2, Eye
 } from 'lucide-react'
-import Link from 'next/link'
 
 interface ShotItem {
   id: string
@@ -172,6 +172,11 @@ export default function FeatureShowcase() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [activeIdx, setActiveIdx] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const filteredShots = activeCategory === 'all'
     ? SHOTS
@@ -400,76 +405,72 @@ export default function FeatureShowcase() {
 
       </div>
 
-      {/* ════════════════════ TRUE FULLSCREEN MODAL (FLUSH TO TOP, ZERO MARGIN) ════════════════════ */}
-      {isLightboxOpen && (
+      {/* ════════════════════ REACT PORTAL FULLSCREEN MODAL ════════════════════ */}
+      {mounted && isLightboxOpen && createPortal(
         <div
-          className="fixed inset-0 z-[99999] flex flex-col items-center justify-start bg-black/95 backdrop-blur-2xl p-0 sm:px-4 sm:pt-2 sm:pb-3 cursor-zoom-out select-none animate-fade-in overflow-hidden"
+          className="fixed inset-0 z-[9999999] flex flex-col items-center justify-between bg-black/95 backdrop-blur-2xl p-2 sm:p-4 select-none cursor-pointer animate-fade-in"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, margin: 0 }}
           onClick={() => setIsLightboxOpen(false)} // CLICK ANYWHERE OUTSIDE CLOSES INSTANTLY!
         >
-          {/* Top Bar — Flush at the very top */}
+          {/* Top Bar */}
           <div
-            className="w-full max-w-[1600px] flex items-center justify-between px-3 sm:px-4 py-2 text-white shrink-0 bg-slate-950/80 sm:bg-transparent border-b sm:border-b-0 border-white/10 cursor-default"
+            className="w-full max-w-7xl flex items-center justify-between px-3 py-2 text-white shrink-0 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="px-2.5 py-0.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs font-mono shrink-0">
                 {activeIdx + 1} / {filteredShots.length}
               </span>
-              <h4 className="text-xs sm:text-base font-black text-white truncate">
+              <h4 className="text-sm sm:text-base font-black text-white truncate">
                 {currentShot.title}
               </h4>
             </div>
 
-            {/* Close Button */}
             <button
               onClick={() => setIsLightboxOpen(false)}
-              className="flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/20 hover:bg-rose-500 hover:text-white text-white font-black text-xs border border-white/20 transition-all shrink-0 cursor-pointer shadow-xl active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/20 hover:bg-rose-500 hover:text-white text-white font-bold text-xs border border-white/20 transition-all shrink-0 cursor-pointer shadow-xl active:scale-95"
               title="Tutup (Esc atau klik di luar)"
             >
               <span>Tutup</span>
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
 
-          {/* Natural Image Stage — Takes maximum available screen height right from the top */}
+          {/* Centered Image Container with 100% Natural Proportions */}
           <div
-            className="relative flex-1 w-full max-w-[1600px] flex items-center justify-center p-1 sm:p-2 cursor-default overflow-hidden"
+            className="relative flex-1 w-full max-w-7xl flex items-center justify-center p-1 sm:p-2 cursor-default overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Desktop Prev Button */}
+            {/* Desktop Prev */}
             <button
               onClick={handlePrev}
               className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/80 hover:bg-amber-500 hover:text-black border border-white/25 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl cursor-pointer"
               title="Sebelumnya (←)"
-              aria-label="Sebelumnya"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={26} />
             </button>
 
-            {/* Native Full-Size Image Container */}
-            <div className="rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 sm:border-2 sm:border-white/25 shadow-[0_0_80px_rgba(0,0,0,0.95)] bg-slate-950 max-h-[85vh] flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={currentShot.src}
-                alt={currentShot.title}
-                className="max-w-[98vw] max-h-[84vh] w-auto h-auto object-contain block"
-              />
-            </div>
+            {/* Native Picture */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={currentShot.src}
+              alt={currentShot.title}
+              className="max-w-full max-h-[82vh] w-auto h-auto object-contain rounded-2xl border-2 border-white/20 shadow-[0_0_80px_rgba(0,0,0,0.95)] bg-slate-950 block"
+            />
 
-            {/* Desktop Next Button */}
+            {/* Desktop Next */}
             <button
               onClick={handleNext}
               className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/80 hover:bg-amber-500 hover:text-black border border-white/25 text-white backdrop-blur-md transition-all active:scale-90 shadow-2xl cursor-pointer"
               title="Berikutnya (→)"
-              aria-label="Berikutnya"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={26} />
             </button>
           </div>
 
-          {/* Bottom Bar — Minimal hint & Mobile Navigation */}
+          {/* Mobile Bottom Navigation & Hint */}
           <div
-            className="w-full max-w-xl flex items-center justify-between gap-3 py-1.5 px-3 shrink-0 cursor-default"
+            className="w-full max-w-md flex items-center justify-between gap-3 py-1.5 px-3 shrink-0 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -481,7 +482,7 @@ export default function FeatureShowcase() {
             </button>
 
             <p className="text-[11px] text-white/50 text-center mx-auto truncate">
-              💡 Klik di luar gambar / tekan <kbd className="px-1 py-0.5 rounded bg-white/15 text-white/80 font-mono text-[9px]">ESC</kbd> untuk menutup
+              💡 Klik di luar gambar atau tekan <kbd className="px-1 py-0.5 rounded bg-white/15 text-white/80 font-mono text-[9px]">ESC</kbd> untuk menutup
             </p>
 
             <button
@@ -492,7 +493,8 @@ export default function FeatureShowcase() {
               <ChevronRight size={14} />
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )
