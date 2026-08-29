@@ -401,12 +401,12 @@ export default function FeatureShowcase() {
       {/* ════════════════════ FULLSCREEN LIGHTBOX MODAL ════════════════════ */}
       {isLightboxOpen && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-3 sm:p-6 animate-fade-in select-none cursor-pointer"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-3 sm:p-6 pt-4 sm:pt-6 pb-8 sm:pb-12 animate-fade-in select-none cursor-pointer"
           onClick={() => setIsLightboxOpen(false)} // CLICK ANYWHERE OUTSIDE CLOSES INSTANTLY!
         >
-          {/* Main Modal Box — Stop propagation so clicking inside the image area does NOT close */}
+          {/* Main Modal Box — Slightly lifted up for perfect eye-level centering */}
           <div
-            className="relative max-w-6xl w-full flex flex-col items-center cursor-default"
+            className="relative max-w-6xl w-full flex flex-col items-center cursor-default -translate-y-4 sm:-translate-y-7 md:-translate-y-9"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Bar with Title & Close Button */}
