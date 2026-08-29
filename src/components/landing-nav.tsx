@@ -6,6 +6,8 @@ import { Crown, Sparkles, LogOut, ArrowRight, Menu, X, Shield } from 'lucide-rea
 import { useAuth } from '@/context/auth-context'
 import ThemeToggle from '@/components/theme-toggle'
 
+import BrandLogo from '@/components/brand-logo'
+
 export default function LandingNav() {
   const { user, loading, isPro, signOut } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -16,18 +18,7 @@ export default function LandingNav() {
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm font-mono bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-            B
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base font-black tracking-tight text-foreground flex items-center gap-1.5 leading-none">
-              BDMFlow
-              <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                IDX
-              </span>
-            </span>
-            <span className="text-[10px] text-muted-foreground/70 font-medium">Flow Intelligence</span>
-          </div>
+          <BrandLogo size="md" showText={true} />
         </Link>
 
         {/* Center Nav Links (Desktop) */}

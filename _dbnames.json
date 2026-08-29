@@ -1,0 +1,3938 @@
+﻿[
+  {
+    "stock_code": "AADI",
+    "company_name": "Adaro Andalan Indonesia Tbk."
+  },
+  {
+    "stock_code": "AALI",
+    "company_name": "Astra Agro Lestari Tbk."
+  },
+  {
+    "stock_code": "ABBA",
+    "company_name": "Mahaka Media Tbk."
+  },
+  {
+    "stock_code": "ABDA",
+    "company_name": "Asuransi Bina Dana Arta Tbk."
+  },
+  {
+    "stock_code": "ABMM",
+    "company_name": "ABM Investama Tbk."
+  },
+  {
+    "stock_code": "ACES",
+    "company_name": "Ace Hardware Indonesia Tbk."
+  },
+  {
+    "stock_code": "ACRO",
+    "company_name": "Samcro Hyosung Adilestari Tbk."
+  },
+  {
+    "stock_code": "ACST",
+    "company_name": "Acset Indonusa Tbk."
+  },
+  {
+    "stock_code": "ADCP",
+    "company_name": "Adhi Commuter Properti Tbk."
+  },
+  {
+    "stock_code": "ADES",
+    "company_name": "Akasha Wira International Tbk."
+  },
+  {
+    "stock_code": "ADHI",
+    "company_name": "Adhi Karya (Persero) Tbk."
+  },
+  {
+    "stock_code": "ADMF",
+    "company_name": "Adira Dinamika Multi Finance Tbk."
+  },
+  {
+    "stock_code": "ADMG",
+    "company_name": "Polychem Indonesia Tbk"
+  },
+  {
+    "stock_code": "ADMR",
+    "company_name": "Adaro Minerals Indonesia Tbk."
+  },
+  {
+    "stock_code": "ADRO",
+    "company_name": "Adaro Energy Indonesia Tbk."
+  },
+  {
+    "stock_code": "AEGS",
+    "company_name": "Anugerah Spareparts Sejahtera Tbk."
+  },
+  {
+    "stock_code": "AGAR",
+    "company_name": "Asia Sejahtera Mina Tbk."
+  },
+  {
+    "stock_code": "AGII",
+    "company_name": "Samator Indo Gas Tbk."
+  },
+  {
+    "stock_code": "AGRO",
+    "company_name": "Bank Raya Indonesia Tbk."
+  },
+  {
+    "stock_code": "AGRS",
+    "company_name": "Bank IBK Indonesia Tbk."
+  },
+  {
+    "stock_code": "AHAP",
+    "company_name": "Asuransi Harta Aman Pratama Tbk."
+  },
+  {
+    "stock_code": "AIMS",
+    "company_name": "Akbar Indo Makmur Stimec Tbk"
+  },
+  {
+    "stock_code": "AISA",
+    "company_name": "FKS Food Sejahtera Tbk."
+  },
+  {
+    "stock_code": "AKKU",
+    "company_name": "Anugerah Kagum Karya Utama Tbk."
+  },
+  {
+    "stock_code": "AKPI",
+    "company_name": "Argha Karya Prima Industry Tbk."
+  },
+  {
+    "stock_code": "AKRA",
+    "company_name": "AKR Corporindo Tbk."
+  },
+  {
+    "stock_code": "AKSI",
+    "company_name": "Mineral Sumberdaya Mandiri Tbk."
+  },
+  {
+    "stock_code": "ALDO",
+    "company_name": "Alkindo Naratama Tbk."
+  },
+  {
+    "stock_code": "ALII",
+    "company_name": "Ancara Logistics Indonesia Tbk."
+  },
+  {
+    "stock_code": "ALKA",
+    "company_name": "Alakasa Industrindo Tbk"
+  },
+  {
+    "stock_code": "ALMI",
+    "company_name": "Alumindo Light Metal Industry Tbk."
+  },
+  {
+    "stock_code": "ALTO",
+    "company_name": "Tri Banyan Tirta Tbk."
+  },
+  {
+    "stock_code": "AMAG",
+    "company_name": "Asuransi Multi Artha Guna Tbk."
+  },
+  {
+    "stock_code": "AMAN",
+    "company_name": "Makmur Berkah Amanda Tbk."
+  },
+  {
+    "stock_code": "AMAR",
+    "company_name": "Bank Amar Indonesia Tbk."
+  },
+  {
+    "stock_code": "AMFG",
+    "company_name": "Asahimas Flat Glass Tbk."
+  },
+  {
+    "stock_code": "AMIN",
+    "company_name": "Ateliers Mecaniques D Indonesie Tbk."
+  },
+  {
+    "stock_code": "AMMN",
+    "company_name": "Amman Mineral Internasional Tbk."
+  },
+  {
+    "stock_code": "AMMS",
+    "company_name": "Agung Menjangan Mas Tbk."
+  },
+  {
+    "stock_code": "AMOR",
+    "company_name": "Ashmore Asset Management Indonesia Tbk."
+  },
+  {
+    "stock_code": "AMRT",
+    "company_name": "Sumber Alfaria Trijaya Tbk."
+  },
+  {
+    "stock_code": "ANDI",
+    "company_name": "Andira Agro Tbk."
+  },
+  {
+    "stock_code": "ANJT",
+    "company_name": "Austindo Nusantara Jaya Tbk."
+  },
+  {
+    "stock_code": "ANTM",
+    "company_name": "Aneka Tambang Tbk."
+  },
+  {
+    "stock_code": "APEX",
+    "company_name": "Apexindo Pratama Duta Tbk."
+  },
+  {
+    "stock_code": "APIC",
+    "company_name": "Pacific Strategic Financial Tbk."
+  },
+  {
+    "stock_code": "APII",
+    "company_name": "Arita Prima Indonesia Tbk."
+  },
+  {
+    "stock_code": "APLI",
+    "company_name": "Asiaplast Industries Tbk."
+  },
+  {
+    "stock_code": "APLN",
+    "company_name": "Agung Podomoro Land Tbk."
+  },
+  {
+    "stock_code": "ARCI",
+    "company_name": "Archi Indonesia Tbk."
+  },
+  {
+    "stock_code": "AREA",
+    "company_name": "Dunia Virtual Online Tbk."
+  },
+  {
+    "stock_code": "ARGO",
+    "company_name": "Argo Pantes Tbk"
+  },
+  {
+    "stock_code": "ARII",
+    "company_name": "Atlas Resources Tbk."
+  },
+  {
+    "stock_code": "ARKA",
+    "company_name": "Arkha Jayanti Persada Tbk."
+  },
+  {
+    "stock_code": "ARKO",
+    "company_name": "Arkora Hydro Tbk."
+  },
+  {
+    "stock_code": "ARMY",
+    "company_name": "Armidian Karyatama Tbk."
+  },
+  {
+    "stock_code": "ARNA",
+    "company_name": "Arwana Citramulia Tbk."
+  },
+  {
+    "stock_code": "ARTA",
+    "company_name": "Arthavest Tbk"
+  },
+  {
+    "stock_code": "ARTI",
+    "company_name": "Ratu Prabu Energi Tbk"
+  },
+  {
+    "stock_code": "ARTO",
+    "company_name": "Bank Jago Tbk."
+  },
+  {
+    "stock_code": "ASBI",
+    "company_name": "Asuransi Bintang Tbk."
+  },
+  {
+    "stock_code": "ASDM",
+    "company_name": "Asuransi Dayin Mitra Tbk."
+  },
+  {
+    "stock_code": "ASGR",
+    "company_name": "Astra Graphia Tbk."
+  },
+  {
+    "stock_code": "ASHA",
+    "company_name": "Cilacap Samudera Fishing Industry Tbk."
+  },
+  {
+    "stock_code": "ASII",
+    "company_name": "Astra International Tbk."
+  },
+  {
+    "stock_code": "ASJT",
+    "company_name": "Asuransi Jasa Tania Tbk."
+  },
+  {
+    "stock_code": "ASLC",
+    "company_name": "Autopedia Sukses Lestari Tbk."
+  },
+  {
+    "stock_code": "ASLI",
+    "company_name": "Asri Karya Lestari Tbk."
+  },
+  {
+    "stock_code": "ASMI",
+    "company_name": "Asuransi Maximus Graha Persada Tbk."
+  },
+  {
+    "stock_code": "ASPI",
+    "company_name": "Andalan Sakti Primaindo Tbk."
+  },
+  {
+    "stock_code": "ASPR",
+    "company_name": "Asia Pramulia Tbk."
+  },
+  {
+    "stock_code": "ASRI",
+    "company_name": "Alam Sutera Realty Tbk."
+  },
+  {
+    "stock_code": "ASRM",
+    "company_name": "Asuransi Ramayana Tbk."
+  },
+  {
+    "stock_code": "ASSA",
+    "company_name": "Adi Sarana Armada Tbk."
+  },
+  {
+    "stock_code": "ATAP",
+    "company_name": "Trimitra Prawara Goldland Tbk."
+  },
+  {
+    "stock_code": "ATIC",
+    "company_name": "Anabatic Technologies Tbk."
+  },
+  {
+    "stock_code": "ATLA",
+    "company_name": "Atlantis Subsea Indonesia Tbk."
+  },
+  {
+    "stock_code": "AUTO",
+    "company_name": "Astra Otoparts Tbk."
+  },
+  {
+    "stock_code": "AVIA",
+    "company_name": "Avia Avian Tbk."
+  },
+  {
+    "stock_code": "AWAN",
+    "company_name": "Era Digital Media Tbk."
+  },
+  {
+    "stock_code": "AXIO",
+    "company_name": "Tera Data Indonusa Tbk."
+  },
+  {
+    "stock_code": "AYAM",
+    "company_name": "Janu Putra Sejahtera Tbk."
+  },
+  {
+    "stock_code": "AYLS",
+    "company_name": "Agro Yasa Lestari Tbk."
+  },
+  {
+    "stock_code": "BABP",
+    "company_name": "Bank MNC Internasional Tbk."
+  },
+  {
+    "stock_code": "BABY",
+    "company_name": "Multitrend Indo Tbk."
+  },
+  {
+    "stock_code": "BACA",
+    "company_name": "Bank Capital Indonesia Tbk."
+  },
+  {
+    "stock_code": "BAIK",
+    "company_name": "Bersama Mencapai Puncak Tbk."
+  },
+  {
+    "stock_code": "BAJA",
+    "company_name": "Saranacentral Bajatama Tbk."
+  },
+  {
+    "stock_code": "BALI",
+    "company_name": "Bali Towerindo Sentra Tbk."
+  },
+  {
+    "stock_code": "BANK",
+    "company_name": "Bank Aladin Syariah Tbk."
+  },
+  {
+    "stock_code": "BAPA",
+    "company_name": "Bekasi Asri Pemula Tbk."
+  },
+  {
+    "stock_code": "BAPI",
+    "company_name": "Bhakti Agung Propertindo Tbk."
+  },
+  {
+    "stock_code": "BATA",
+    "company_name": "Sepatu Bata Tbk."
+  },
+  {
+    "stock_code": "BATR",
+    "company_name": "Benteng Api Technic Tbk."
+  },
+  {
+    "stock_code": "BAUT",
+    "company_name": "Mitra Angkasa Sejahtera Tbk."
+  },
+  {
+    "stock_code": "BAYU",
+    "company_name": "Bayu Buana Tbk"
+  },
+  {
+    "stock_code": "BBCA",
+    "company_name": "Bank Central Asia Tbk."
+  },
+  {
+    "stock_code": "BBHI",
+    "company_name": "Allo Bank Indonesia Tbk."
+  },
+  {
+    "stock_code": "BBKP",
+    "company_name": "Bank KB Bukopin Tbk."
+  },
+  {
+    "stock_code": "BBLD",
+    "company_name": "Buana Finance Tbk."
+  },
+  {
+    "stock_code": "BBMD",
+    "company_name": "Bank Mestika Dharma Tbk."
+  },
+  {
+    "stock_code": "BBNI",
+    "company_name": "Bank Negara Indonesia (Persero) Tbk."
+  },
+  {
+    "stock_code": "BBRI",
+    "company_name": "Bank Rakyat Indonesia (Persero) Tbk."
+  },
+  {
+    "stock_code": "BBRM",
+    "company_name": "Pelayaran Nasional Bina Buana Raya Tbk."
+  },
+  {
+    "stock_code": "BBSI",
+    "company_name": "Krom Bank Indonesia Tbk."
+  },
+  {
+    "stock_code": "BBSS",
+    "company_name": "Bumi Benowo Sukses Sejahtera Tbk."
+  },
+  {
+    "stock_code": "BBTN",
+    "company_name": "Bank Tabungan Negara (Persero) Tbk."
+  },
+  {
+    "stock_code": "BBYB",
+    "company_name": "Bank Neo Commerce Tbk."
+  },
+  {
+    "stock_code": "BCAP",
+    "company_name": "MNC Kapital Indonesia Tbk."
+  },
+  {
+    "stock_code": "BCIC",
+    "company_name": "Bank JTrust Indonesia Tbk."
+  },
+  {
+    "stock_code": "BCIP",
+    "company_name": "Bumi Citra Permai Tbk."
+  },
+  {
+    "stock_code": "BDKR",
+    "company_name": "Berdikari Pondasi Perkasa Tbk."
+  },
+  {
+    "stock_code": "BDMN",
+    "company_name": "Bank Danamon Indonesia Tbk."
+  },
+  {
+    "stock_code": "BEBS",
+    "company_name": "Berkah Beton Sadaya Tbk."
+  },
+  {
+    "stock_code": "BEEF",
+    "company_name": "Estika Tata Tiara Tbk."
+  },
+  {
+    "stock_code": "BEER",
+    "company_name": "Jobubu Jarum Minahasa Tbk."
+  },
+  {
+    "stock_code": "BEKS",
+    "company_name": "Bank Pembangunan Daerah Banten Tbk."
+  },
+  {
+    "stock_code": "BELI",
+    "company_name": "Global Digital Niaga Tbk."
+  },
+  {
+    "stock_code": "BELL",
+    "company_name": "Trisula Textile Industries Tbk."
+  },
+  {
+    "stock_code": "BESS",
+    "company_name": "Batulicin Nusantara Maritim Tbk."
+  },
+  {
+    "stock_code": "BEST",
+    "company_name": "Bekasi Fajar Industrial Estate Tbk."
+  },
+  {
+    "stock_code": "BFIN",
+    "company_name": "BFI Finance  Indonesia Tbk."
+  },
+  {
+    "stock_code": "BGTG",
+    "company_name": "Bank Ganesha Tbk."
+  },
+  {
+    "stock_code": "BHAT",
+    "company_name": "Bhakti Multi Artha Tbk."
+  },
+  {
+    "stock_code": "BHIT",
+    "company_name": "MNC Asia Holding Tbk."
+  },
+  {
+    "stock_code": "BIKA",
+    "company_name": "Binakarya Jaya Abadi Tbk."
+  },
+  {
+    "stock_code": "BIKE",
+    "company_name": "Sepeda Bersama Indonesia Tbk."
+  },
+  {
+    "stock_code": "BIMA",
+    "company_name": "Primarindo Asia Infrastructure Tbk."
+  },
+  {
+    "stock_code": "BINA",
+    "company_name": "Bank Ina Perdana Tbk."
+  },
+  {
+    "stock_code": "BINO",
+    "company_name": "Perma Plasindo Tbk."
+  },
+  {
+    "stock_code": "BIPI",
+    "company_name": "Astrindo Nusantara Infrastruktur Tbk."
+  },
+  {
+    "stock_code": "BIPP",
+    "company_name": "Bhuwanatala Indah Permai Tbk."
+  },
+  {
+    "stock_code": "BIRD",
+    "company_name": "Blue Bird Tbk."
+  },
+  {
+    "stock_code": "BISI",
+    "company_name": "BISI International Tbk."
+  },
+  {
+    "stock_code": "BJBR",
+    "company_name": "Bank Pembangunan Daerah Jawa Barat dan Banten Tbk."
+  },
+  {
+    "stock_code": "BJTM",
+    "company_name": "Bank Pembangunan Daerah Jawa Timur Tbk."
+  },
+  {
+    "stock_code": "BKDP",
+    "company_name": "Bukit Darmo Property Tbk"
+  },
+  {
+    "stock_code": "BKSL",
+    "company_name": "Sentul City Tbk."
+  },
+  {
+    "stock_code": "BKSW",
+    "company_name": "Bank QNB Indonesia Tbk."
+  },
+  {
+    "stock_code": "BLES",
+    "company_name": "Superior Prima Sukses Tbk."
+  },
+  {
+    "stock_code": "BLOG",
+    "company_name": "Trimitra Trans Persada Tbk."
+  },
+  {
+    "stock_code": "BLTA",
+    "company_name": "Berlian Laju Tanker Tbk"
+  },
+  {
+    "stock_code": "BLTZ",
+    "company_name": "Graha Layar Prima Tbk."
+  },
+  {
+    "stock_code": "BLUE",
+    "company_name": "Berkah Prima Perkasa Tbk."
+  },
+  {
+    "stock_code": "BMAS",
+    "company_name": "Bank Maspion Indonesia Tbk."
+  },
+  {
+    "stock_code": "BMBL",
+    "company_name": "Lavender Bina Cendikia Tbk."
+  },
+  {
+    "stock_code": "BMHS",
+    "company_name": "Bundamedik Tbk."
+  },
+  {
+    "stock_code": "BMRI",
+    "company_name": "Bank Mandiri (Persero) Tbk."
+  },
+  {
+    "stock_code": "BMSR",
+    "company_name": "Bintang Mitra Semestaraya Tbk"
+  },
+  {
+    "stock_code": "BMTR",
+    "company_name": "Global Mediacom Tbk."
+  },
+  {
+    "stock_code": "BNBA",
+    "company_name": "Bank Bumi Arta Tbk."
+  },
+  {
+    "stock_code": "BNBR",
+    "company_name": "Bakrie & Brothers Tbk"
+  },
+  {
+    "stock_code": "BNGA",
+    "company_name": "Bank CIMB Niaga Tbk."
+  },
+  {
+    "stock_code": "BNII",
+    "company_name": "Bank Maybank Indonesia Tbk."
+  },
+  {
+    "stock_code": "BNLI",
+    "company_name": "Bank Permata Tbk."
+  },
+  {
+    "stock_code": "BOAT",
+    "company_name": "Newport Marine Services Tbk."
+  },
+  {
+    "stock_code": "BOBA",
+    "company_name": "Formosa Ingredient Factory Tbk."
+  },
+  {
+    "stock_code": "BOGA",
+    "company_name": "Bintang Oto Global Tbk."
+  },
+  {
+    "stock_code": "BOLA",
+    "company_name": "Bali Bintang Sejahtera Tbk."
+  },
+  {
+    "stock_code": "BOLT",
+    "company_name": "Garuda Metalindo Tbk."
+  },
+  {
+    "stock_code": "BOSS",
+    "company_name": "Borneo Olah Sarana Sukses Tbk."
+  },
+  {
+    "stock_code": "BPFI",
+    "company_name": "Woori Finance Indonesia Tbk."
+  },
+  {
+    "stock_code": "BPII",
+    "company_name": "Batavia Prosperindo Internasional Tbk."
+  },
+  {
+    "stock_code": "BPTR",
+    "company_name": "Batavia Prosperindo Trans Tbk."
+  },
+  {
+    "stock_code": "BRAM",
+    "company_name": "Indo Kordsa Tbk."
+  },
+  {
+    "stock_code": "BREN",
+    "company_name": "Barito Renewables Energy Tbk."
+  },
+  {
+    "stock_code": "BRIS",
+    "company_name": "Bank Syariah Indonesia Tbk."
+  },
+  {
+    "stock_code": "BRMS",
+    "company_name": "Bumi Resources Minerals Tbk."
+  },
+  {
+    "stock_code": "BRNA",
+    "company_name": "Berlina Tbk."
+  },
+  {
+    "stock_code": "BRPT",
+    "company_name": "Barito Pacific Tbk."
+  },
+  {
+    "stock_code": "BRRC",
+    "company_name": "Raja Roti Cemerlang Tbk."
+  },
+  {
+    "stock_code": "BSBK",
+    "company_name": "Wulandari Bangun Laksana Tbk."
+  },
+  {
+    "stock_code": "BSDE",
+    "company_name": "Bumi Serpong Damai Tbk."
+  },
+  {
+    "stock_code": "BSIM",
+    "company_name": "Bank Sinarmas Tbk."
+  },
+  {
+    "stock_code": "BSML",
+    "company_name": "Bintang Samudera Mandiri Lines Tbk."
+  },
+  {
+    "stock_code": "BSSR",
+    "company_name": "Baramulti Suksessarana Tbk."
+  },
+  {
+    "stock_code": "BSWD",
+    "company_name": "Bank Of India Indonesia Tbk."
+  },
+  {
+    "stock_code": "BTEK",
+    "company_name": "Bumi Teknokultura Unggul Tbk"
+  },
+  {
+    "stock_code": "BTEL",
+    "company_name": "Bakrie Telecom Tbk."
+  },
+  {
+    "stock_code": "BTON",
+    "company_name": "Betonjaya Manunggal Tbk."
+  },
+  {
+    "stock_code": "BTPN",
+    "company_name": "Bank BTPN Tbk."
+  },
+  {
+    "stock_code": "BTPS",
+    "company_name": "Bank BTPN Syariah Tbk."
+  },
+  {
+    "stock_code": "BUAH",
+    "company_name": "Segar Kumala Indonesia Tbk."
+  },
+  {
+    "stock_code": "BUDI",
+    "company_name": "Budi Starch & Sweetener Tbk."
+  },
+  {
+    "stock_code": "BUKA",
+    "company_name": "Bukalapak.com Tbk."
+  },
+  {
+    "stock_code": "BUKK",
+    "company_name": "Bukaka Teknik Utama Tbk."
+  },
+  {
+    "stock_code": "BULL",
+    "company_name": "Buana Lintas Lautan Tbk."
+  },
+  {
+    "stock_code": "BUMI",
+    "company_name": "Bumi Resources Tbk."
+  },
+  {
+    "stock_code": "BUVA",
+    "company_name": "Bukit Uluwatu Villa Tbk."
+  },
+  {
+    "stock_code": "BVIC",
+    "company_name": "Bank Victoria International Tbk."
+  },
+  {
+    "stock_code": "BWPT",
+    "company_name": "Eagle High Plantations Tbk."
+  },
+  {
+    "stock_code": "BYAN",
+    "company_name": "Bayan Resources Tbk."
+  },
+  {
+    "stock_code": "CAKK",
+    "company_name": "Cahayaputra Asa Keramik Tbk."
+  },
+  {
+    "stock_code": "CAMP",
+    "company_name": "Campina Ice Cream Industry Tbk."
+  },
+  {
+    "stock_code": "CANI",
+    "company_name": "Capitol Nusantara Indonesia Tbk."
+  },
+  {
+    "stock_code": "CARE",
+    "company_name": "Metro Healthcare Indonesia Tbk."
+  },
+  {
+    "stock_code": "CARS",
+    "company_name": "Industri dan Perdagangan Bintraco Dharma Tbk."
+  },
+  {
+    "stock_code": "CASA",
+    "company_name": "Capital Financial Indonesia Tbk."
+  },
+  {
+    "stock_code": "CASH",
+    "company_name": "Cashlez Worldwide Indonesia Tbk."
+  },
+  {
+    "stock_code": "CASS",
+    "company_name": "Cardig Aero Services Tbk."
+  },
+  {
+    "stock_code": "CBDK",
+    "company_name": "Bangun Kosambi Sukses Tbk."
+  },
+  {
+    "stock_code": "CBMF",
+    "company_name": "Cahaya Bintang Medan Tbk."
+  },
+  {
+    "stock_code": "CBPE",
+    "company_name": "Citra Buana Prasida Tbk."
+  },
+  {
+    "stock_code": "CBRE",
+    "company_name": "Cakra Buana Resources Energi Tbk."
+  },
+  {
+    "stock_code": "CBUT",
+    "company_name": "Citra Borneo Utama Tbk."
+  },
+  {
+    "stock_code": "CCSI",
+    "company_name": "Communication Cable Systems Indonesia Tbk."
+  },
+  {
+    "stock_code": "CDIA",
+    "company_name": "Chandra Daya Investasi Tbk."
+  },
+  {
+    "stock_code": "CEKA",
+    "company_name": "Wilmar Cahaya Indonesia Tbk."
+  },
+  {
+    "stock_code": "CENT",
+    "company_name": "Centratama Telekomunikasi Indonesia Tbk."
+  },
+  {
+    "stock_code": "CFIN",
+    "company_name": "Clipan Finance Indonesia Tbk."
+  },
+  {
+    "stock_code": "CGAS",
+    "company_name": "Citra Nusantara Gemilang Tbk."
+  },
+  {
+    "stock_code": "CHEK",
+    "company_name": "Diastika Biotekindo Tbk."
+  },
+  {
+    "stock_code": "CHEM",
+    "company_name": "Chemstar Indonesia Tbk."
+  },
+  {
+    "stock_code": "CHIP",
+    "company_name": "Pelita Teknologi Global Tbk."
+  },
+  {
+    "stock_code": "CINT",
+    "company_name": "Chitose Internasional Tbk."
+  },
+  {
+    "stock_code": "CITA",
+    "company_name": "Cita Mineral Investindo Tbk."
+  },
+  {
+    "stock_code": "CITY",
+    "company_name": "Natura City Developments Tbk."
+  },
+  {
+    "stock_code": "CLAY",
+    "company_name": "Citra Putra Realty Tbk."
+  },
+  {
+    "stock_code": "CLEO",
+    "company_name": "Sariguna Primatirta Tbk."
+  },
+  {
+    "stock_code": "CLPI",
+    "company_name": "Colorpak Indonesia Tbk."
+  },
+  {
+    "stock_code": "CMNP",
+    "company_name": "Citra Marga Nusaphala Persada Tbk."
+  },
+  {
+    "stock_code": "CMNT",
+    "company_name": "Cemindo Gemilang Tbk."
+  },
+  {
+    "stock_code": "CMPP",
+    "company_name": "AirAsia Indonesia Tbk."
+  },
+  {
+    "stock_code": "CMRY",
+    "company_name": "Cisarua Mountain Dairy Tbk."
+  },
+  {
+    "stock_code": "CNKO",
+    "company_name": "Exploitasi Energi Indonesia Tbk."
+  },
+  {
+    "stock_code": "CNMA",
+    "company_name": "Nusantara Sejahtera Raya Tbk."
+  },
+  {
+    "stock_code": "CNTB",
+    "company_name": "Saham Seri B ( Centex Tbk )"
+  },
+  {
+    "stock_code": "CNTX",
+    "company_name": "Century Textile Industry Tbk."
+  },
+  {
+    "stock_code": "COAL",
+    "company_name": "Black Diamond Resources Tbk."
+  },
+  {
+    "stock_code": "COCO",
+    "company_name": "Wahana Interfood Nusantara Tbk."
+  },
+  {
+    "stock_code": "COIN",
+    "company_name": "Indokripto Koin Semesta Tbk."
+  },
+  {
+    "stock_code": "COWL",
+    "company_name": "Cowell Development Tbk."
+  },
+  {
+    "stock_code": "CPIN",
+    "company_name": "Charoen Pokphand Indonesia Tbk"
+  },
+  {
+    "stock_code": "CPRI",
+    "company_name": "Capri Nusa Satu Properti Tbk."
+  },
+  {
+    "stock_code": "CPRO",
+    "company_name": "Central Proteina Prima Tbk."
+  },
+  {
+    "stock_code": "CRAB",
+    "company_name": "Toba Surimi Industries Tbk."
+  },
+  {
+    "stock_code": "CRSN",
+    "company_name": "Carsurin Tbk."
+  },
+  {
+    "stock_code": "CSAP",
+    "company_name": "Catur Sentosa Adiprana Tbk."
+  },
+  {
+    "stock_code": "CSIS",
+    "company_name": "Cahayasakti Investindo Sukses Tbk."
+  },
+  {
+    "stock_code": "CSMI",
+    "company_name": "Cipta Selera Murni Tbk."
+  },
+  {
+    "stock_code": "CSRA",
+    "company_name": "Cisadane Sawit Raya Tbk."
+  },
+  {
+    "stock_code": "CTBN",
+    "company_name": "Citra Tubindo Tbk."
+  },
+  {
+    "stock_code": "CTRA",
+    "company_name": "Ciputra Development Tbk."
+  },
+  {
+    "stock_code": "CTTH",
+    "company_name": "Citatah Tbk."
+  },
+  {
+    "stock_code": "CUAN",
+    "company_name": "Petrindo Jaya Kreasi Tbk."
+  },
+  {
+    "stock_code": "CYBR",
+    "company_name": "ITSEC Asia Tbk."
+  },
+  {
+    "stock_code": "DAAZ",
+    "company_name": "Daaz Bara Lestari Tbk."
+  },
+  {
+    "stock_code": "DADA",
+    "company_name": "Diamond Citra Propertindo Tbk."
+  },
+  {
+    "stock_code": "DART",
+    "company_name": "Duta Anggada Realty Tbk."
+  },
+  {
+    "stock_code": "DATA",
+    "company_name": "Remala Abadi Tbk."
+  },
+  {
+    "stock_code": "DAYA",
+    "company_name": "Duta Intidaya Tbk."
+  },
+  {
+    "stock_code": "DCII",
+    "company_name": "DCI Indonesia Tbk."
+  },
+  {
+    "stock_code": "DEAL",
+    "company_name": "Dewata Freightinternational Tbk."
+  },
+  {
+    "stock_code": "DEFI",
+    "company_name": "Danasupra Erapacific Tbk."
+  },
+  {
+    "stock_code": "DEPO",
+    "company_name": "Caturkarda Depo Bangunan Tbk."
+  },
+  {
+    "stock_code": "DEWA",
+    "company_name": "Darma Henwa Tbk"
+  },
+  {
+    "stock_code": "DEWI",
+    "company_name": "Dewi Shri Farmindo Tbk."
+  },
+  {
+    "stock_code": "DFAM",
+    "company_name": "Dafam Property Indonesia Tbk."
+  },
+  {
+    "stock_code": "DGIK",
+    "company_name": "Nusa Konstruksi Enjiniring Tbk."
+  },
+  {
+    "stock_code": "DGNS",
+    "company_name": "Diagnos Laboratorium Utama Tbk."
+  },
+  {
+    "stock_code": "DGWG",
+    "company_name": "Delta Giri Wacana Tbk."
+  },
+  {
+    "stock_code": "DIGI",
+    "company_name": "Arkadia Digital Media Tbk."
+  },
+  {
+    "stock_code": "DILD",
+    "company_name": "Intiland Development Tbk."
+  },
+  {
+    "stock_code": "DIVA",
+    "company_name": "Distribusi Voucher Nusantara Tbk."
+  },
+  {
+    "stock_code": "DKFT",
+    "company_name": "Central Omega Resources Tbk."
+  },
+  {
+    "stock_code": "DKHH",
+    "company_name": "Cipta Sarana Medika Tbk."
+  },
+  {
+    "stock_code": "DLTA",
+    "company_name": "Delta Djakarta Tbk."
+  },
+  {
+    "stock_code": "DMAS",
+    "company_name": "Puradelta Lestari Tbk."
+  },
+  {
+    "stock_code": "DMMX",
+    "company_name": "Digital Mediatama Maxima Tbk."
+  },
+  {
+    "stock_code": "DMND",
+    "company_name": "Diamond Food Indonesia Tbk."
+  },
+  {
+    "stock_code": "DNAR",
+    "company_name": "Bank Oke Indonesia Tbk."
+  },
+  {
+    "stock_code": "DNET",
+    "company_name": "Indoritel Makmur Internasional Tbk."
+  },
+  {
+    "stock_code": "DOID",
+    "company_name": "Delta Dunia Makmur Tbk."
+  },
+  {
+    "stock_code": "DOOH",
+    "company_name": "Era Media Sejahtera Tbk."
+  },
+  {
+    "stock_code": "DOSS",
+    "company_name": "Global Sukses Digital Tbk."
+  },
+  {
+    "stock_code": "DPNS",
+    "company_name": "Duta Pertiwi Nusantara Tbk."
+  },
+  {
+    "stock_code": "DPUM",
+    "company_name": "Dua Putra Utama Makmur Tbk."
+  },
+  {
+    "stock_code": "DRMA",
+    "company_name": "Dharma Polimetal Tbk."
+  },
+  {
+    "stock_code": "DSFI",
+    "company_name": "Dharma Samudera Fishing Industries Tbk."
+  },
+  {
+    "stock_code": "DSNG",
+    "company_name": "Dharma Satya Nusantara Tbk."
+  },
+  {
+    "stock_code": "DSSA",
+    "company_name": "Dian Swastatika Sentosa Tbk"
+  },
+  {
+    "stock_code": "DUCK",
+    "company_name": "Jaya Bersama Indo Tbk."
+  },
+  {
+    "stock_code": "DUTI",
+    "company_name": "Duta Pertiwi Tbk"
+  },
+  {
+    "stock_code": "DVLA",
+    "company_name": "Darya-Varia Laboratoria Tbk."
+  },
+  {
+    "stock_code": "DWGL",
+    "company_name": "Dwi Guna Laksana Tbk."
+  },
+  {
+    "stock_code": "DYAN",
+    "company_name": "Dyandra Media International Tbk."
+  },
+  {
+    "stock_code": "EAST",
+    "company_name": "Eastparc Hotel Tbk."
+  },
+  {
+    "stock_code": "ECII",
+    "company_name": "Electronic City Indonesia Tbk."
+  },
+  {
+    "stock_code": "EDGE",
+    "company_name": "Indointernet Tbk."
+  },
+  {
+    "stock_code": "EKAD",
+    "company_name": "Ekadharma International Tbk."
+  },
+  {
+    "stock_code": "ELIT",
+    "company_name": "Data Sinergitama Jaya Tbk."
+  },
+  {
+    "stock_code": "ELPI",
+    "company_name": "Pelayaran Nasional Ekalya Purnamasari Tbk."
+  },
+  {
+    "stock_code": "ELSA",
+    "company_name": "Elnusa Tbk."
+  },
+  {
+    "stock_code": "ELTY",
+    "company_name": "Bakrieland Development Tbk."
+  },
+  {
+    "stock_code": "EMAS",
+    "company_name": "Merdeka Gold Resources Tbk."
+  },
+  {
+    "stock_code": "EMDE",
+    "company_name": "Megapolitan Developments Tbk."
+  },
+  {
+    "stock_code": "EMTK",
+    "company_name": "Elang Mahkota Teknologi Tbk."
+  },
+  {
+    "stock_code": "ENAK",
+    "company_name": "Champ Resto Indonesia Tbk."
+  },
+  {
+    "stock_code": "ENRG",
+    "company_name": "Energi Mega Persada Tbk."
+  },
+  {
+    "stock_code": "ENVY",
+    "company_name": "Envy Technologies Indonesia Tbk."
+  },
+  {
+    "stock_code": "ENZO",
+    "company_name": "Morenzo Abadi Perkasa Tbk."
+  },
+  {
+    "stock_code": "EPAC",
+    "company_name": "Megalestari Epack Sentosaraya Tbk."
+  },
+  {
+    "stock_code": "EPMT",
+    "company_name": "Enseval Putera Megatrading Tbk."
+  },
+  {
+    "stock_code": "ERAA",
+    "company_name": "Erajaya Swasembada Tbk."
+  },
+  {
+    "stock_code": "ERAL",
+    "company_name": "Sinar Eka Selaras Tbk."
+  },
+  {
+    "stock_code": "ERTX",
+    "company_name": "Eratex Djaja Tbk."
+  },
+  {
+    "stock_code": "ESIP",
+    "company_name": "Sinergi Inti Plastindo Tbk."
+  },
+  {
+    "stock_code": "ESSA",
+    "company_name": "ESSA Industries Indonesia Tbk."
+  },
+  {
+    "stock_code": "ESTA",
+    "company_name": "Esta Multi Usaha Tbk."
+  },
+  {
+    "stock_code": "ESTI",
+    "company_name": "Ever Shine Tex Tbk."
+  },
+  {
+    "stock_code": "ETWA",
+    "company_name": "Eterindo Wahanatama Tbk"
+  },
+  {
+    "stock_code": "EURO",
+    "company_name": "Estee Gold Feet Tbk."
+  },
+  {
+    "stock_code": "EXCL",
+    "company_name": "XL Axiata Tbk."
+  },
+  {
+    "stock_code": "FAPA",
+    "company_name": "FAP Agri Tbk."
+  },
+  {
+    "stock_code": "FAST",
+    "company_name": "Fast Food Indonesia Tbk."
+  },
+  {
+    "stock_code": "FASW",
+    "company_name": "Fajar Surya Wisesa Tbk."
+  },
+  {
+    "stock_code": "FILM",
+    "company_name": "MD Pictures Tbk."
+  },
+  {
+    "stock_code": "FIMP",
+    "company_name": "Fimperkasa Utama Tbk."
+  },
+  {
+    "stock_code": "FIRE",
+    "company_name": "Alfa Energi Investama Tbk."
+  },
+  {
+    "stock_code": "FISH",
+    "company_name": "FKS Multi Agro Tbk."
+  },
+  {
+    "stock_code": "FITT",
+    "company_name": "Hotel Fitra International Tbk."
+  },
+  {
+    "stock_code": "FLMC",
+    "company_name": "Falmaco Nonwoven Industri Tbk."
+  },
+  {
+    "stock_code": "FMII",
+    "company_name": "Fortune Mate Indonesia Tbk"
+  },
+  {
+    "stock_code": "FOLK",
+    "company_name": "Multi Garam Utama Tbk."
+  },
+  {
+    "stock_code": "FOOD",
+    "company_name": "Sentra Food Indonesia Tbk."
+  },
+  {
+    "stock_code": "FORE",
+    "company_name": "Fore Kopi Indonesia Tbk."
+  },
+  {
+    "stock_code": "FORU",
+    "company_name": "Fortune Indonesia Tbk"
+  },
+  {
+    "stock_code": "FPNI",
+    "company_name": "Lotte Chemical Titan Tbk."
+  },
+  {
+    "stock_code": "FREN",
+    "company_name": "Smartfren Telecom Tbk."
+  },
+  {
+    "stock_code": "FUJI",
+    "company_name": "Fuji Finance Indonesia Tbk."
+  },
+  {
+    "stock_code": "FUTR",
+    "company_name": "Lini Imaji Kreasi Ekosistem Tbk."
+  },
+  {
+    "stock_code": "FWCT",
+    "company_name": "Wijaya Cahaya Timber Tbk."
+  },
+  {
+    "stock_code": "GAMA",
+    "company_name": "Aksara Global Development Tbk."
+  },
+  {
+    "stock_code": "GDST",
+    "company_name": "Gunawan Dianjaya Steel Tbk."
+  },
+  {
+    "stock_code": "GDYR",
+    "company_name": "Goodyear Indonesia Tbk."
+  },
+  {
+    "stock_code": "GEMA",
+    "company_name": "Gema Grahasarana Tbk."
+  },
+  {
+    "stock_code": "GEMS",
+    "company_name": "Golden Energy Mines Tbk."
+  },
+  {
+    "stock_code": "GGRM",
+    "company_name": "Gudang Garam Tbk."
+  },
+  {
+    "stock_code": "GGRP",
+    "company_name": "Gunung Raja Paksi Tbk."
+  },
+  {
+    "stock_code": "GHON",
+    "company_name": "Gihon Telekomunikasi Indonesia Tbk."
+  },
+  {
+    "stock_code": "GIAA",
+    "company_name": "Garuda Indonesia (Persero) Tbk."
+  },
+  {
+    "stock_code": "GJTL",
+    "company_name": "Gajah Tunggal Tbk."
+  },
+  {
+    "stock_code": "GLOB",
+    "company_name": "Globe Kita Terang Tbk."
+  },
+  {
+    "stock_code": "GLVA",
+    "company_name": "Galva Technologies Tbk."
+  },
+  {
+    "stock_code": "GMFI",
+    "company_name": "Garuda Maintenance Facility Aero Asia Tbk."
+  },
+  {
+    "stock_code": "GMTD",
+    "company_name": "Gowa Makassar Tourism Development Tbk."
+  },
+  {
+    "stock_code": "GOLD",
+    "company_name": "Visi Telekomunikasi Infrastruktur Tbk."
+  },
+  {
+    "stock_code": "GOLF",
+    "company_name": "Intra Golflink Resorts Tbk."
+  },
+  {
+    "stock_code": "GOLL",
+    "company_name": "Golden Plantation Tbk."
+  },
+  {
+    "stock_code": "GOOD",
+    "company_name": "Garudafood Putra Putri Jaya Tbk."
+  },
+  {
+    "stock_code": "GOTO",
+    "company_name": "GoTo Gojek Tokopedia Tbk."
+  },
+  {
+    "stock_code": "GOTOM",
+    "company_name": "MVS GoTo Gojek Tokopedia Tbk."
+  },
+  {
+    "stock_code": "GPRA",
+    "company_name": "Perdana Gapuraprima Tbk."
+  },
+  {
+    "stock_code": "GPSO",
+    "company_name": "Geoprima Solusi Tbk."
+  },
+  {
+    "stock_code": "GRIA",
+    "company_name": "Ingria Pratama Capitalindo Tbk."
+  },
+  {
+    "stock_code": "GRPH",
+    "company_name": "Griptha Putra Persada Tbk."
+  },
+  {
+    "stock_code": "GRPM",
+    "company_name": "Graha Prima Mentari Tbk."
+  },
+  {
+    "stock_code": "GSMF",
+    "company_name": "Equity Development Investment Tbk."
+  },
+  {
+    "stock_code": "GTBO",
+    "company_name": "Garda Tujuh Buana Tbk"
+  },
+  {
+    "stock_code": "GTRA",
+    "company_name": "Grahaprima Suksesmandiri Tbk."
+  },
+  {
+    "stock_code": "GTSI",
+    "company_name": "GTS Internasional Tbk."
+  },
+  {
+    "stock_code": "GULA",
+    "company_name": "Aman Agrindo Tbk."
+  },
+  {
+    "stock_code": "GUNA",
+    "company_name": "Gunanusa Eramandiri Tbk."
+  },
+  {
+    "stock_code": "GWSA",
+    "company_name": "Greenwood Sejahtera Tbk."
+  },
+  {
+    "stock_code": "GZCO",
+    "company_name": "Gozco Plantations Tbk."
+  },
+  {
+    "stock_code": "HADE",
+    "company_name": "Himalaya Energi Perkasa Tbk."
+  },
+  {
+    "stock_code": "HAIS",
+    "company_name": "Hasnur Internasional Shipping Tbk."
+  },
+  {
+    "stock_code": "HAJJ",
+    "company_name": "Arsy Buana Travelindo Tbk."
+  },
+  {
+    "stock_code": "HALO",
+    "company_name": "Haloni Jane Tbk."
+  },
+  {
+    "stock_code": "HATM",
+    "company_name": "Habco Trans Maritima Tbk."
+  },
+  {
+    "stock_code": "HBAT",
+    "company_name": "Minahasa Membangun Hebat Tbk."
+  },
+  {
+    "stock_code": "HDFA",
+    "company_name": "Radana Bhaskara Finance Tbk."
+  },
+  {
+    "stock_code": "HDIT",
+    "company_name": "Hensel Davest Indonesia Tbk."
+  },
+  {
+    "stock_code": "HEAL",
+    "company_name": "Medikaloka Hermina Tbk."
+  },
+  {
+    "stock_code": "HELI",
+    "company_name": "Jaya Trishindo Tbk."
+  },
+  {
+    "stock_code": "HERO",
+    "company_name": "Hero Supermarket Tbk."
+  },
+  {
+    "stock_code": "HEXA",
+    "company_name": "Hexindo Adiperkasa Tbk."
+  },
+  {
+    "stock_code": "HGII",
+    "company_name": "Hero Global Investment Tbk."
+  },
+  {
+    "stock_code": "HILL",
+    "company_name": "Hillcon Tbk."
+  },
+  {
+    "stock_code": "HITS",
+    "company_name": "Humpuss Intermoda Transportasi Tbk."
+  },
+  {
+    "stock_code": "HKMU",
+    "company_name": "HK Metals Utama Tbk."
+  },
+  {
+    "stock_code": "HMSP",
+    "company_name": "H.M. Sampoerna Tbk."
+  },
+  {
+    "stock_code": "HOKI",
+    "company_name": "Buyung Poetra Sembada Tbk."
+  },
+  {
+    "stock_code": "HOME",
+    "company_name": "Hotel Mandarine Regency Tbk."
+  },
+  {
+    "stock_code": "HOMI",
+    "company_name": "Grand House Mulia Tbk."
+  },
+  {
+    "stock_code": "HOPE",
+    "company_name": "Harapan Duta Pertiwi Tbk."
+  },
+  {
+    "stock_code": "HOTL",
+    "company_name": "Saraswati Griya Lestari Tbk."
+  },
+  {
+    "stock_code": "HRME",
+    "company_name": "Menteng Heritage Realty Tbk."
+  },
+  {
+    "stock_code": "HRTA",
+    "company_name": "Hartadinata Abadi Tbk."
+  },
+  {
+    "stock_code": "HRUM",
+    "company_name": "Harum Energy Tbk."
+  },
+  {
+    "stock_code": "HUMI",
+    "company_name": "Humpuss Maritim Internasional Tbk."
+  },
+  {
+    "stock_code": "HYGN",
+    "company_name": "Ecocare Indo Pasifik Tbk."
+  },
+  {
+    "stock_code": "IATA",
+    "company_name": "MNC Energy Investments Tbk."
+  },
+  {
+    "stock_code": "IBFN",
+    "company_name": "Intan Baru Prana Tbk."
+  },
+  {
+    "stock_code": "IBOS",
+    "company_name": "Indo Boga Sukses Tbk."
+  },
+  {
+    "stock_code": "IBST",
+    "company_name": "Inti Bangun Sejahtera Tbk."
+  },
+  {
+    "stock_code": "ICBP",
+    "company_name": "Indofood CBP Sukses Makmur Tbk."
+  },
+  {
+    "stock_code": "ICON",
+    "company_name": "Island Concepts Indonesia Tbk."
+  },
+  {
+    "stock_code": "IDEA",
+    "company_name": "Idea Indonesia Akademi Tbk."
+  },
+  {
+    "stock_code": "IDPR",
+    "company_name": "Indonesia Pondasi Raya Tbk."
+  },
+  {
+    "stock_code": "IFII",
+    "company_name": "Indonesia Fibreboard Industry Tbk."
+  },
+  {
+    "stock_code": "IFSH",
+    "company_name": "Ifishdeco Tbk."
+  },
+  {
+    "stock_code": "IGAR",
+    "company_name": "Champion Pacific Indonesia Tbk."
+  },
+  {
+    "stock_code": "IIKP",
+    "company_name": "Inti Agri Resources Tbk"
+  },
+  {
+    "stock_code": "IKAI",
+    "company_name": "Intikeramik Alamasri Industri Tbk."
+  },
+  {
+    "stock_code": "IKAN",
+    "company_name": "Era Mandiri Cemerlang Tbk."
+  },
+  {
+    "stock_code": "IKBI",
+    "company_name": "Sumi Indo Kabel Tbk."
+  },
+  {
+    "stock_code": "IKPM",
+    "company_name": "Ikapharmindo Putramas Tbk."
+  },
+  {
+    "stock_code": "IMAS",
+    "company_name": "Indomobil Sukses Internasional Tbk."
+  },
+  {
+    "stock_code": "IMJS",
+    "company_name": "Indomobil Multi Jasa Tbk."
+  },
+  {
+    "stock_code": "IMPC",
+    "company_name": "Impack Pratama Industri Tbk."
+  },
+  {
+    "stock_code": "INAF",
+    "company_name": "Indofarma Tbk."
+  },
+  {
+    "stock_code": "INAI",
+    "company_name": "Indal Aluminium Industry Tbk."
+  },
+  {
+    "stock_code": "INCF",
+    "company_name": "Indo Komoditi Korpora Tbk."
+  },
+  {
+    "stock_code": "INCI",
+    "company_name": "Intanwijaya Internasional Tbk"
+  },
+  {
+    "stock_code": "INCO",
+    "company_name": "Vale Indonesia Tbk."
+  },
+  {
+    "stock_code": "INDF",
+    "company_name": "Indofood Sukses Makmur Tbk."
+  },
+  {
+    "stock_code": "INDO",
+    "company_name": "Royalindo Investa Wijaya Tbk."
+  },
+  {
+    "stock_code": "INDR",
+    "company_name": "Indo-Rama Synthetics Tbk."
+  },
+  {
+    "stock_code": "INDS",
+    "company_name": "Indospring Tbk."
+  },
+  {
+    "stock_code": "INDX",
+    "company_name": "Tanah Laut Tbk"
+  },
+  {
+    "stock_code": "INDY",
+    "company_name": "Indika Energy Tbk."
+  },
+  {
+    "stock_code": "INET",
+    "company_name": "Sinergi Inti Andalan Prima Tbk."
+  },
+  {
+    "stock_code": "INKP",
+    "company_name": "Indah Kiat Pulp & Paper Tbk."
+  },
+  {
+    "stock_code": "INOV",
+    "company_name": "Inocycle Technology Group Tbk."
+  },
+  {
+    "stock_code": "INPC",
+    "company_name": "Bank Artha Graha Internasional Tbk."
+  },
+  {
+    "stock_code": "INPP",
+    "company_name": "Indonesian Paradise Property Tbk."
+  },
+  {
+    "stock_code": "INPS",
+    "company_name": "Indah Prakasa Sentosa Tbk."
+  },
+  {
+    "stock_code": "INRU",
+    "company_name": "Toba Pulp Lestari Tbk."
+  },
+  {
+    "stock_code": "INTA",
+    "company_name": "Intraco Penta Tbk."
+  },
+  {
+    "stock_code": "INTD",
+    "company_name": "Inter Delta Tbk"
+  },
+  {
+    "stock_code": "INTP",
+    "company_name": "Indocement Tunggal Prakarsa Tbk."
+  },
+  {
+    "stock_code": "IOTF",
+    "company_name": "Sumber Sinergi Makmur Tbk."
+  },
+  {
+    "stock_code": "IPAC",
+    "company_name": "Era Graharealty Tbk."
+  },
+  {
+    "stock_code": "IPCC",
+    "company_name": "Indonesia Kendaraan Terminal Tbk."
+  },
+  {
+    "stock_code": "IPCM",
+    "company_name": "Jasa Armada Indonesia Tbk."
+  },
+  {
+    "stock_code": "IPOL",
+    "company_name": "Indopoly Swakarsa Industry Tbk."
+  },
+  {
+    "stock_code": "IPPE",
+    "company_name": "Indo Pureco Pratama Tbk."
+  },
+  {
+    "stock_code": "IPTV",
+    "company_name": "MNC Vision Networks Tbk."
+  },
+  {
+    "stock_code": "IRRA",
+    "company_name": "Itama Ranoraya Tbk."
+  },
+  {
+    "stock_code": "IRSX",
+    "company_name": "Aviana Sinar Abadi Tbk."
+  },
+  {
+    "stock_code": "ISAP",
+    "company_name": "Isra Presisi Indonesia Tbk."
+  },
+  {
+    "stock_code": "ISAT",
+    "company_name": "Indosat Tbk."
+  },
+  {
+    "stock_code": "ISEA",
+    "company_name": "Indo American Seafoods Tbk."
+  },
+  {
+    "stock_code": "ISSP",
+    "company_name": "Steel Pipe Industry of Indonesia Tbk."
+  },
+  {
+    "stock_code": "ITIC",
+    "company_name": "Indonesian Tobacco Tbk."
+  },
+  {
+    "stock_code": "ITMA",
+    "company_name": "Sumber Energi Andalan Tbk."
+  },
+  {
+    "stock_code": "ITMG",
+    "company_name": "Indo Tambangraya Megah Tbk."
+  },
+  {
+    "stock_code": "JARR",
+    "company_name": "Jhonlin Agro Raya Tbk."
+  },
+  {
+    "stock_code": "JAST",
+    "company_name": "Jasnita Telekomindo Tbk."
+  },
+  {
+    "stock_code": "JATI",
+    "company_name": "Informasi Teknologi Indonesia Tbk."
+  },
+  {
+    "stock_code": "JAWA",
+    "company_name": "Jaya Agra Wattie Tbk."
+  },
+  {
+    "stock_code": "JAYA",
+    "company_name": "Armada Berjaya Trans Tbk."
+  },
+  {
+    "stock_code": "JECC",
+    "company_name": "Jembo Cable Company Tbk."
+  },
+  {
+    "stock_code": "JGLE",
+    "company_name": "Graha Andrasentra Propertindo Tbk."
+  },
+  {
+    "stock_code": "JIHD",
+    "company_name": "Jakarta International Hotels & Development Tbk."
+  },
+  {
+    "stock_code": "JKON",
+    "company_name": "Jaya Konstruksi Manggala Pratama Tbk."
+  },
+  {
+    "stock_code": "JMAS",
+    "company_name": "Asuransi Jiwa Syariah Jasa Mitra Abadi Tbk."
+  },
+  {
+    "stock_code": "JPFA",
+    "company_name": "Japfa Comfeed Indonesia Tbk."
+  },
+  {
+    "stock_code": "JRPT",
+    "company_name": "Jaya Real Property Tbk."
+  },
+  {
+    "stock_code": "JSKY",
+    "company_name": "Sky Energy Indonesia Tbk."
+  },
+  {
+    "stock_code": "JSMR",
+    "company_name": "Jasa Marga (Persero) Tbk."
+  },
+  {
+    "stock_code": "JSPT",
+    "company_name": "Jakarta Setiabudi Internasional Tbk."
+  },
+  {
+    "stock_code": "JTPE",
+    "company_name": "Jasuindo Tiga Perkasa Tbk."
+  },
+  {
+    "stock_code": "KAEF",
+    "company_name": "Kimia Farma Tbk."
+  },
+  {
+    "stock_code": "KAQI",
+    "company_name": "Jantra Grupo Indonesia Tbk."
+  },
+  {
+    "stock_code": "KARW",
+    "company_name": "ICTSI Jasa Prima Tbk."
+  },
+  {
+    "stock_code": "KAYU",
+    "company_name": "Darmi Bersaudara Tbk."
+  },
+  {
+    "stock_code": "KBAG",
+    "company_name": "Karya Bersama Anugerah Tbk."
+  },
+  {
+    "stock_code": "KBLI",
+    "company_name": "KMI Wire & Cable Tbk."
+  },
+  {
+    "stock_code": "KBLM",
+    "company_name": "Kabelindo Murni Tbk."
+  },
+  {
+    "stock_code": "KBLV",
+    "company_name": "First Media Tbk."
+  },
+  {
+    "stock_code": "KBRI",
+    "company_name": "Kertas Basuki Rachmat Indonesia Tbk."
+  },
+  {
+    "stock_code": "KDSI",
+    "company_name": "Kedawung Setia Industrial Tbk."
+  },
+  {
+    "stock_code": "KDTN",
+    "company_name": "Puri Sentul Permai Tbk."
+  },
+  {
+    "stock_code": "KEEN",
+    "company_name": "Kencana Energi Lestari Tbk."
+  },
+  {
+    "stock_code": "KEJU",
+    "company_name": "Mulia Boga Raya Tbk."
+  },
+  {
+    "stock_code": "KETR",
+    "company_name": "Ketrosden Triasmitra Tbk."
+  },
+  {
+    "stock_code": "KIAS",
+    "company_name": "Keramika Indonesia Assosiasi Tbk."
+  },
+  {
+    "stock_code": "KICI",
+    "company_name": "Kedaung Indah Can Tbk"
+  },
+  {
+    "stock_code": "KIJA",
+    "company_name": "Kawasan Industri Jababeka Tbk."
+  },
+  {
+    "stock_code": "KING",
+    "company_name": "Hoffmen Cleanindo Tbk."
+  },
+  {
+    "stock_code": "KINO",
+    "company_name": "Kino Indonesia Tbk."
+  },
+  {
+    "stock_code": "KIOS",
+    "company_name": "Kioson Komersial Indonesia Tbk."
+  },
+  {
+    "stock_code": "KJEN",
+    "company_name": "Krida Jaringan Nusantara Tbk."
+  },
+  {
+    "stock_code": "KKES",
+    "company_name": "Kusuma Kemindo Sentosa Tbk."
+  },
+  {
+    "stock_code": "KKGI",
+    "company_name": "Resource Alam Indonesia Tbk."
+  },
+  {
+    "stock_code": "KLAS",
+    "company_name": "Pelayaran Kurnia Lautan Semesta Tbk."
+  },
+  {
+    "stock_code": "KLBF",
+    "company_name": "Kalbe Farma Tbk."
+  },
+  {
+    "stock_code": "KLIN",
+    "company_name": "Klinko Karya Imaji Tbk."
+  },
+  {
+    "stock_code": "KMDS",
+    "company_name": "Kurniamitra Duta Sentosa Tbk."
+  },
+  {
+    "stock_code": "KMTR",
+    "company_name": "Kirana Megatara Tbk."
+  },
+  {
+    "stock_code": "KOBX",
+    "company_name": "Kobexindo Tractors Tbk."
+  },
+  {
+    "stock_code": "KOCI",
+    "company_name": "Kokoh Exa Nusantara Tbk."
+  },
+  {
+    "stock_code": "KOIN",
+    "company_name": "Kokoh Inti Arebama Tbk"
+  },
+  {
+    "stock_code": "KOKA",
+    "company_name": "Koka Indonesia Tbk."
+  },
+  {
+    "stock_code": "KONI",
+    "company_name": "Perdana Bangun Pusaka Tbk"
+  },
+  {
+    "stock_code": "KOPI",
+    "company_name": "Mitra Energi Persada Tbk."
+  },
+  {
+    "stock_code": "KOTA",
+    "company_name": "DMS Propertindo Tbk."
+  },
+  {
+    "stock_code": "KPIG",
+    "company_name": "MNC Land Tbk."
+  },
+  {
+    "stock_code": "KRAS",
+    "company_name": "Krakatau Steel (Persero) Tbk."
+  },
+  {
+    "stock_code": "KREN",
+    "company_name": "Quantum Clovera Investama Tbk."
+  },
+  {
+    "stock_code": "KRYA",
+    "company_name": "Bangun Karya Perkasa Jaya Tbk."
+  },
+  {
+    "stock_code": "KSIX",
+    "company_name": "Kentanix Supra International Tbk."
+  },
+  {
+    "stock_code": "KUAS",
+    "company_name": "Ace Oldfields Tbk."
+  },
+  {
+    "stock_code": "LABA",
+    "company_name": "Ladangbaja Murni Tbk."
+  },
+  {
+    "stock_code": "LABS",
+    "company_name": "UBC Medical Indonesia Tbk."
+  },
+  {
+    "stock_code": "LAJU",
+    "company_name": "Jasa Berdikari Logistics Tbk."
+  },
+  {
+    "stock_code": "LAND",
+    "company_name": "Trimitra Propertindo Tbk."
+  },
+  {
+    "stock_code": "LAPD",
+    "company_name": "Leyand International Tbk."
+  },
+  {
+    "stock_code": "LCGP",
+    "company_name": "Eureka Prima Jakarta Tbk."
+  },
+  {
+    "stock_code": "LCKM",
+    "company_name": "LCK Global Kedaton Tbk."
+  },
+  {
+    "stock_code": "LEAD",
+    "company_name": "Logindo Samudramakmur Tbk."
+  },
+  {
+    "stock_code": "LFLO",
+    "company_name": "Imago Mulia Persada Tbk."
+  },
+  {
+    "stock_code": "LIFE",
+    "company_name": "MSIG Life Insurance Indonesia Tbk."
+  },
+  {
+    "stock_code": "LINK",
+    "company_name": "Link Net Tbk."
+  },
+  {
+    "stock_code": "LION",
+    "company_name": "Lion Metal Works Tbk."
+  },
+  {
+    "stock_code": "LIVE",
+    "company_name": "Homeco Victoria Makmur Tbk."
+  },
+  {
+    "stock_code": "LMAS",
+    "company_name": "Limas Indonesia Makmur Tbk"
+  },
+  {
+    "stock_code": "LMAX",
+    "company_name": "Lupromax Pelumas Indonesia Tbk."
+  },
+  {
+    "stock_code": "LMPI",
+    "company_name": "Langgeng Makmur Industri Tbk."
+  },
+  {
+    "stock_code": "LMSH",
+    "company_name": "Lionmesh Prima Tbk."
+  },
+  {
+    "stock_code": "LOPI",
+    "company_name": "Logisticsplus International Tbk."
+  },
+  {
+    "stock_code": "LPCK",
+    "company_name": "Lippo Cikarang Tbk"
+  },
+  {
+    "stock_code": "LPGI",
+    "company_name": "Lippo General Insurance Tbk."
+  },
+  {
+    "stock_code": "LPIN",
+    "company_name": "Multi Prima Sejahtera Tbk"
+  },
+  {
+    "stock_code": "LPKR",
+    "company_name": "Lippo Karawaci Tbk."
+  },
+  {
+    "stock_code": "LPLI",
+    "company_name": "Star Pacific Tbk"
+  },
+  {
+    "stock_code": "LPPF",
+    "company_name": "Matahari Department Store Tbk."
+  },
+  {
+    "stock_code": "LPPS",
+    "company_name": "Lenox Pasifik Investama Tbk."
+  },
+  {
+    "stock_code": "LRNA",
+    "company_name": "Eka Sari Lorena Transport Tbk."
+  },
+  {
+    "stock_code": "LSIP",
+    "company_name": "PP London Sumatra Indonesia Tbk."
+  },
+  {
+    "stock_code": "LTLS",
+    "company_name": "Lautan Luas Tbk."
+  },
+  {
+    "stock_code": "LUCK",
+    "company_name": "Sentral Mitra Informatika Tbk."
+  },
+  {
+    "stock_code": "LUCY",
+    "company_name": "Lima Dua Lima Tiga Tbk."
+  },
+  {
+    "stock_code": "MABA",
+    "company_name": "Marga Abhinaya Abadi Tbk."
+  },
+  {
+    "stock_code": "MAGP",
+    "company_name": "Multi Agro Gemilang Plantation Tbk."
+  },
+  {
+    "stock_code": "MAHA",
+    "company_name": "Mandiri Herindo Adiperkasa Tbk."
+  },
+  {
+    "stock_code": "MAIN",
+    "company_name": "Malindo Feedmill Tbk."
+  },
+  {
+    "stock_code": "MANG",
+    "company_name": "Manggung Polahraya Tbk."
+  },
+  {
+    "stock_code": "MAPA",
+    "company_name": "Map Aktif Adiperkasa Tbk."
+  },
+  {
+    "stock_code": "MAPB",
+    "company_name": "MAP Boga Adiperkasa Tbk."
+  },
+  {
+    "stock_code": "MAPI",
+    "company_name": "Mitra Adiperkasa Tbk."
+  },
+  {
+    "stock_code": "MARI",
+    "company_name": "Mahaka Radio Integra Tbk."
+  },
+  {
+    "stock_code": "MARK",
+    "company_name": "Mark Dynamics Indonesia Tbk."
+  },
+  {
+    "stock_code": "MASA",
+    "company_name": "Multistrada Arah Sarana Tbk."
+  },
+  {
+    "stock_code": "MASB",
+    "company_name": "Bank Multiarta Sentosa Tbk."
+  },
+  {
+    "stock_code": "MAXI",
+    "company_name": "Maxindo Karya Anugerah Tbk."
+  },
+  {
+    "stock_code": "MAYA",
+    "company_name": "Bank Mayapada Internasional Tbk."
+  },
+  {
+    "stock_code": "MBAP",
+    "company_name": "Mitrabara Adiperdana Tbk."
+  },
+  {
+    "stock_code": "MBMA",
+    "company_name": "Merdeka Battery Materials Tbk."
+  },
+  {
+    "stock_code": "MBSS",
+    "company_name": "Mitrabahtera Segara Sejati Tbk."
+  },
+  {
+    "stock_code": "MBTO",
+    "company_name": "Martina Berto Tbk."
+  },
+  {
+    "stock_code": "MCAS",
+    "company_name": "M Cash Integrasi Tbk."
+  },
+  {
+    "stock_code": "MCOL",
+    "company_name": "Prima Andalan Mandiri Tbk."
+  },
+  {
+    "stock_code": "MCOR",
+    "company_name": "Bank China Construction Bank Indonesia Tbk."
+  },
+  {
+    "stock_code": "MDIA",
+    "company_name": "Intermedia Capital Tbk."
+  },
+  {
+    "stock_code": "MDIY",
+    "company_name": "Daya Intiguna Yasa Tbk."
+  },
+  {
+    "stock_code": "MDKA",
+    "company_name": "Merdeka Copper Gold Tbk."
+  },
+  {
+    "stock_code": "MDKI",
+    "company_name": "Emdeki Utama Tbk."
+  },
+  {
+    "stock_code": "MDLA",
+    "company_name": "Medela Potentia Tbk."
+  },
+  {
+    "stock_code": "MDLN",
+    "company_name": "Modernland Realty Tbk."
+  },
+  {
+    "stock_code": "MDRN",
+    "company_name": "Modern Internasional Tbk."
+  },
+  {
+    "stock_code": "MEDC",
+    "company_name": "Medco Energi Internasional Tbk."
+  },
+  {
+    "stock_code": "MEDS",
+    "company_name": "Hetzer Medical Indonesia Tbk."
+  },
+  {
+    "stock_code": "MEGA",
+    "company_name": "Bank Mega Tbk."
+  },
+  {
+    "stock_code": "MEJA",
+    "company_name": "Harta Djaya Karya Tbk."
+  },
+  {
+    "stock_code": "MENN",
+    "company_name": "Menn Teknologi Indonesia Tbk."
+  },
+  {
+    "stock_code": "MERI",
+    "company_name": "Merry Riana Edukasi Tbk."
+  },
+  {
+    "stock_code": "MERK",
+    "company_name": "Merck Tbk."
+  },
+  {
+    "stock_code": "META",
+    "company_name": "Nusantara Infrastructure Tbk."
+  },
+  {
+    "stock_code": "MFIN",
+    "company_name": "Mandala Multifinance Tbk."
+  },
+  {
+    "stock_code": "MFMI",
+    "company_name": "Multifiling Mitra Indonesia Tbk."
+  },
+  {
+    "stock_code": "MGLV",
+    "company_name": "Panca Anugrah Wisesa Tbk."
+  },
+  {
+    "stock_code": "MGNA",
+    "company_name": "Magna Investama Mandiri Tbk."
+  },
+  {
+    "stock_code": "MGRO",
+    "company_name": "Mahkota Group Tbk."
+  },
+  {
+    "stock_code": "MHKI",
+    "company_name": "Multi Hanna Kreasindo Tbk."
+  },
+  {
+    "stock_code": "MICE",
+    "company_name": "Multi Indocitra Tbk."
+  },
+  {
+    "stock_code": "MIDI",
+    "company_name": "Midi Utama Indonesia Tbk."
+  },
+  {
+    "stock_code": "MIKA",
+    "company_name": "Mitra Keluarga Karyasehat Tbk."
+  },
+  {
+    "stock_code": "MINA",
+    "company_name": "Sanurhasta Mitra Tbk."
+  },
+  {
+    "stock_code": "MINE",
+    "company_name": "Sinar Terang Mandiri Tbk."
+  },
+  {
+    "stock_code": "MIRA",
+    "company_name": "Mitra International Resources Tbk."
+  },
+  {
+    "stock_code": "MITI",
+    "company_name": "Mitra Investindo Tbk."
+  },
+  {
+    "stock_code": "MKAP",
+    "company_name": "Multikarya Asia Pasifik Raya Tbk."
+  },
+  {
+    "stock_code": "MKNT",
+    "company_name": "Mitra Komunikasi Nusantara Tbk."
+  },
+  {
+    "stock_code": "MKPI",
+    "company_name": "Metropolitan Kentjana Tbk."
+  },
+  {
+    "stock_code": "MKTR",
+    "company_name": "Menthobi Karyatama Raya Tbk."
+  },
+  {
+    "stock_code": "MLBI",
+    "company_name": "Multi Bintang Indonesia Tbk."
+  },
+  {
+    "stock_code": "MLIA",
+    "company_name": "Mulia Industrindo Tbk"
+  },
+  {
+    "stock_code": "MLPL",
+    "company_name": "Multipolar Tbk."
+  },
+  {
+    "stock_code": "MLPT",
+    "company_name": "Multipolar Technology Tbk."
+  },
+  {
+    "stock_code": "MMIX",
+    "company_name": "Multi Medika Internasional Tbk."
+  },
+  {
+    "stock_code": "MMLP",
+    "company_name": "Mega Manunggal Property Tbk."
+  },
+  {
+    "stock_code": "MNCN",
+    "company_name": "Media Nusantara Citra Tbk."
+  },
+  {
+    "stock_code": "MOLI",
+    "company_name": "Madusari Murni Indah Tbk."
+  },
+  {
+    "stock_code": "MORA",
+    "company_name": "Mora Telematika Indonesia Tbk."
+  },
+  {
+    "stock_code": "MPIX",
+    "company_name": "Mitra Pedagang Indonesia Tbk."
+  },
+  {
+    "stock_code": "MPMX",
+    "company_name": "Mitra Pinasthika Mustika Tbk."
+  },
+  {
+    "stock_code": "MPOW",
+    "company_name": "Megapower Makmur Tbk."
+  },
+  {
+    "stock_code": "MPPA",
+    "company_name": "Matahari Putra Prima Tbk."
+  },
+  {
+    "stock_code": "MPRO",
+    "company_name": "Maha Properti Indonesia Tbk."
+  },
+  {
+    "stock_code": "MPXL",
+    "company_name": "MPX Logistics International Tbk."
+  },
+  {
+    "stock_code": "MRAT",
+    "company_name": "Mustika Ratu Tbk."
+  },
+  {
+    "stock_code": "MREI",
+    "company_name": "Maskapai Reasuransi Indonesia Tbk."
+  },
+  {
+    "stock_code": "MSIE",
+    "company_name": "Multisarana Intan Eduka Tbk."
+  },
+  {
+    "stock_code": "MSIN",
+    "company_name": "MNC Digital Entertainment Tbk."
+  },
+  {
+    "stock_code": "MSJA",
+    "company_name": "Multi Spunindo Jaya Tbk."
+  },
+  {
+    "stock_code": "MSKY",
+    "company_name": "MNC Sky Vision Tbk."
+  },
+  {
+    "stock_code": "MSTI",
+    "company_name": "Mastersystem Infotama Tbk."
+  },
+  {
+    "stock_code": "MTDL",
+    "company_name": "Metrodata Electronics Tbk."
+  },
+  {
+    "stock_code": "MTEL",
+    "company_name": "Dayamitra Telekomunikasi Tbk."
+  },
+  {
+    "stock_code": "MTFN",
+    "company_name": "Capitalinc Investment Tbk."
+  },
+  {
+    "stock_code": "MTLA",
+    "company_name": "Metropolitan Land Tbk."
+  },
+  {
+    "stock_code": "MTMH",
+    "company_name": "Murni Sadar Tbk."
+  },
+  {
+    "stock_code": "MTPS",
+    "company_name": "Meta Epsi Tbk."
+  },
+  {
+    "stock_code": "MTRA",
+    "company_name": "Mitra Pemuda Tbk."
+  },
+  {
+    "stock_code": "MTSM",
+    "company_name": "Metro Realty Tbk."
+  },
+  {
+    "stock_code": "MTWI",
+    "company_name": "Malacca Trust Wuwungan Insurance Tbk."
+  },
+  {
+    "stock_code": "MUTU",
+    "company_name": "Mutuagung Lestari Tbk."
+  },
+  {
+    "stock_code": "MYOH",
+    "company_name": "Samindo Resources Tbk."
+  },
+  {
+    "stock_code": "MYOR",
+    "company_name": "Mayora Indah Tbk."
+  },
+  {
+    "stock_code": "MYTX",
+    "company_name": "Asia Pacific Investama Tbk."
+  },
+  {
+    "stock_code": "NAIK",
+    "company_name": "Adiwarna Anugerah Abadi Tbk."
+  },
+  {
+    "stock_code": "NANO",
+    "company_name": "Nanotech Indonesia Global Tbk."
+  },
+  {
+    "stock_code": "NASA",
+    "company_name": "Andalan Perkasa Abadi Tbk."
+  },
+  {
+    "stock_code": "NASI",
+    "company_name": "Wahana Inti Makmur Tbk."
+  },
+  {
+    "stock_code": "NATO",
+    "company_name": "Surya Permata Andalan Tbk."
+  },
+  {
+    "stock_code": "NAYZ",
+    "company_name": "Hassana Boga Sejahtera Tbk."
+  },
+  {
+    "stock_code": "NCKL",
+    "company_name": "Trimegah Bangun Persada Tbk."
+  },
+  {
+    "stock_code": "NELY",
+    "company_name": "Pelayaran Nelly Dwi Putri Tbk."
+  },
+  {
+    "stock_code": "NEST",
+    "company_name": "Esta Indonesia Tbk."
+  },
+  {
+    "stock_code": "NETV",
+    "company_name": "Net Visi Media Tbk."
+  },
+  {
+    "stock_code": "NFCX",
+    "company_name": "NFC Indonesia Tbk."
+  },
+  {
+    "stock_code": "NICE",
+    "company_name": "Adhi Kartiko Pratama Tbk."
+  },
+  {
+    "stock_code": "NICK",
+    "company_name": "Charnic Capital Tbk."
+  },
+  {
+    "stock_code": "NICL",
+    "company_name": "PAM Mineral Tbk."
+  },
+  {
+    "stock_code": "NIKL",
+    "company_name": "Pelat Timah Nusantara Tbk."
+  },
+  {
+    "stock_code": "NINE",
+    "company_name": "Techno9 Indonesia Tbk."
+  },
+  {
+    "stock_code": "NIRO",
+    "company_name": "City Retail Developments Tbk."
+  },
+  {
+    "stock_code": "NISP",
+    "company_name": "Bank OCBC NISP Tbk."
+  },
+  {
+    "stock_code": "NOBU",
+    "company_name": "Bank Nationalnobu Tbk."
+  },
+  {
+    "stock_code": "NPGF",
+    "company_name": "Nusa Palapa Gemilang Tbk."
+  },
+  {
+    "stock_code": "NRCA",
+    "company_name": "Nusa Raya Cipta Tbk."
+  },
+  {
+    "stock_code": "NSSS",
+    "company_name": "Nusantara Sawit Sejahtera Tbk."
+  },
+  {
+    "stock_code": "NTBK",
+    "company_name": "Nusatama Berkah Tbk."
+  },
+  {
+    "stock_code": "NUSA",
+    "company_name": "Sinergi Megah Internusa Tbk."
+  },
+  {
+    "stock_code": "NZIA",
+    "company_name": "Nusantara Almazia Tbk."
+  },
+  {
+    "stock_code": "OASA",
+    "company_name": "Maharaksa Biru Energi Tbk."
+  },
+  {
+    "stock_code": "OBAT",
+    "company_name": "Brigit Biofarmaka Teknologi Tbk."
+  },
+  {
+    "stock_code": "OBMD",
+    "company_name": "OBM Drilchem Tbk."
+  },
+  {
+    "stock_code": "OCAP",
+    "company_name": "Onix Capital Tbk."
+  },
+  {
+    "stock_code": "OILS",
+    "company_name": "Indo Oil Perkasa Tbk."
+  },
+  {
+    "stock_code": "OKAS",
+    "company_name": "Ancora Indonesia Resources Tbk."
+  },
+  {
+    "stock_code": "OLIV",
+    "company_name": "Oscar Mitra Sukses Sejahtera Tbk."
+  },
+  {
+    "stock_code": "OMED",
+    "company_name": "Jayamas Medica Industri Tbk."
+  },
+  {
+    "stock_code": "OMRE",
+    "company_name": "Indonesia Prima Property Tbk"
+  },
+  {
+    "stock_code": "OPMS",
+    "company_name": "Optima Prima Metal Sinergi Tbk."
+  },
+  {
+    "stock_code": "PACK",
+    "company_name": "Solusi Kemasan Digital Tbk."
+  },
+  {
+    "stock_code": "PADA",
+    "company_name": "Personel Alih Daya Tbk."
+  },
+  {
+    "stock_code": "PADI",
+    "company_name": "Minna Padi Investama Sekuritas Tbk."
+  },
+  {
+    "stock_code": "PALM",
+    "company_name": "Provident Investasi Bersama Tbk."
+  },
+  {
+    "stock_code": "PAMG",
+    "company_name": "Bima Sakti Pertiwi Tbk."
+  },
+  {
+    "stock_code": "PANI",
+    "company_name": "Pantai Indah Kapuk Dua Tbk."
+  },
+  {
+    "stock_code": "PANR",
+    "company_name": "Panorama Sentrawisata Tbk."
+  },
+  {
+    "stock_code": "PANS",
+    "company_name": "Panin Sekuritas Tbk."
+  },
+  {
+    "stock_code": "PART",
+    "company_name": "Cipta Perdana Lancar Tbk."
+  },
+  {
+    "stock_code": "PBID",
+    "company_name": "Panca Budi Idaman Tbk."
+  },
+  {
+    "stock_code": "PBRX",
+    "company_name": "Pan Brothers Tbk."
+  },
+  {
+    "stock_code": "PBSA",
+    "company_name": "Paramita Bangun Sarana Tbk."
+  },
+  {
+    "stock_code": "PCAR",
+    "company_name": "Prima Cakrawala Abadi Tbk."
+  },
+  {
+    "stock_code": "PDES",
+    "company_name": "Destinasi Tirta Nusantara Tbk"
+  },
+  {
+    "stock_code": "PDPP",
+    "company_name": "Primadaya Plastisindo Tbk."
+  },
+  {
+    "stock_code": "PEGE",
+    "company_name": "Panca Global Kapital Tbk."
+  },
+  {
+    "stock_code": "PEHA",
+    "company_name": "Phapros Tbk."
+  },
+  {
+    "stock_code": "PEVE",
+    "company_name": "Penta Valent Tbk."
+  },
+  {
+    "stock_code": "PGAS",
+    "company_name": "Perusahaan Gas Negara Tbk."
+  },
+  {
+    "stock_code": "PGEO",
+    "company_name": "Pertamina Geothermal Energy Tbk."
+  },
+  {
+    "stock_code": "PGJO",
+    "company_name": "Tourindo Guide Indonesia Tbk."
+  },
+  {
+    "stock_code": "PGLI",
+    "company_name": "Pembangunan Graha Lestari Indah Tbk."
+  },
+  {
+    "stock_code": "PGUN",
+    "company_name": "Pradiksi Gunatama Tbk."
+  },
+  {
+    "stock_code": "PICO",
+    "company_name": "Pelangi Indah Canindo Tbk"
+  },
+  {
+    "stock_code": "PIPA",
+    "company_name": "Multi Makmur Lemindo Tbk."
+  },
+  {
+    "stock_code": "PJAA",
+    "company_name": "Pembangunan Jaya Ancol Tbk."
+  },
+  {
+    "stock_code": "PKPK",
+    "company_name": "Perdana Karya Perkasa Tbk"
+  },
+  {
+    "stock_code": "PLAN",
+    "company_name": "Planet Properindo Jaya Tbk."
+  },
+  {
+    "stock_code": "PLAS",
+    "company_name": "Polaris Investama Tbk"
+  },
+  {
+    "stock_code": "PLIN",
+    "company_name": "Plaza Indonesia Realty Tbk."
+  },
+  {
+    "stock_code": "PMJS",
+    "company_name": "Putra Mandiri Jembar Tbk."
+  },
+  {
+    "stock_code": "PMMP",
+    "company_name": "Panca Mitra Multiperdana Tbk."
+  },
+  {
+    "stock_code": "PMUI",
+    "company_name": "Prima Multi Usaha Indonesia Tbk."
+  },
+  {
+    "stock_code": "PNBN",
+    "company_name": "Bank Pan Indonesia Tbk"
+  },
+  {
+    "stock_code": "PNBS",
+    "company_name": "Bank Panin Dubai Syariah Tbk."
+  },
+  {
+    "stock_code": "PNGO",
+    "company_name": "Pinago Utama Tbk."
+  },
+  {
+    "stock_code": "PNIN",
+    "company_name": "Paninvest Tbk."
+  },
+  {
+    "stock_code": "PNLF",
+    "company_name": "Panin Financial Tbk."
+  },
+  {
+    "stock_code": "PNSE",
+    "company_name": "Pudjiadi & Sons Tbk."
+  },
+  {
+    "stock_code": "POLA",
+    "company_name": "Pool Advista Finance Tbk."
+  },
+  {
+    "stock_code": "POLI",
+    "company_name": "Pollux Hotels Group Tbk."
+  },
+  {
+    "stock_code": "POLL",
+    "company_name": "Pollux Properties Indonesia Tbk."
+  },
+  {
+    "stock_code": "POLU",
+    "company_name": "Golden Flower Tbk."
+  },
+  {
+    "stock_code": "POLY",
+    "company_name": "Asia Pacific Fibers Tbk"
+  },
+  {
+    "stock_code": "POOL",
+    "company_name": "Pool Advista Indonesia Tbk."
+  },
+  {
+    "stock_code": "PORT",
+    "company_name": "Nusantara Pelabuhan Handal Tbk."
+  },
+  {
+    "stock_code": "POSA",
+    "company_name": "Bliss Properti Indonesia Tbk."
+  },
+  {
+    "stock_code": "POWR",
+    "company_name": "Cikarang Listrindo Tbk."
+  },
+  {
+    "stock_code": "PPGL",
+    "company_name": "Prima Globalindo Logistik Tbk."
+  },
+  {
+    "stock_code": "PPRE",
+    "company_name": "PP Presisi Tbk."
+  },
+  {
+    "stock_code": "PPRI",
+    "company_name": "Paperocks Indonesia Tbk."
+  },
+  {
+    "stock_code": "PPRO",
+    "company_name": "PP Properti Tbk."
+  },
+  {
+    "stock_code": "PRAY",
+    "company_name": "Famon Awal Bros Sedaya Tbk."
+  },
+  {
+    "stock_code": "PRDA",
+    "company_name": "Prodia Widyahusada Tbk."
+  },
+  {
+    "stock_code": "PRIM",
+    "company_name": "Royal Prima Tbk."
+  },
+  {
+    "stock_code": "PSAB",
+    "company_name": "J Resources Asia Pasifik Tbk."
+  },
+  {
+    "stock_code": "PSAT",
+    "company_name": "Pancaran Samudera Transport Tbk."
+  },
+  {
+    "stock_code": "PSDN",
+    "company_name": "Prasidha Aneka Niaga Tbk"
+  },
+  {
+    "stock_code": "PSGO",
+    "company_name": "Palma Serasih Tbk."
+  },
+  {
+    "stock_code": "PSKT",
+    "company_name": "Red Planet Indonesia Tbk."
+  },
+  {
+    "stock_code": "PSSI",
+    "company_name": "IMC Pelita Logistik Tbk."
+  },
+  {
+    "stock_code": "PTBA",
+    "company_name": "Bukit Asam Tbk."
+  },
+  {
+    "stock_code": "PTDU",
+    "company_name": "Djasa Ubersakti Tbk."
+  },
+  {
+    "stock_code": "PTIS",
+    "company_name": "Indo Straits Tbk."
+  },
+  {
+    "stock_code": "PTMP",
+    "company_name": "Mitra Pack Tbk."
+  },
+  {
+    "stock_code": "PTMR",
+    "company_name": "Master Print Tbk."
+  },
+  {
+    "stock_code": "PTPP",
+    "company_name": "PP (Persero) Tbk."
+  },
+  {
+    "stock_code": "PTPS",
+    "company_name": "Pulau Subur Tbk."
+  },
+  {
+    "stock_code": "PTPW",
+    "company_name": "Pratama Widya Tbk."
+  },
+  {
+    "stock_code": "PTRO",
+    "company_name": "Petrosea Tbk."
+  },
+  {
+    "stock_code": "PTSN",
+    "company_name": "Sat Nusapersada Tbk"
+  },
+  {
+    "stock_code": "PTSP",
+    "company_name": "Pioneerindo Gourmet International Tbk."
+  },
+  {
+    "stock_code": "PUDP",
+    "company_name": "Pudjiadi Prestige Tbk."
+  },
+  {
+    "stock_code": "PURA",
+    "company_name": "Putra Rajawali Kencana Tbk."
+  },
+  {
+    "stock_code": "PURE",
+    "company_name": "Trinitan Metals and Minerals Tbk."
+  },
+  {
+    "stock_code": "PURI",
+    "company_name": "Puri Global Sukses Tbk."
+  },
+  {
+    "stock_code": "PWON",
+    "company_name": "Pakuwon Jati Tbk."
+  },
+  {
+    "stock_code": "PYFA",
+    "company_name": "Pyridam Farma Tbk"
+  },
+  {
+    "stock_code": "PZZA",
+    "company_name": "Sarimelati Kencana Tbk."
+  },
+  {
+    "stock_code": "RAAM",
+    "company_name": "Tripar Multivision Plus Tbk."
+  },
+  {
+    "stock_code": "RAFI",
+    "company_name": "Sari Kreasi Boga Tbk."
+  },
+  {
+    "stock_code": "RAJA",
+    "company_name": "Rukun Raharja Tbk."
+  },
+  {
+    "stock_code": "RALS",
+    "company_name": "Ramayana Lestari Sentosa Tbk."
+  },
+  {
+    "stock_code": "RANC",
+    "company_name": "Supra Boga Lestari Tbk."
+  },
+  {
+    "stock_code": "RATU",
+    "company_name": "Raharja Energi Cepu Tbk."
+  },
+  {
+    "stock_code": "RBMS",
+    "company_name": "Ristia Bintang Mahkotasejati Tbk."
+  },
+  {
+    "stock_code": "RCCC",
+    "company_name": "Utama Radar Cahaya Tbk."
+  },
+  {
+    "stock_code": "RDTX",
+    "company_name": "Roda Vivatex Tbk"
+  },
+  {
+    "stock_code": "REAL",
+    "company_name": "Repower Asia Indonesia Tbk."
+  },
+  {
+    "stock_code": "RELF",
+    "company_name": "Graha Mitra Asia Tbk."
+  },
+  {
+    "stock_code": "RELI",
+    "company_name": "Reliance Sekuritas Indonesia Tbk."
+  },
+  {
+    "stock_code": "RGAS",
+    "company_name": "Kian Santang Muliatama Tbk."
+  },
+  {
+    "stock_code": "RICY",
+    "company_name": "Ricky Putra Globalindo Tbk"
+  },
+  {
+    "stock_code": "RIGS",
+    "company_name": "Rig Tenders Indonesia Tbk."
+  },
+  {
+    "stock_code": "RIMO",
+    "company_name": "Rimo International Lestari Tbk"
+  },
+  {
+    "stock_code": "RISE",
+    "company_name": "Jaya Sukses Makmur Sentosa Tbk."
+  },
+  {
+    "stock_code": "RMKE",
+    "company_name": "RMK Energy Tbk."
+  },
+  {
+    "stock_code": "RMKO",
+    "company_name": "Royaltama Mulia Kontraktorindo Tbk."
+  },
+  {
+    "stock_code": "ROCK",
+    "company_name": "Rockfields Properti Indonesia Tbk."
+  },
+  {
+    "stock_code": "RODA",
+    "company_name": "Pikko Land Development Tbk."
+  },
+  {
+    "stock_code": "RONY",
+    "company_name": "Aesler Grup Internasional Tbk."
+  },
+  {
+    "stock_code": "ROTI",
+    "company_name": "Nippon Indosari Corpindo Tbk."
+  },
+  {
+    "stock_code": "RSCH",
+    "company_name": "Charlie Hospital Semarang Tbk."
+  },
+  {
+    "stock_code": "RSGK",
+    "company_name": "Kedoya Adyaraya Tbk."
+  },
+  {
+    "stock_code": "RUIS",
+    "company_name": "Radiant Utama Interinsco Tbk."
+  },
+  {
+    "stock_code": "RUNS",
+    "company_name": "Global Sukses Solusi Tbk."
+  },
+  {
+    "stock_code": "SAFE",
+    "company_name": "Steady Safe Tbk"
+  },
+  {
+    "stock_code": "SAGE",
+    "company_name": "Saptausaha Gemilangindah Tbk."
+  },
+  {
+    "stock_code": "SAME",
+    "company_name": "Sarana Meditama Metropolitan Tbk."
+  },
+  {
+    "stock_code": "SAMF",
+    "company_name": "Saraswanti Anugerah Makmur Tbk."
+  },
+  {
+    "stock_code": "SAPX",
+    "company_name": "Satria Antaran Prima Tbk."
+  },
+  {
+    "stock_code": "SATU",
+    "company_name": "Kota Satu Properti Tbk."
+  },
+  {
+    "stock_code": "SBAT",
+    "company_name": "Sejahtera Bintang Abadi Textile Tbk."
+  },
+  {
+    "stock_code": "SBMA",
+    "company_name": "Surya Biru Murni Acetylene Tbk."
+  },
+  {
+    "stock_code": "SCCO",
+    "company_name": "Supreme Cable Manufacturing & Commerce Tbk."
+  },
+  {
+    "stock_code": "SCMA",
+    "company_name": "Surya Citra Media Tbk."
+  },
+  {
+    "stock_code": "SCNP",
+    "company_name": "Selaras Citra Nusantara Perkasa Tbk."
+  },
+  {
+    "stock_code": "SCPI",
+    "company_name": "Organon Pharma Indonesia Tbk."
+  },
+  {
+    "stock_code": "SDMU",
+    "company_name": "Sidomulyo Selaras Tbk."
+  },
+  {
+    "stock_code": "SDPC",
+    "company_name": "Millennium Pharmacon International Tbk."
+  },
+  {
+    "stock_code": "SDRA",
+    "company_name": "Bank Woori Saudara Indonesia 1906 Tbk."
+  },
+  {
+    "stock_code": "SEMA",
+    "company_name": "Semacom Integrated Tbk."
+  },
+  {
+    "stock_code": "SFAN",
+    "company_name": "Surya Fajar Capital Tbk."
+  },
+  {
+    "stock_code": "SGER",
+    "company_name": "Sumber Global Energy Tbk."
+  },
+  {
+    "stock_code": "SGRO",
+    "company_name": "Sampoerna Agro Tbk."
+  },
+  {
+    "stock_code": "SHID",
+    "company_name": "Hotel Sahid Jaya International Tbk."
+  },
+  {
+    "stock_code": "SHIP",
+    "company_name": "Sillo Maritime Perdana Tbk."
+  },
+  {
+    "stock_code": "SICO",
+    "company_name": "Sigma Energy Compressindo Tbk."
+  },
+  {
+    "stock_code": "SIDO",
+    "company_name": "Industri Jamu dan Farmasi Sido Muncul Tbk."
+  },
+  {
+    "stock_code": "SILO",
+    "company_name": "Siloam International Hospitals Tbk."
+  },
+  {
+    "stock_code": "SIMA",
+    "company_name": "Siwani Makmur Tbk"
+  },
+  {
+    "stock_code": "SIMP",
+    "company_name": "Salim Ivomas Pratama Tbk."
+  },
+  {
+    "stock_code": "SINI",
+    "company_name": "Singaraja Putra Tbk."
+  },
+  {
+    "stock_code": "SIPD",
+    "company_name": "Sreeya Sewu Indonesia Tbk."
+  },
+  {
+    "stock_code": "SKBM",
+    "company_name": "Sekar Bumi Tbk."
+  },
+  {
+    "stock_code": "SKLT",
+    "company_name": "Sekar Laut Tbk."
+  },
+  {
+    "stock_code": "SKRN",
+    "company_name": "Superkrane Mitra Utama Tbk."
+  },
+  {
+    "stock_code": "SKYB",
+    "company_name": "Northcliff Citranusa Indonesia Tbk."
+  },
+  {
+    "stock_code": "SLIS",
+    "company_name": "Gaya Abadi Sempurna Tbk."
+  },
+  {
+    "stock_code": "SMAR",
+    "company_name": "Smart Tbk."
+  },
+  {
+    "stock_code": "SMBR",
+    "company_name": "Semen Baturaja Tbk."
+  },
+  {
+    "stock_code": "SMCB",
+    "company_name": "Solusi Bangun Indonesia Tbk."
+  },
+  {
+    "stock_code": "SMDM",
+    "company_name": "Suryamas Dutamakmur Tbk."
+  },
+  {
+    "stock_code": "SMDR",
+    "company_name": "Samudera Indonesia  Tbk."
+  },
+  {
+    "stock_code": "SMGA",
+    "company_name": "Sumber Mineral Global Abadi Tbk."
+  },
+  {
+    "stock_code": "SMGR",
+    "company_name": "Semen Indonesia (Persero) Tbk."
+  },
+  {
+    "stock_code": "SMIL",
+    "company_name": "Sarana Mitra Luas Tbk."
+  },
+  {
+    "stock_code": "SMKL",
+    "company_name": "Satyamitra Kemas Lestari Tbk."
+  },
+  {
+    "stock_code": "SMKM",
+    "company_name": "Sumber Mas Konstruksi Tbk."
+  },
+  {
+    "stock_code": "SMLE",
+    "company_name": "Sinergi Multi Lestarindo Tbk."
+  },
+  {
+    "stock_code": "SMMA",
+    "company_name": "Sinarmas Multiartha Tbk."
+  },
+  {
+    "stock_code": "SMMT",
+    "company_name": "Golden Eagle Energy Tbk."
+  },
+  {
+    "stock_code": "SMRA",
+    "company_name": "Summarecon Agung Tbk."
+  },
+  {
+    "stock_code": "SMRU",
+    "company_name": "SMR Utama Tbk."
+  },
+  {
+    "stock_code": "SMSM",
+    "company_name": "Selamat Sempurna Tbk."
+  },
+  {
+    "stock_code": "SNLK",
+    "company_name": "Sunter Lakeside Hotel Tbk."
+  },
+  {
+    "stock_code": "SOCI",
+    "company_name": "Soechi Lines Tbk."
+  },
+  {
+    "stock_code": "SOFA",
+    "company_name": "Boston Furniture Industries Tbk."
+  },
+  {
+    "stock_code": "SOHO",
+    "company_name": "Soho Global Health Tbk."
+  },
+  {
+    "stock_code": "SOLA",
+    "company_name": "Xolare RCR Energy Tbk."
+  },
+  {
+    "stock_code": "SONA",
+    "company_name": "Sona Topas Tourism Industry Tbk."
+  },
+  {
+    "stock_code": "SOSS",
+    "company_name": "Shield On Service Tbk."
+  },
+  {
+    "stock_code": "SOTS",
+    "company_name": "Satria Mega Kencana Tbk."
+  },
+  {
+    "stock_code": "SOUL",
+    "company_name": "Mitra Tirta Buwana Tbk."
+  },
+  {
+    "stock_code": "SPMA",
+    "company_name": "Suparma Tbk."
+  },
+  {
+    "stock_code": "SPRE",
+    "company_name": "Soraya Berjaya Indonesia Tbk."
+  },
+  {
+    "stock_code": "SPTO",
+    "company_name": "Surya Pertiwi Tbk."
+  },
+  {
+    "stock_code": "SQMI",
+    "company_name": "Wilton Makmur Indonesia Tbk."
+  },
+  {
+    "stock_code": "SRAJ",
+    "company_name": "Sejahteraraya Anugrahjaya Tbk."
+  },
+  {
+    "stock_code": "SRIL",
+    "company_name": "Sri Rejeki Isman Tbk."
+  },
+  {
+    "stock_code": "SRSN",
+    "company_name": "Indo Acidatama Tbk"
+  },
+  {
+    "stock_code": "SRTG",
+    "company_name": "Saratoga Investama Sedaya Tbk."
+  },
+  {
+    "stock_code": "SSIA",
+    "company_name": "Surya Semesta Internusa Tbk."
+  },
+  {
+    "stock_code": "SSMS",
+    "company_name": "Sawit Sumbermas Sarana Tbk."
+  },
+  {
+    "stock_code": "SSTM",
+    "company_name": "Sunson Textile Manufacture Tbk"
+  },
+  {
+    "stock_code": "STAA",
+    "company_name": "Sumber Tani Agung Resources Tbk."
+  },
+  {
+    "stock_code": "STAR",
+    "company_name": "Buana Artha Anugerah Tbk."
+  },
+  {
+    "stock_code": "STRK",
+    "company_name": "Lovina Beach Brewery Tbk."
+  },
+  {
+    "stock_code": "STTP",
+    "company_name": "Siantar Top Tbk."
+  },
+  {
+    "stock_code": "SUGI",
+    "company_name": "Sugih Energy Tbk."
+  },
+  {
+    "stock_code": "SULI",
+    "company_name": "SLJ Global Tbk."
+  },
+  {
+    "stock_code": "SUNI",
+    "company_name": "Sunindo Pratama Tbk."
+  },
+  {
+    "stock_code": "SUPR",
+    "company_name": "Solusi Tunas Pratama Tbk."
+  },
+  {
+    "stock_code": "SURE",
+    "company_name": "Super Energy Tbk."
+  },
+  {
+    "stock_code": "SURI",
+    "company_name": "Maja Agung Latexindo Tbk."
+  },
+  {
+    "stock_code": "SWAT",
+    "company_name": "Sriwahana Adityakarta Tbk."
+  },
+  {
+    "stock_code": "SWID",
+    "company_name": "Saraswanti Indoland Development Tbk."
+  },
+  {
+    "stock_code": "TALF",
+    "company_name": "Tunas Alfin Tbk."
+  },
+  {
+    "stock_code": "TAMA",
+    "company_name": "Lancartama Sejati Tbk."
+  },
+  {
+    "stock_code": "TAMU",
+    "company_name": "Pelayaran Tamarin Samudra Tbk."
+  },
+  {
+    "stock_code": "TAPG",
+    "company_name": "Triputra Agro Persada Tbk."
+  },
+  {
+    "stock_code": "TARA",
+    "company_name": "Agung Semesta Sejahtera Tbk."
+  },
+  {
+    "stock_code": "TAXI",
+    "company_name": "Express Transindo Utama Tbk."
+  },
+  {
+    "stock_code": "TAYS",
+    "company_name": "Jaya Swarasa Agung Tbk."
+  },
+  {
+    "stock_code": "TBIG",
+    "company_name": "Tower Bersama Infrastructure Tbk."
+  },
+  {
+    "stock_code": "TBLA",
+    "company_name": "Tunas Baru Lampung Tbk."
+  },
+  {
+    "stock_code": "TBMS",
+    "company_name": "Tembaga Mulia Semanan Tbk."
+  },
+  {
+    "stock_code": "TCID",
+    "company_name": "Mandom Indonesia Tbk."
+  },
+  {
+    "stock_code": "TCPI",
+    "company_name": "Transcoal Pacific Tbk."
+  },
+  {
+    "stock_code": "TDPM",
+    "company_name": "Tridomain Performance Materials Tbk."
+  },
+  {
+    "stock_code": "TEBE",
+    "company_name": "Dana Brata Luhur Tbk."
+  },
+  {
+    "stock_code": "TECH",
+    "company_name": "Indosterling Technomedia Tbk."
+  },
+  {
+    "stock_code": "TELE",
+    "company_name": "Omni Inovasi Indonesia Tbk."
+  },
+  {
+    "stock_code": "TFAS",
+    "company_name": "Telefast Indonesia Tbk."
+  },
+  {
+    "stock_code": "TFCO",
+    "company_name": "Tifico Fiber Indonesia Tbk."
+  },
+  {
+    "stock_code": "TGKA",
+    "company_name": "Tigaraksa Satria Tbk."
+  },
+  {
+    "stock_code": "TGRA",
+    "company_name": "Terregra Asia Energy Tbk."
+  },
+  {
+    "stock_code": "TGUK",
+    "company_name": "Platinum Wahab Nusantara Tbk."
+  },
+  {
+    "stock_code": "TIFA",
+    "company_name": "KDB Tifa Finance Tbk."
+  },
+  {
+    "stock_code": "TINS",
+    "company_name": "Timah Tbk."
+  },
+  {
+    "stock_code": "TIRA",
+    "company_name": "Tira Austenite Tbk"
+  },
+  {
+    "stock_code": "TIRT",
+    "company_name": "Tirta Mahakam Resources Tbk"
+  },
+  {
+    "stock_code": "TKIM",
+    "company_name": "Pabrik Kertas Tjiwi Kimia Tbk."
+  },
+  {
+    "stock_code": "TLDN",
+    "company_name": "Teladan Prima Agro Tbk."
+  },
+  {
+    "stock_code": "TLKM",
+    "company_name": "Telkom Indonesia (Persero) Tbk."
+  },
+  {
+    "stock_code": "TMAS",
+    "company_name": "Temas Tbk."
+  },
+  {
+    "stock_code": "TMPO",
+    "company_name": "Tempo Intimedia Tbk."
+  },
+  {
+    "stock_code": "TNCA",
+    "company_name": "Trimuda Nuansa Citra Tbk."
+  },
+  {
+    "stock_code": "TOBA",
+    "company_name": "TBS Energi Utama Tbk."
+  },
+  {
+    "stock_code": "TOOL",
+    "company_name": "Rohartindo Nusantara Luas Tbk."
+  },
+  {
+    "stock_code": "TOPS",
+    "company_name": "Totalindo Eka Persada Tbk."
+  },
+  {
+    "stock_code": "TOSK",
+    "company_name": "Topindo Solusi Komunika Tbk."
+  },
+  {
+    "stock_code": "TOTL",
+    "company_name": "Total Bangun Persada Tbk."
+  },
+  {
+    "stock_code": "TOTO",
+    "company_name": "Surya Toto Indonesia Tbk."
+  },
+  {
+    "stock_code": "TOWR",
+    "company_name": "Sarana Menara Nusantara Tbk."
+  },
+  {
+    "stock_code": "TOYS",
+    "company_name": "Sunindo Adipersada Tbk."
+  },
+  {
+    "stock_code": "TPMA",
+    "company_name": "Trans Power Marine Tbk."
+  },
+  {
+    "stock_code": "TRAM",
+    "company_name": "Trada Alam Minera Tbk."
+  },
+  {
+    "stock_code": "TRGU",
+    "company_name": "Cerestar Indonesia Tbk."
+  },
+  {
+    "stock_code": "TRIL",
+    "company_name": "Triwira Insanlestari Tbk."
+  },
+  {
+    "stock_code": "TRIM",
+    "company_name": "Trimegah Sekuritas Indonesia Tbk."
+  },
+  {
+    "stock_code": "TRIN",
+    "company_name": "Perintis Triniti Properti Tbk."
+  },
+  {
+    "stock_code": "TRIO",
+    "company_name": "Trikomsel Oke Tbk."
+  },
+  {
+    "stock_code": "TRIS",
+    "company_name": "Trisula International Tbk."
+  },
+  {
+    "stock_code": "TRJA",
+    "company_name": "Transkon Jaya Tbk."
+  },
+  {
+    "stock_code": "TRON",
+    "company_name": "Teknologi Karya Digital Nusa Tbk."
+  },
+  {
+    "stock_code": "TRST",
+    "company_name": "Trias Sentosa Tbk."
+  },
+  {
+    "stock_code": "TRUE",
+    "company_name": "Triniti Dinamik Tbk."
+  },
+  {
+    "stock_code": "TRUK",
+    "company_name": "Guna Timur Raya Tbk."
+  },
+  {
+    "stock_code": "TRUS",
+    "company_name": "Trust Finance Indonesia Tbk"
+  },
+  {
+    "stock_code": "TSPC",
+    "company_name": "Tempo Scan Pacific Tbk."
+  },
+  {
+    "stock_code": "TUGU",
+    "company_name": "Asuransi Tugu Pratama Indonesia Tbk."
+  },
+  {
+    "stock_code": "TYRE",
+    "company_name": "King Tire Indonesia Tbk."
+  },
+  {
+    "stock_code": "UANG",
+    "company_name": "Pakuan Tbk."
+  },
+  {
+    "stock_code": "UCID",
+    "company_name": "Uni-Charm Indonesia Tbk."
+  },
+  {
+    "stock_code": "UDNG",
+    "company_name": "Agro Bahari Nusantara Tbk."
+  },
+  {
+    "stock_code": "UFOE",
+    "company_name": "Damai Sejahtera Abadi Tbk."
+  },
+  {
+    "stock_code": "ULTJ",
+    "company_name": "Ultrajaya Milk Industry & Trading Company Tbk."
+  },
+  {
+    "stock_code": "UNIC",
+    "company_name": "Unggul Indah Cahaya Tbk."
+  },
+  {
+    "stock_code": "UNIQ",
+    "company_name": "Ulima Nitra Tbk."
+  },
+  {
+    "stock_code": "UNIT",
+    "company_name": "Nusantara Inti Corpora Tbk"
+  },
+  {
+    "stock_code": "UNSP",
+    "company_name": "Bakrie Sumatera Plantations Tbk."
+  },
+  {
+    "stock_code": "UNTD",
+    "company_name": "Terang Dunia Internusa Tbk."
+  },
+  {
+    "stock_code": "UNTR",
+    "company_name": "United Tractors Tbk."
+  },
+  {
+    "stock_code": "UNVR",
+    "company_name": "Unilever Indonesia Tbk."
+  },
+  {
+    "stock_code": "URBN",
+    "company_name": "Urban Jakarta Propertindo Tbk."
+  },
+  {
+    "stock_code": "UVCR",
+    "company_name": "Trimegah Karya Pratama Tbk."
+  },
+  {
+    "stock_code": "VAST",
+    "company_name": "Vastland Indonesia Tbk."
+  },
+  {
+    "stock_code": "VERN",
+    "company_name": "Verona Indah Pictures Tbk."
+  },
+  {
+    "stock_code": "VICI",
+    "company_name": "Victoria Care Indonesia Tbk."
+  },
+  {
+    "stock_code": "VICO",
+    "company_name": "Victoria Investama Tbk."
+  },
+  {
+    "stock_code": "VINS",
+    "company_name": "Victoria Insurance Tbk."
+  },
+  {
+    "stock_code": "VISI",
+    "company_name": "Satu Visi Putra Tbk."
+  },
+  {
+    "stock_code": "VIVA",
+    "company_name": "Visi Media Asia Tbk."
+  },
+  {
+    "stock_code": "VKTR",
+    "company_name": "VKTR Teknologi Mobilitas Tbk."
+  },
+  {
+    "stock_code": "VOKS",
+    "company_name": "Voksel Electric Tbk."
+  },
+  {
+    "stock_code": "VRNA",
+    "company_name": "Mizuho Leasing Indonesia Tbk."
+  },
+  {
+    "stock_code": "VTNY",
+    "company_name": "Venteny Fortuna International Tbk."
+  },
+  {
+    "stock_code": "WAPO",
+    "company_name": "Wahana Pronatural Tbk."
+  },
+  {
+    "stock_code": "WEGE",
+    "company_name": "Wijaya Karya Bangunan Gedung Tbk."
+  },
+  {
+    "stock_code": "WEHA",
+    "company_name": "WEHA Transportasi Indonesia Tbk."
+  },
+  {
+    "stock_code": "WGSH",
+    "company_name": "Wira Global Solusi Tbk."
+  },
+  {
+    "stock_code": "WICO",
+    "company_name": "Wicaksana Overseas International Tbk."
+  },
+  {
+    "stock_code": "WIDI",
+    "company_name": "Widiant Jaya Krenindo Tbk."
+  },
+  {
+    "stock_code": "WIFI",
+    "company_name": "Solusi Sinergi Digital Tbk."
+  },
+  {
+    "stock_code": "WIIM",
+    "company_name": "Wismilak Inti Makmur Tbk."
+  },
+  {
+    "stock_code": "WIKA",
+    "company_name": "Wijaya Karya (Persero) Tbk."
+  },
+  {
+    "stock_code": "WINE",
+    "company_name": "Hatten Bali Tbk."
+  },
+  {
+    "stock_code": "WINR",
+    "company_name": "Winner Nusantara Jaya Tbk."
+  },
+  {
+    "stock_code": "WINS",
+    "company_name": "Wintermar Offshore Marine Tbk."
+  },
+  {
+    "stock_code": "WIRG",
+    "company_name": "WIR ASIA Tbk."
+  },
+  {
+    "stock_code": "WMPP",
+    "company_name": "Widodo Makmur Perkasa Tbk."
+  },
+  {
+    "stock_code": "WMUU",
+    "company_name": "Widodo Makmur Unggas Tbk."
+  },
+  {
+    "stock_code": "WOMF",
+    "company_name": "Wahana Ottomitra Multiartha Tbk."
+  },
+  {
+    "stock_code": "WOOD",
+    "company_name": "Integra Indocabinet Tbk."
+  },
+  {
+    "stock_code": "WOWS",
+    "company_name": "Ginting Jaya Energi Tbk."
+  },
+  {
+    "stock_code": "WSBP",
+    "company_name": "Waskita Beton Precast Tbk."
+  },
+  {
+    "stock_code": "WSKT",
+    "company_name": "Waskita Karya (Persero) Tbk."
+  },
+  {
+    "stock_code": "WTON",
+    "company_name": "Wijaya Karya Beton Tbk."
+  },
+  {
+    "stock_code": "YELO",
+    "company_name": "Yelooo Integra Datanet Tbk."
+  },
+  {
+    "stock_code": "YOII",
+    "company_name": "Asuransi Digital Bersama Tbk."
+  },
+  {
+    "stock_code": "YPAS",
+    "company_name": "Yanaprima Hastapersada Tbk"
+  },
+  {
+    "stock_code": "YULE",
+    "company_name": "Yulie Sekuritas Indonesia Tbk."
+  },
+  {
+    "stock_code": "YUPI",
+    "company_name": "Yupi Indo Jelly Gum Tbk."
+  },
+  {
+    "stock_code": "ZATA",
+    "company_name": "Bersama Zatta Jaya Tbk."
+  },
+  {
+    "stock_code": "ZBRA",
+    "company_name": "Dosni Roha Indonesia Tbk."
+  },
+  {
+    "stock_code": "ZINC",
+    "company_name": "Kapuas Prima Coal Tbk."
+  },
+  {
+    "stock_code": "ZONE",
+    "company_name": "Mega Perintis Tbk."
+  },
+  {
+    "stock_code": "ZYRX",
+    "company_name": "Zyrexindo Mandiri Buana Tbk."
+  },
+  {
+    "stock_code": "TPIA",
+    "company_name": "Chandra Asri Petrochemical Tbk."
+  },
+  {
+    "stock_code": "SUPA",
+    "company_name": "Super Bank Indonesia Tbk."
+  },
+  {
+    "stock_code": "RLCO",
+    "company_name": "Abadi Lestari Indonesia Tbk."
+  },
+  {
+    "stock_code": "WBSA",
+    "company_name": "BSA Logistics Indonesia Tbk."
+  },
+  {
+    "stock_code": "PJHB",
+    "company_name": "Pelayaran Jaya Hidup Baru Tbk."
+  },
+  {
+    "stock_code": "PTSP",
+    "company_name": "Pioneerindo Gourmet International Tbk."
+  },
+  {
+    "stock_code": "BACH",
+    "company_name": "Bach Multi Global Tbk."
+  },
+  {
+    "stock_code": "RANS",
+    "company_name": "Rans Entertainmen Indonesia Tbk."
+  },
+  {
+    "stock_code": "EMMI",
+    "company_name": "Esa Medika Mandiri Tbk."
+  },
+  {
+    "stock_code": "JELI",
+    "company_name": "Niramas Utama Tbk."
+  },
+  {
+    "stock_code": "PRDL",
+    "company_name": "Prodia Diagnostic Line Tbk."
+  },
+  {
+    "stock_code": "JECX",
+    "company_name": "Nitrasanata Dharma Tbk."
+  },
+  {
+    "stock_code": "EURO",
+    "company_name": "Estee Gold Feet Tbk."
+  },
+  {
+    "stock_code": "HOME",
+    "company_name": "Hotel Mandarine Regency Tbk."
+  },
+  {
+    "stock_code": "FORZ",
+    "company_name": "Forza Land Indonesia Tbk."
+  },
+  {
+    "stock_code": "HDTX",
+    "company_name": "Panasia Indo Resources Tbk."
+  },
+  {
+    "stock_code": "JKSW",
+    "company_name": "Jakarta Kyoei Steel Works Tbk."
+  },
+  {
+    "stock_code": "KPAL",
+    "company_name": "Steadfast Marine Tbk."
+  },
+  {
+    "stock_code": "KPAS",
+    "company_name": "Cottonindo Ariesta Tbk."
+  },
+  {
+    "stock_code": "KRAH",
+    "company_name": "Grand Kartech Tbk."
+  },
+  {
+    "stock_code": "MAMI",
+    "company_name": "Mas Murni Indonesia Tbk"
+  },
+  {
+    "stock_code": "MAMIP",
+    "company_name": "Mas Murni Tbk (Saham Preferen)"
+  },
+  {
+    "stock_code": "MYRX",
+    "company_name": "Hanson International Tbk."
+  },
+  {
+    "stock_code": "MYRXP",
+    "company_name": "Saham Seri B Hanson International Tbk."
+  },
+  {
+    "stock_code": "NIPS",
+    "company_name": "Nipress Tbk."
+  },
+  {
+    "stock_code": "PRAS",
+    "company_name": "Prima Alloy Steel Universal Tbk."
+  },
+  {
+    "stock_code": "RMBA",
+    "company_name": "Bentoel Internasional Investama Tbk."
+  }
+]

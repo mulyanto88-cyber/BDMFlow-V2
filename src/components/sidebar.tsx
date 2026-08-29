@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/auth-context'
+import BrandLogo, { BrandLogoIcon } from '@/components/brand-logo'
 
 const navGroups = [
   {
@@ -126,25 +127,12 @@ export default function Sidebar() {
           style={{ borderBottom: '1px solid var(--sidebar-border)' }}
         >
           {!collapsed ? (
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="relative w-7 h-7 shrink-0">
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-[0_0_14px_rgba(251,191,36,0.35)]" />
-                <div className="absolute inset-0 flex items-center justify-center font-black text-[12px] font-mono text-slate-950">B</div>
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-[1.5px] border-[color:var(--sidebar-bg)] animate-pulse" />
-              </div>
-              <div>
-                <span className="text-[13px] font-black tracking-tight bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">
-                  BDMFlow
-                </span>
-                <span className="block text-[8px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60 -mt-0.5">
-                  IDX Intelligence
-                </span>
-              </div>
+            <Link href="/" className="flex items-center gap-2 group">
+              <BrandLogo size="sm" showText={true} />
             </Link>
           ) : (
-            <Link href="/" className="mx-auto relative">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-[13px] font-mono bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.3)]">B</div>
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-[1.5px] border-[color:var(--sidebar-bg)] animate-pulse" />
+            <Link href="/" className="mx-auto relative" title="BDMFlow IDX Intelligence">
+              <BrandLogoIcon size={30} />
             </Link>
           )}
 

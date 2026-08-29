@@ -1,0 +1,3355 @@
+[
+  {
+    "code": "OCAP",
+    "name": "ONIX CAPITAL Tbk",
+    "entry_date": "19 Jul 2021",
+    "exit_date": null,
+    "criteria": "2, 3, 5, 7"
+  },
+  {
+    "code": "PICO",
+    "name": "Pelangi Indah Canindo Tbk",
+    "entry_date": "19 Jul 2021",
+    "exit_date": "13 Jun 2022",
+    "criteria": "8"
+  },
+  {
+    "code": "BINA",
+    "name": "PT Bank Ina Perdana Tbk.",
+    "entry_date": "21 Jul 2021",
+    "exit_date": "20 Agt 2021",
+    "criteria": "10"
+  },
+  {
+    "code": "GMFI",
+    "name": "PT Garuda Maintenance Facility Aero Asia Tbk.",
+    "entry_date": "29 Jul 2021",
+    "exit_date": "31 Mar 2026",
+    "criteria": "5"
+  },
+  {
+    "code": "BOLA",
+    "name": "PT Bali Bintang Sejahtera Tbk.",
+    "entry_date": "20 Agt 2021",
+    "exit_date": "20 Sep 2021",
+    "criteria": "10"
+  },
+  {
+    "code": "PEGE",
+    "name": "PT Panca Global Kapital Tbk.",
+    "entry_date": "23 Agt 2021",
+    "exit_date": "22 Sep 2021",
+    "criteria": "10"
+  },
+  {
+    "code": "TMAS",
+    "name": "PT Temas Tbk.",
+    "entry_date": "24 Des 2021",
+    "exit_date": "24 Jan 2022",
+    "criteria": "10"
+  },
+  {
+    "code": "BPTR",
+    "name": "PT Batavia Prosperindo Trans Tbk.",
+    "entry_date": "28 Des 2021",
+    "exit_date": "27 Jan 2022",
+    "criteria": "10"
+  },
+  {
+    "code": "ADMR",
+    "name": "PT Adaro Minerals Indonesia Tbk",
+    "entry_date": "28 Jan 2022",
+    "exit_date": "01 Mar 2022",
+    "criteria": "10"
+  },
+  {
+    "code": "ANDI",
+    "name": "PT Andira Agro Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "BLTA",
+    "name": "Berlian Laju Tanker Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "BSWD",
+    "name": "Bank of India Indonesia Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "BTEK",
+    "name": "Bumi Teknokultura Unggul Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "CMPP",
+    "name": "PT AirAsia Indonesia Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "ELTY",
+    "name": "Bakrieland Development Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "IKAI",
+    "name": "Intikeramik Alamasri Industri Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "TAXI",
+    "name": "Express Transindo Utama Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "OKAS",
+    "name": "Ancora Indonesia Resources Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "02 Agt 2022",
+    "criteria": "5"
+  },
+  {
+    "code": "SULI",
+    "name": "PT SLJ Global Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "29 Nov 2022",
+    "criteria": "5"
+  },
+  {
+    "code": "RELI",
+    "name": "Reliance Sekuritas Indonesia Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "30 Nov 2022",
+    "criteria": "7"
+  },
+  {
+    "code": "MKPI",
+    "name": "Metropolitan Kentjana Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "30 Nov 2022",
+    "criteria": "7"
+  },
+  {
+    "code": "CARS",
+    "name": "PT Industri dan Perdagangan Bintraco Dharma Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "30 Nov 2022",
+    "criteria": "1"
+  },
+  {
+    "code": "LCKM",
+    "name": "PT LCK Global Kedaton Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "31 Mei 2024",
+    "criteria": "7"
+  },
+  {
+    "code": "CTBN",
+    "name": "Citra Tubindo Tbk",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "27 Nov 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "JGLE",
+    "name": "PT Graha Andrasentra Propertindo Tbk.",
+    "entry_date": "31 Mei 2022",
+    "exit_date": "29 Mei 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "PALM",
+    "name": "Provident Agro Tbk",
+    "entry_date": "17 Jun 2022",
+    "exit_date": "08 Nov 2022",
+    "criteria": "3"
+  },
+  {
+    "code": "BMSR",
+    "name": "Bintang Mitra Semestaraya Tbk",
+    "entry_date": "28 Jun 2022",
+    "exit_date": "28 Jul 2022",
+    "criteria": "10"
+  },
+  {
+    "code": "PANI",
+    "name": "PT Pratama Abadi Nusa Industri Tbk.",
+    "entry_date": "29 Jul 2022",
+    "exit_date": "29 Agt 2022",
+    "criteria": "10"
+  },
+  {
+    "code": "TAYS",
+    "name": "PT Jaya Swarasa Agung Tbk",
+    "entry_date": "09 Nov 2022",
+    "exit_date": "09 Des 2022",
+    "criteria": "10"
+  },
+  {
+    "code": "OASA",
+    "name": "PT Maharaksa Biru Energi Tbk",
+    "entry_date": "17 Nov 2022",
+    "exit_date": "18 Apr 2023",
+    "criteria": "3"
+  },
+  {
+    "code": "PPRO",
+    "name": "PT PP Properti Tbk.",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "PURA",
+    "name": "PT Putra Rajawali Kencana Tbk.",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "BAUT",
+    "name": "PT Mitra Angkasa Sejahtera Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "BEKS",
+    "name": "PT Bank Pembangunan Daerah Banten Tbk.",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "ARKA",
+    "name": "PT Arkha Jayanti Persada Tbk.",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "KBAG",
+    "name": "PT Karya Bersama Anugerah Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "KREN",
+    "name": "PT Kresna Graha Investama Tbk.",
+    "entry_date": "30 Nov 2022",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "GEMA",
+    "name": "Gema Grahasarana Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": "31 Mei 2023",
+    "criteria": "7"
+  },
+  {
+    "code": "BAYU",
+    "name": "Bayu Buana Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": "31 Mei 2023",
+    "criteria": "7"
+  },
+  {
+    "code": "TALF",
+    "name": "TUNAS ALFIN Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": "30 Nov 2023",
+    "criteria": "7"
+  },
+  {
+    "code": "TIFA",
+    "name": "KDB Tifa Finance Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": "16 Jul 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "WOWS",
+    "name": "PT Ginting Jaya Energi Tbk",
+    "entry_date": "30 Nov 2022",
+    "exit_date": "29 Agt 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "KOTA",
+    "name": "PT DMS Propertindo Tbk.",
+    "entry_date": "30 Nov 2022",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "NETV",
+    "name": "PT Net Visi Media Tbk",
+    "entry_date": "14 Mar 2023",
+    "exit_date": "09 Apr 2025",
+    "criteria": "5"
+  },
+  {
+    "code": "PTIS",
+    "name": "Indo Straits Tbk",
+    "entry_date": "21 Mar 2023",
+    "exit_date": "26 Apr 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "CHIP",
+    "name": "PT Pelita Teknologi Global Tbk",
+    "entry_date": "06 Apr 2023",
+    "exit_date": "08 Mei 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "CENT",
+    "name": "PT Centratama Telekomunikasi Indonesia Tbk.",
+    "entry_date": "18 Apr 2023",
+    "exit_date": "09 Apr 2025",
+    "criteria": "5"
+  },
+  {
+    "code": "DKFT",
+    "name": "Central Omega Resources Tbk",
+    "entry_date": "04 Mei 2023",
+    "exit_date": "02 Agt 2023",
+    "criteria": "3"
+  },
+  {
+    "code": "HRME",
+    "name": "PT Menteng Heritage Realty Tbk.",
+    "entry_date": "31 Mei 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "IBST",
+    "name": "Inti Bangun Sejahtera Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "WINR",
+    "name": "PT Winner Nusantara Jaya Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "TRST",
+    "name": "Trias Sentosa Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "30 Nov 2023",
+    "criteria": "7"
+  },
+  {
+    "code": "SRSN",
+    "name": "Indo Acidatama Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "30 Nov 2023",
+    "criteria": "1"
+  },
+  {
+    "code": "BOLT",
+    "name": "PT Garuda Metalindo Tbk.",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "30 Nov 2023",
+    "criteria": "7"
+  },
+  {
+    "code": "SURE",
+    "name": "PT Super Energy Tbk.",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "31 Mei 2024",
+    "criteria": "7"
+  },
+  {
+    "code": "BKSL",
+    "name": "Sentul City Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "28 Feb 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "BIPP",
+    "name": "Bhuwanatala Indah Permai Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "RBMS",
+    "name": "Ristia Bintang Mahkotasejati Tbk",
+    "entry_date": "31 Mei 2023",
+    "exit_date": "29 Mei 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "LPPF",
+    "name": "Matahari Department Store Tbk",
+    "entry_date": "02 Agt 2023",
+    "exit_date": "30 Okt 2023",
+    "criteria": "5"
+  },
+  {
+    "code": "LAJU",
+    "name": "PT Jasa Berdikari Logistics Tbk",
+    "entry_date": "09 Agt 2023",
+    "exit_date": "11 Sep 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "UNIQ",
+    "name": "PT Ulima Nitra Tbk",
+    "entry_date": "18 Agt 2023",
+    "exit_date": "18 Sep 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "GTBO",
+    "name": "Garda Tujuh Buana Tbk",
+    "entry_date": "21 Sep 2023",
+    "exit_date": "23 Okt 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "DEWI",
+    "name": "PT Dewi Shri Farmindo Tbk",
+    "entry_date": "25 Sep 2023",
+    "exit_date": "26 Okt 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "WIDI",
+    "name": "PT Widiant Jaya Krenindo Tbk.",
+    "entry_date": "27 Okt 2023",
+    "exit_date": "27 Nov 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "TGRA",
+    "name": "PT Terregra Asia Energy",
+    "entry_date": "03 Nov 2023",
+    "exit_date": null,
+    "criteria": "1, 3"
+  },
+  {
+    "code": "SATU",
+    "name": "PT Kota Satu Properti Tbk.",
+    "entry_date": "07 Nov 2023",
+    "exit_date": "07 Des 2023",
+    "criteria": "10"
+  },
+  {
+    "code": "TAMU",
+    "name": "PT Pelayaran Tamarin Samudra Tbk.",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "TARA",
+    "name": "PT Agung Semesta Sejahtera Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "PBRX",
+    "name": "Pan Brothers Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "NASA",
+    "name": "PT Andalan Perkasa Abadi Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "WSBP",
+    "name": "PT Waskita Beton Precast Tbk.",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "ASMI",
+    "name": "PT Asuransi Maximus Graha Persada Tbk.",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "HADE",
+    "name": "PT Himalaya Energi Perkasa Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "KIAS",
+    "name": "Keramika Indonesia Assosiasi Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "MIRA",
+    "name": "Mitra International Resources Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "ISAP",
+    "name": "PT Isra Presisi Indonesia Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "01 Des 2023",
+    "criteria": "1"
+  },
+  {
+    "code": "BMBL",
+    "name": "PT Lavender Bina Cendikia Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "01 Des 2023",
+    "criteria": "1"
+  },
+  {
+    "code": "NANO",
+    "name": "PT Nanotech Indonesia Global Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "01 Des 2023",
+    "criteria": "1"
+  },
+  {
+    "code": "PLAN",
+    "name": "PT Planet Properindo Jaya Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "01 Des 2023",
+    "criteria": "1"
+  },
+  {
+    "code": "SOUL",
+    "name": "PT Mitra Tirta Buwana Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "01 Des 2023",
+    "criteria": "1"
+  },
+  {
+    "code": "YULE",
+    "name": "Yulie Sekuritas Indonesia Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "31 Mei 2024",
+    "criteria": "7"
+  },
+  {
+    "code": "BPII",
+    "name": "PT Batavia Prosperindo Internasional Tbk.",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "31 Mei 2024",
+    "criteria": "7"
+  },
+  {
+    "code": "BSBK",
+    "name": "PT Wulandari Bangun Laksana Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "31 Mei 2024",
+    "criteria": "1"
+  },
+  {
+    "code": "ESIP",
+    "name": "PT Sinergi Inti Plastindo Tbk.",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "ESTI",
+    "name": "Ever Shine Textile Industry Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "HDIT",
+    "name": "PT Hensel Davest Indonesia Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "SDMU",
+    "name": "Sidomulyo Selaras Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "RODA",
+    "name": "Pikko Land Development Tbk",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "EPAC",
+    "name": "PT Megalestari Epack Sentosaraya Tbk.",
+    "entry_date": "30 Nov 2023",
+    "exit_date": "29 Mei 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "CUAN",
+    "name": "PT Petrindo Jaya Kreasi Tbk",
+    "entry_date": "16 Jan 2024",
+    "exit_date": "16 Feb 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "SHID",
+    "name": "Hotel Sahid Jaya Tbk",
+    "entry_date": "30 Jan 2024",
+    "exit_date": "01 Mar 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "GIAA",
+    "name": "Garuda Indonesia (Persero) Tbk",
+    "entry_date": "30 Jan 2024",
+    "exit_date": "26 Mar 2026",
+    "criteria": "5"
+  },
+  {
+    "code": "LMSH",
+    "name": "Lionmesh Prima Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "LCGP",
+    "name": "PT Eureka Prima Jakarta Tbk.",
+    "entry_date": "31 Jan 2024",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "DUCK",
+    "name": "PT Jaya Bersama Indo Tbk.",
+    "entry_date": "31 Jan 2024",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "SKYB",
+    "name": "PT Northcliff Citranusa Indonesia Tbk.",
+    "entry_date": "31 Jan 2024",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "SMCB",
+    "name": "PT Solusi Bangun Indonesia Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "TRIO",
+    "name": "Trikomsel Oke Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": null,
+    "criteria": "5, 6, 7"
+  },
+  {
+    "code": "KMTR",
+    "name": "PT Kirana Megatara Tbk.",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "07 Mar 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "JAWA",
+    "name": "Jaya Agra Wattie Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "04 Apr 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "SCCO",
+    "name": "PT Supreme Cable Manufacturing & Commerce Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "04 Apr 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "SCNP",
+    "name": "PT Selaras Citra Nusantara Perkasa Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "29 Apr 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "GDYR",
+    "name": "Goodyear Indonesia Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "21 Mei 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "INPP",
+    "name": "Indonesian Paradise Property Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "27 Mei 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "SKLT",
+    "name": "Sekar Laut Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "12 Jun 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "AGRS",
+    "name": "PT Bank IBK Indonesia Tbk.",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "03 Jul 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "EPMT",
+    "name": "Enseval Putera Megatrading Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "05 Jul 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "TOTO",
+    "name": "Surya Toto Indonesia Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "09 Jul 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "SKBM",
+    "name": "Sekar Bumi Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "25 Jul 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "LMPI",
+    "name": "Langgeng Makmur Industri Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "07 Okt 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "BKSW",
+    "name": "PT Bank QNB Indonesia Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "31 Okt 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "KDSI",
+    "name": "Kedawung Setia Industrial Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "14 Nov 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "CITA",
+    "name": "Cita Mineral Investindo Tbk",
+    "entry_date": "31 Jan 2024",
+    "exit_date": "15 Nov 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "CGAS",
+    "name": "PT Citra Nusantara Gemilang Tbk.",
+    "entry_date": "04 Mar 2024",
+    "exit_date": "04 Apr 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "PTPS",
+    "name": "PT Pulau Subur Tbk.",
+    "entry_date": "06 Mar 2024",
+    "exit_date": "16 Apr 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "GMTD",
+    "name": "Gowa Makassar Tourism Development Tbk",
+    "entry_date": "15 Mar 2024",
+    "exit_date": "31 Mei 2024",
+    "criteria": "7"
+  },
+  {
+    "code": "MPIX",
+    "name": "PT Mitra Pedagang Indonesia Tbk.",
+    "entry_date": "20 Mar 2024",
+    "exit_date": "22 Apr 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "NIKL",
+    "name": "Pelat Timah Nusantara Tbk",
+    "entry_date": "27 Mar 2024",
+    "exit_date": "29 Apr 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "SUPR",
+    "name": "Solusi Tunas Pratama Tbk",
+    "entry_date": "30 Apr 2024",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "DMMX",
+    "name": "PT Digital Mediatama Maxima Tbk",
+    "entry_date": "06 Mei 2024",
+    "exit_date": "06 Jun 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "BREN",
+    "name": "PT Barito Renewables Energy Tbk.",
+    "entry_date": "29 Mei 2024",
+    "exit_date": "21 Jun 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "BEBS",
+    "name": "PT Berkah Beton Sadaya Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "BHIT",
+    "name": "PT MNC Asia Holding Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "DIGI",
+    "name": "PT Arkadia Digital Media Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "IPTV",
+    "name": "PT MNC Vision Networks Tbk.",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "KKES",
+    "name": "PT Kusuma Kemindo Sentosa Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "SWAT",
+    "name": "PT Sriwahana Adityakarta Tbk.",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "SAGE",
+    "name": "PT Saptausaha Gemilangindah Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "RAFI",
+    "name": "PT Sari Kreasi Boga Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "MAXI",
+    "name": "PT Maxindo Karya Anugerah Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "21 Jun 2024",
+    "criteria": "1"
+  },
+  {
+    "code": "HALO",
+    "name": "PT Haloni Jane Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "21 Jun 2024",
+    "criteria": "1"
+  },
+  {
+    "code": "BCAP",
+    "name": "MNC Kapital Indonesia Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "30 Agt 2024",
+    "criteria": "1"
+  },
+  {
+    "code": "BRNA",
+    "name": "Berlina Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "29 Nov 2024",
+    "criteria": "7"
+  },
+  {
+    "code": "JAST",
+    "name": "PT Jasnita Telekomindo Tbk.",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "29 Nov 2024",
+    "criteria": "1"
+  },
+  {
+    "code": "CSIS",
+    "name": "PT Cahayasakti Investindo Sukses Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "28 Feb 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "NPGF",
+    "name": "PT Nusa Palapa Gemilang Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "21 Jul 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "REAL",
+    "name": "PT Repower Asia Indonesia Tbk.",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "09 Sep 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "DADA",
+    "name": "PT Diamond Citra Propertindo Tbk.",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "10 Okt 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "ASHA",
+    "name": "PT Cilacap Samudera Fishing Industry Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "IATA",
+    "name": "PT MNC Energy Investments Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "ICON",
+    "name": "Island Concepts Indonesia Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "OMRE",
+    "name": "Indonesia Prima Property Tbk",
+    "entry_date": "31 Mei 2024",
+    "exit_date": "29 Mei 2026",
+    "criteria": "7"
+  },
+  {
+    "code": "HELI",
+    "name": "PT Jaya Trishindo Tbk",
+    "entry_date": "20 Jun 2024",
+    "exit_date": "01 Jul 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "HOME",
+    "name": "Hotel Mandarine Regency Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "GAMA",
+    "name": "Aksara Global Development Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "IIKP",
+    "name": "Inti Agri Resources Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "MFMI",
+    "name": "Multifiling Mitra Indonesia Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "LMAS",
+    "name": "Limas Indonesia Makmur Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 2, 5"
+  },
+  {
+    "code": "MABA",
+    "name": "PT Marga Abhinaya Abadi Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 2, 6"
+  },
+  {
+    "code": "KBRI",
+    "name": "Kertas Basuki Rachmat Indonesia Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 3, 6"
+  },
+  {
+    "code": "ARMY",
+    "name": "PT Armidian Karyatama Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "BAPI",
+    "name": "PT Bhakti Agung Propertindo Tbk.",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "COWL",
+    "name": "COWELL DEVELOPMENT Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 2, 5, 6, 8"
+  },
+  {
+    "code": "CBMF",
+    "name": "PT Cahaya Bintang Medan Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "BTEL",
+    "name": "Bakrie Telecom Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "NUSA",
+    "name": "PT Sinergi Megah Internusa Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "MTFN",
+    "name": "Capitalinc Investment Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "POOL",
+    "name": "Pool Advista Indonesia Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "POSA",
+    "name": "PT Bliss Properti Indonesia Tbk.",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "PLAS",
+    "name": "Polaris Investama Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "RIMO",
+    "name": "PT Rimo International Lestari Tbk.",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "SIMA",
+    "name": "Siwani Makmur Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 5, 6"
+  },
+  {
+    "code": "SUGI",
+    "name": "Sugih Energy Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "ASRM",
+    "name": "Asuransi Ramayana Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": "09 Jul 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "FISH",
+    "name": "FKS Multi Agro Tbk",
+    "entry_date": "21 Jun 2024",
+    "exit_date": "18 Sep 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "WSKT",
+    "name": "PT Waskita Karya (Persero) Tbk",
+    "entry_date": "26 Jun 2024",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "TOYS",
+    "name": "PT Sunindo Adipersada Tbk.",
+    "entry_date": "02 Jul 2024",
+    "exit_date": null,
+    "criteria": "1, 6, 8"
+  },
+  {
+    "code": "NASI",
+    "name": "PT Wahana Inti Makmur Tbk",
+    "entry_date": "02 Jul 2024",
+    "exit_date": "11 Jul 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "DSSA",
+    "name": "Dian Swastatika Sentosa Tbk",
+    "entry_date": "18 Jul 2024",
+    "exit_date": "29 Jul 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "TRIL",
+    "name": "Triwira Insanlestari Tbk",
+    "entry_date": "31 Jul 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "ASBI",
+    "name": "Asuransi Bintang Tbk",
+    "entry_date": "31 Jul 2024",
+    "exit_date": "05 Nov 2024",
+    "criteria": "6"
+  },
+  {
+    "code": "ENVY",
+    "name": "PT Envy Technologies Indonesia Tbk",
+    "entry_date": "08 Agt 2024",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "KARW",
+    "name": "Meratus Jasa Prima Tbk",
+    "entry_date": "08 Agt 2024",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "SBAT",
+    "name": "PT Sejahtera Bintang Abadi Textile Tbk.",
+    "entry_date": "20 Agt 2024",
+    "exit_date": null,
+    "criteria": "1, 3, 6, 8"
+  },
+  {
+    "code": "KPIG",
+    "name": "MNC Land Tbk",
+    "entry_date": "23 Agt 2024",
+    "exit_date": "03 Sep 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "BOSS",
+    "name": "PT Borneo Olah Sarana Sukses Tbk.",
+    "entry_date": "30 Agt 2024",
+    "exit_date": null,
+    "criteria": "1, 5, 9"
+  },
+  {
+    "code": "BLTZ",
+    "name": "PT Graha Layar Prima Tbk.",
+    "entry_date": "30 Agt 2024",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "MSIN",
+    "name": "PT MNC Digital Entertainment Tbk",
+    "entry_date": "30 Agt 2024",
+    "exit_date": "10 Sep 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "POLI",
+    "name": "PT Pollux Hotels Group Tbk",
+    "entry_date": "30 Agt 2024",
+    "exit_date": "27 Feb 2026",
+    "criteria": "7"
+  },
+  {
+    "code": "META",
+    "name": "Nusantara Infrastructure Tbk",
+    "entry_date": "30 Agt 2024",
+    "exit_date": "27 Feb 2026",
+    "criteria": "7"
+  },
+  {
+    "code": "JMAS",
+    "name": "PT Asuransi Jiwa Syariah Jasa Mitra Abadi Tbk",
+    "entry_date": "09 Sep 2024",
+    "exit_date": "19 Sep 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "TMPO",
+    "name": "Tempo Inti Media Tbk",
+    "entry_date": "10 Sep 2024",
+    "exit_date": "20 Sep 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "SAPX",
+    "name": "PT Satria Antaran Prima Tbk.",
+    "entry_date": "17 Sep 2024",
+    "exit_date": "26 Sep 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "AKSI",
+    "name": "PT Mineral Sumberdaya Mandiri Tbk",
+    "entry_date": "24 Sep 2024",
+    "exit_date": "03 Okt 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "ARTI",
+    "name": "Ratu Prabu Energi Tbk",
+    "entry_date": "25 Sep 2024",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "TNCA",
+    "name": "PT Trimuda Nuansa Citra Tbk.",
+    "entry_date": "04 Okt 2024",
+    "exit_date": "15 Okt 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "INTD",
+    "name": "Inter-Delta Tbk",
+    "entry_date": "11 Okt 2024",
+    "exit_date": "22 Okt 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "MAGP",
+    "name": "Multi Agro Gemilang Plantation Tbk",
+    "entry_date": "31 Okt 2024",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "ARTA",
+    "name": "Arthavest Tbk",
+    "entry_date": "31 Okt 2024",
+    "exit_date": "11 Feb 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "SMMT",
+    "name": "GOLDEN EAGLE ENERGY Tbk",
+    "entry_date": "31 Okt 2024",
+    "exit_date": "14 Mei 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "LPGI",
+    "name": "Lippo General Insurance Tbk",
+    "entry_date": "11 Nov 2024",
+    "exit_date": "17 Mar 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "JIHD",
+    "name": "Jakarta International Hotels & Development Tbk",
+    "entry_date": "15 Nov 2024",
+    "exit_date": "26 Nov 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "KLIN",
+    "name": "PT Klinko Karya Imaji Tbk",
+    "entry_date": "22 Nov 2024",
+    "exit_date": "04 Des 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "DAAZ",
+    "name": "PT Daaz Bara Lestari Tbk",
+    "entry_date": "25 Nov 2024",
+    "exit_date": "05 Des 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "BIKA",
+    "name": "PT Binakarya Jaya Abadi Tbk.",
+    "entry_date": "29 Nov 2024",
+    "exit_date": null,
+    "criteria": "5, 7"
+  },
+  {
+    "code": "SCPI",
+    "name": "PT Organon Pharma Indonesia Tbk",
+    "entry_date": "29 Nov 2024",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "WICO",
+    "name": "Wicaksana Overseas International Tbk",
+    "entry_date": "04 Des 2024",
+    "exit_date": null,
+    "criteria": "5, 6, 7"
+  },
+  {
+    "code": "PNSE",
+    "name": "Pudjiadi & Sons Tbk",
+    "entry_date": "04 Des 2024",
+    "exit_date": "13 Des 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "INPC",
+    "name": "Bank Artha Graha Internasional Tbk",
+    "entry_date": "13 Des 2024",
+    "exit_date": "24 Des 2024",
+    "criteria": "10"
+  },
+  {
+    "code": "HOMI",
+    "name": "PT Grand House Mulia Tbk",
+    "entry_date": "18 Des 2024",
+    "exit_date": "02 Jan 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "DMND",
+    "name": "PT Diamond Food Indonesia Tbk.",
+    "entry_date": "08 Jan 2025",
+    "exit_date": "28 Mei 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "RATU",
+    "name": "PT Raharja Energi Cepu Tbk",
+    "entry_date": "22 Jan 2025",
+    "exit_date": "05 Feb 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FMII",
+    "name": "Fortune Mate Indonesia Tbk",
+    "entry_date": "30 Jan 2025",
+    "exit_date": "10 Feb 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "UNIT",
+    "name": "Nusantara Inti Corpora Tbk",
+    "entry_date": "31 Jan 2025",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "SAFE",
+    "name": "Steady Safe Tbk",
+    "entry_date": "31 Jan 2025",
+    "exit_date": "05 Feb 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "CBUT",
+    "name": "PT Citra Borneo Utama Tbk",
+    "entry_date": "31 Jan 2025",
+    "exit_date": "15 Apr 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "GDST",
+    "name": "Gunawan Dianjaya Steel Tbk",
+    "entry_date": "31 Jan 2025",
+    "exit_date": "05 Jun 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "LINK",
+    "name": "PT Link Net Tbk.",
+    "entry_date": "31 Jan 2025",
+    "exit_date": "31 Okt 2025",
+    "criteria": "6"
+  },
+  {
+    "code": "BRRC",
+    "name": "PT Raja Roti Cemerlang Tbk",
+    "entry_date": "03 Feb 2025",
+    "exit_date": "12 Feb 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "CMNP",
+    "name": "Citra Marga Nusaphala Persada Tbk",
+    "entry_date": "04 Feb 2025",
+    "exit_date": "13 Feb 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "WIFI",
+    "name": "PT Solusi Sinergi Digital Tbk",
+    "entry_date": "06 Feb 2025",
+    "exit_date": "17 Feb 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "JSPT",
+    "name": "Jakarta Setiabudi Internasional Tbk",
+    "entry_date": "24 Feb 2025",
+    "exit_date": "05 Mar 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SMDM",
+    "name": "Suryamas Dutamakmur Tbk",
+    "entry_date": "27 Feb 2025",
+    "exit_date": "10 Mar 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "KSIX",
+    "name": "PT Kentanix Supra International Tbk",
+    "entry_date": "05 Mar 2025",
+    "exit_date": "14 Mar 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "BESS",
+    "name": "PT Batulicin Nusantara Maritim Tbk.",
+    "entry_date": "10 Mar 2025",
+    "exit_date": "19 Mar 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "JSKY",
+    "name": "PT Sky Energy Indonesia Tbk.",
+    "entry_date": "13 Mar 2025",
+    "exit_date": null,
+    "criteria": "5, 6, 7"
+  },
+  {
+    "code": "IKAN",
+    "name": "PT Era Mandiri Cemerlang Tbk",
+    "entry_date": "25 Mar 2025",
+    "exit_date": "28 Mei 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "KAYU",
+    "name": "PT Darmi Bersaudara Tbk.",
+    "entry_date": "09 Apr 2025",
+    "exit_date": null,
+    "criteria": "1, 2, 6"
+  },
+  {
+    "code": "POLY",
+    "name": "Asia Pacific Fibers Tbk",
+    "entry_date": "09 Apr 2025",
+    "exit_date": null,
+    "criteria": "1, 2, 5"
+  },
+  {
+    "code": "ABDA",
+    "name": "Asuransi Bina Dana Arta Tbk",
+    "entry_date": "09 Apr 2025",
+    "exit_date": "04 Mei 2026",
+    "criteria": "7"
+  },
+  {
+    "code": "IPPE",
+    "name": "PT Indo Pureco Pratama Tbk",
+    "entry_date": "30 Apr 2025",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "TDPM",
+    "name": "PT Tianrong Chemicals Industry Tbk",
+    "entry_date": "30 Apr 2025",
+    "exit_date": null,
+    "criteria": "6, 7, 8"
+  },
+  {
+    "code": "AREA",
+    "name": "PT Dunia Virtual Online Tbk",
+    "entry_date": "06 Mei 2025",
+    "exit_date": "19 Mei 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "TIRA",
+    "name": "Tira Austenite Tbk",
+    "entry_date": "15 Mei 2025",
+    "exit_date": "26 Mei 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "WMUU",
+    "name": "PT Widodo Makmur Unggas Tbk",
+    "entry_date": "21 Mei 2025",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "KRYA",
+    "name": "PT Bangun Karya Perkasa Jaya Tbk",
+    "entry_date": "22 Mei 2025",
+    "exit_date": "04 Jun 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SRIL",
+    "name": "PT Sri Rejeki Isman Tbk",
+    "entry_date": "26 Mei 2025",
+    "exit_date": null,
+    "criteria": "5, 6, 7, 8"
+  },
+  {
+    "code": "NICL",
+    "name": "PT PAM Mineral Tbk",
+    "entry_date": "26 Mei 2025",
+    "exit_date": "09 Jun 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MTSM",
+    "name": "Metro Realty Tbk",
+    "entry_date": "28 Mei 2025",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "PCAR",
+    "name": "PT Prima Cakrawala Abadi Tbk",
+    "entry_date": "28 Mei 2025",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "FASW",
+    "name": "Fajar Surya Wisesa Tbk",
+    "entry_date": "28 Mei 2025",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "BTON",
+    "name": "Betonjaya Manunggal Tbk",
+    "entry_date": "28 Mei 2025",
+    "exit_date": "02 Jun 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "JATI",
+    "name": "PT Informasi Teknologi Indonesia Tbk.",
+    "entry_date": "28 Mei 2025",
+    "exit_date": "12 Jun 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MASB",
+    "name": "PT Bank Multiarta Sentosa Tbk",
+    "entry_date": "28 Mei 2025",
+    "exit_date": "08 Jul 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "BCIC",
+    "name": "PT Bank JTrust Indonesia Tbk.",
+    "entry_date": "28 Mei 2025",
+    "exit_date": "28 Nov 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "PLIN",
+    "name": "Plaza Indonesia Realty Tbk",
+    "entry_date": "11 Jun 2025",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "BATA",
+    "name": "Sepatu Bata Tbk",
+    "entry_date": "23 Jun 2025",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "MARI",
+    "name": "PT Mahaka Radio Integra Tbk.",
+    "entry_date": "23 Jun 2025",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "TFCO",
+    "name": "Tifico Fiber Indonesia Tbk",
+    "entry_date": "24 Jun 2025",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "GGRP",
+    "name": "PT Gunung Raja Paksi Tbk.",
+    "entry_date": "24 Jun 2025",
+    "exit_date": "29 Agt 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "LAND",
+    "name": "PT Trimitra Propertindo Tbk.",
+    "entry_date": "24 Jun 2025",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "SOLA",
+    "name": "PT Xolare RCR Energy Tbk",
+    "entry_date": "26 Jun 2025",
+    "exit_date": "08 Jul 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PACK",
+    "name": "PT Abadi Nusantara Hijau Investama Tbk",
+    "entry_date": "30 Jun 2025",
+    "exit_date": "09 Jul 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MTRA",
+    "name": "PT Mitra Pemuda Tbk.",
+    "entry_date": "16 Jul 2025",
+    "exit_date": null,
+    "criteria": "2, 5, 6, 7, 8"
+  },
+  {
+    "code": "KRAS",
+    "name": "Krakatau Steel (Persero) Tbk",
+    "entry_date": "16 Jul 2025",
+    "exit_date": "25 Jul 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "DKHH",
+    "name": "PT Cipta Sarana Medika Tbk",
+    "entry_date": "22 Jul 2025",
+    "exit_date": "31 Jul 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "CDIA",
+    "name": "PT Chandra Daya Investasi Tbk",
+    "entry_date": "25 Jul 2025",
+    "exit_date": "05 Agt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "ARCI",
+    "name": "PT Archi Indonesia Tbk",
+    "entry_date": "28 Jul 2025",
+    "exit_date": "06 Agt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "ARGO",
+    "name": "Argo Pantes Tbk",
+    "entry_date": "01 Agt 2025",
+    "exit_date": "12 Agt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "DCII",
+    "name": "PT DCI Indonesia Tbk",
+    "entry_date": "06 Agt 2025",
+    "exit_date": "15 Agt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "VIVA",
+    "name": "PT Visi Media Asia Tbk",
+    "entry_date": "13 Agt 2025",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "GOLL",
+    "name": "PT Golden Plantation Tbk",
+    "entry_date": "14 Agt 2025",
+    "exit_date": null,
+    "criteria": "1, 9"
+  },
+  {
+    "code": "BMAS",
+    "name": "PT Bank Maspion Indonesia Tbk.",
+    "entry_date": "25 Agt 2025",
+    "exit_date": "29 Agt 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "IMPC",
+    "name": "PT Impack Pratama Industri Tbk",
+    "entry_date": "26 Agt 2025",
+    "exit_date": "04 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PYFA",
+    "name": "PT Pyridam Farma Tbk",
+    "entry_date": "26 Agt 2025",
+    "exit_date": "04 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "CSMI",
+    "name": "PT Cipta Selera Murni Tbk.",
+    "entry_date": "27 Agt 2025",
+    "exit_date": "08 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "HITS",
+    "name": "Humpuss Intermoda Transportasi Tbk",
+    "entry_date": "29 Agt 2025",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "COIN",
+    "name": "PT Indokripto Koin Semesta Tbk",
+    "entry_date": "01 Sep 2025",
+    "exit_date": "11 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "HOPE",
+    "name": "PT Harapan Duta Pertiwi Tbk.",
+    "entry_date": "02 Sep 2025",
+    "exit_date": "12 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "LIFE",
+    "name": "PT MSIG Life Insurance Indonesia Tbk.",
+    "entry_date": "09 Sep 2025",
+    "exit_date": "18 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "BWPT",
+    "name": "Eagle High Plantations Tbk",
+    "entry_date": "09 Sep 2025",
+    "exit_date": "18 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "HBAT",
+    "name": "PT Minahasa Membangun Hebat Tbk",
+    "entry_date": "10 Sep 2025",
+    "exit_date": "19 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "DATA",
+    "name": "PT Remala Abadi Tbk",
+    "entry_date": "11 Sep 2025",
+    "exit_date": "22 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SMKM",
+    "name": "PT Sumber Mas Konstruksi Tbk",
+    "entry_date": "12 Sep 2025",
+    "exit_date": "23 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "CPRI",
+    "name": "PT Capri Nusa Satu Properti Tbk.",
+    "entry_date": "15 Sep 2025",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "STRK",
+    "name": "PT Lovina Beach Brewery Tbk.",
+    "entry_date": "17 Sep 2025",
+    "exit_date": "26 Sep 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "LAPD",
+    "name": "Leyand International Tbk",
+    "entry_date": "19 Sep 2025",
+    "exit_date": "28 Nov 2025",
+    "criteria": "1"
+  },
+  {
+    "code": "LION",
+    "name": "Lion Metal Works Tbk",
+    "entry_date": "23 Sep 2025",
+    "exit_date": "02 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PBSA",
+    "name": "PT Paramita Bangun Sarana Tbk",
+    "entry_date": "23 Sep 2025",
+    "exit_date": "02 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "UANG",
+    "name": "PT Pakuan Tbk",
+    "entry_date": "23 Sep 2025",
+    "exit_date": "02 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "POLU",
+    "name": "PT Golden Flower Tbk.",
+    "entry_date": "24 Sep 2025",
+    "exit_date": "03 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "NAYZ",
+    "name": "PT Hassana Boga Sejahtera Tbk",
+    "entry_date": "24 Sep 2025",
+    "exit_date": "03 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "CBRE",
+    "name": "PT Cakra Buana Resources Energi Tbk",
+    "entry_date": "24 Sep 2025",
+    "exit_date": "03 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "LOPI",
+    "name": "PT Logisticsplus International Tbk",
+    "entry_date": "26 Sep 2025",
+    "exit_date": "07 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MLPT",
+    "name": "PT Multipolar Technology Tbk.",
+    "entry_date": "29 Sep 2025",
+    "exit_date": "08 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "RONY",
+    "name": "PT Aracord Nusantara Group Tbk",
+    "entry_date": "29 Sep 2025",
+    "exit_date": "28 Nov 2025",
+    "criteria": "7"
+  },
+  {
+    "code": "TRUK",
+    "name": "PT Guna Timur Raya Tbk.",
+    "entry_date": "30 Sep 2025",
+    "exit_date": "09 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "KJEN",
+    "name": "PT Krida Jaringan Nusantara Tbk.",
+    "entry_date": "30 Sep 2025",
+    "exit_date": "09 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "DWGL",
+    "name": "PT Dwi Guna Laksana Tbk",
+    "entry_date": "02 Okt 2025",
+    "exit_date": "13 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "WMPP",
+    "name": "PT Widodo Makmur Perkasa Tbk",
+    "entry_date": "03 Okt 2025",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "JARR",
+    "name": "PT Jhonlin Agro Raya Tbk",
+    "entry_date": "03 Okt 2025",
+    "exit_date": "14 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FUTR",
+    "name": "PT Futura Energi Global Tbk",
+    "entry_date": "06 Okt 2025",
+    "exit_date": "15 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "ITIC",
+    "name": "PT Indonesian Tobacco Tbk.",
+    "entry_date": "06 Okt 2025",
+    "exit_date": "15 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FITT",
+    "name": "PT Hotel Fitra International Tbk",
+    "entry_date": "06 Okt 2025",
+    "exit_date": "15 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "GPSO",
+    "name": "PT Geoprima Solusi Tbk",
+    "entry_date": "07 Okt 2025",
+    "exit_date": "16 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "TEBE",
+    "name": "PT Dana Brata Luhur Tbk.",
+    "entry_date": "07 Okt 2025",
+    "exit_date": "16 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "OLIV",
+    "name": "PT Oscar Mitra Sukses Sejahtera Tbk",
+    "entry_date": "07 Okt 2025",
+    "exit_date": "16 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PGUN",
+    "name": "PT Pradiksi Gunatama Tbk",
+    "entry_date": "07 Okt 2025",
+    "exit_date": "16 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SMLE",
+    "name": "PT Sinergi Multi Lestarindo Tbk",
+    "entry_date": "08 Okt 2025",
+    "exit_date": "17 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SRAJ",
+    "name": "Sejahteraraya Anugrahjaya Tbk",
+    "entry_date": "09 Okt 2025",
+    "exit_date": "20 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "CLAY",
+    "name": "PT Citra Putra Realty Tbk",
+    "entry_date": "09 Okt 2025",
+    "exit_date": "20 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "INDX",
+    "name": "Tanah Laut Tbk",
+    "entry_date": "10 Okt 2025",
+    "exit_date": "21 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "RISE",
+    "name": "PT Jaya Sukses Makmur Sentosa Tbk.",
+    "entry_date": "10 Okt 2025",
+    "exit_date": "21 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "RANC",
+    "name": "Supra Boga Lestari Tbk",
+    "entry_date": "13 Okt 2025",
+    "exit_date": "22 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "KBLV",
+    "name": "First Media Tbk",
+    "entry_date": "13 Okt 2025",
+    "exit_date": "22 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FAST",
+    "name": "PT Fast Food Indonesia Tbk",
+    "entry_date": "13 Okt 2025",
+    "exit_date": "22 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "BEEF",
+    "name": "PT Estika Tata Tiara Tbk.",
+    "entry_date": "13 Okt 2025",
+    "exit_date": "22 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "IDPR",
+    "name": "PT Indonesia Pondasi Raya Tbk.",
+    "entry_date": "14 Okt 2025",
+    "exit_date": "23 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PIPA",
+    "name": "PT Multi Makmur Lemindo Tbk.",
+    "entry_date": "14 Okt 2025",
+    "exit_date": "23 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "LPLI",
+    "name": "Star Pacific Tbk",
+    "entry_date": "16 Okt 2025",
+    "exit_date": "27 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "LABA",
+    "name": "PT Green Power Group Tbk",
+    "entry_date": "20 Okt 2025",
+    "exit_date": "29 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FUJI",
+    "name": "PT Fuji Finance Indonesia Tbk.",
+    "entry_date": "20 Okt 2025",
+    "exit_date": "29 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SOFA",
+    "name": "PT Boston Furniture Industries Tbk..",
+    "entry_date": "20 Okt 2025",
+    "exit_date": "29 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "IPAC",
+    "name": "PT Era Graharealty Tbk",
+    "entry_date": "21 Okt 2025",
+    "exit_date": "30 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "TINS",
+    "name": "PT Timah Tbk.",
+    "entry_date": "22 Okt 2025",
+    "exit_date": "31 Okt 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "NTBK",
+    "name": "PT Nusatama Berkah Tbk",
+    "entry_date": "27 Okt 2025",
+    "exit_date": "05 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PGLI",
+    "name": "Pembangunan Graha Lestari Indah Tbk",
+    "entry_date": "29 Okt 2025",
+    "exit_date": "07 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "ASPI",
+    "name": "PT Andalan Sakti Primaindo Tbk.",
+    "entry_date": "29 Okt 2025",
+    "exit_date": "07 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "BLUE",
+    "name": "PT Berkah Prima Perkasa Tbk",
+    "entry_date": "30 Okt 2025",
+    "exit_date": "10 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SOSS",
+    "name": "PT Shield On Service Tbk.",
+    "entry_date": "31 Okt 2025",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "TELE",
+    "name": "PT Omni Inovasi Indonesia Tbk",
+    "entry_date": "31 Okt 2025",
+    "exit_date": null,
+    "criteria": "1, 2, 5, 6, 8"
+  },
+  {
+    "code": "PURI",
+    "name": "PT Puri Global Sukses Tbk",
+    "entry_date": "05 Nov 2025",
+    "exit_date": "14 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "ETWA",
+    "name": "Eterindo Wahanatama Tbk",
+    "entry_date": "07 Nov 2025",
+    "exit_date": null,
+    "criteria": "5, 6, 7"
+  },
+  {
+    "code": "KONI",
+    "name": "Perdana Bangun Pusaka Tbk",
+    "entry_date": "10 Nov 2025",
+    "exit_date": "19 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MEJA",
+    "name": "PT Harta Djaya Karya Tbk",
+    "entry_date": "10 Nov 2025",
+    "exit_date": "19 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "KOKA",
+    "name": "PT Koka Indonesia Tbk.",
+    "entry_date": "11 Nov 2025",
+    "exit_date": "20 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "SOHO",
+    "name": "PT Soho Global Health Tbk",
+    "entry_date": "14 Nov 2025",
+    "exit_date": "25 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "NIRO",
+    "name": "City Retail Developments Tbk",
+    "entry_date": "19 Nov 2025",
+    "exit_date": "28 Nov 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FPNI",
+    "name": "PT Lotte Chemical Titan Tbk.",
+    "entry_date": "21 Nov 2025",
+    "exit_date": "02 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "AMMS",
+    "name": "PT Agung Menjangan Mas Tbk",
+    "entry_date": "21 Nov 2025",
+    "exit_date": "02 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "DEAL",
+    "name": "PT Dewata Freightinternational Tbk.",
+    "entry_date": "25 Nov 2025",
+    "exit_date": null,
+    "criteria": "1, 5, 6, 8"
+  },
+  {
+    "code": "LFLO",
+    "name": "PT Imago Mulia Persada Tbk",
+    "entry_date": "26 Nov 2025",
+    "exit_date": "05 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "KOIN",
+    "name": "Kokoh Inti Arebama Tbk",
+    "entry_date": "28 Nov 2025",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "CNKO",
+    "name": "Exploitasi Energi Indonesia Tbk",
+    "entry_date": "28 Nov 2025",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "ABBA",
+    "name": "Mahaka Media Tbk",
+    "entry_date": "28 Nov 2025",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "PTMR",
+    "name": "PT Master Print Tbk",
+    "entry_date": "28 Nov 2025",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "WIKA",
+    "name": "PT Wijaya Karya (Persero) Tbk",
+    "entry_date": "28 Nov 2025",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "FOOD",
+    "name": "PT Sentra Food Indonesia Tbk.",
+    "entry_date": "01 Des 2025",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "TRIN",
+    "name": "PT Perintis Triniti Properti Tbk",
+    "entry_date": "02 Des 2025",
+    "exit_date": "11 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "BUVA",
+    "name": "PT Bukit Uluwatu Villa Tbk",
+    "entry_date": "03 Des 2025",
+    "exit_date": "12 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "KDTN",
+    "name": "PT Puri Sentul Permai Tbk",
+    "entry_date": "05 Des 2025",
+    "exit_date": "16 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "VKTR",
+    "name": "PT VKTR Teknologi Mobilitas Tbk",
+    "entry_date": "08 Des 2025",
+    "exit_date": "17 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MORA",
+    "name": "PT Mora Telematika Indonesia Tbk",
+    "entry_date": "10 Des 2025",
+    "exit_date": "10 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PUDP",
+    "name": "Pudjiadi Prestige Tbk",
+    "entry_date": "10 Des 2025",
+    "exit_date": "19 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "INET",
+    "name": "PT Sinergi Inti Andalan Prima Tbk.",
+    "entry_date": "10 Des 2025",
+    "exit_date": "19 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "NRCA",
+    "name": "PT Nusa Raya Cipta Tbk.",
+    "entry_date": "11 Des 2025",
+    "exit_date": "22 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PADA",
+    "name": "PT Personel Alih Daya Tbk",
+    "entry_date": "11 Des 2025",
+    "exit_date": "22 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MPRO",
+    "name": "PT Maha Properti Indonesia Tbk.",
+    "entry_date": "12 Des 2025",
+    "exit_date": "23 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "ASLI",
+    "name": "PT Asri Karya Lestari Tbk.",
+    "entry_date": "12 Des 2025",
+    "exit_date": "23 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "FILM",
+    "name": "PT MD Entertainment Tbk",
+    "entry_date": "16 Des 2025",
+    "exit_date": "29 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "PSKT",
+    "name": "PT Red Planet Indonesia Tbk",
+    "entry_date": "16 Des 2025",
+    "exit_date": "29 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "AYAM",
+    "name": "PT Janu Putra Sejahtera Tbk.",
+    "entry_date": "17 Des 2025",
+    "exit_date": "30 Des 2025",
+    "criteria": "10"
+  },
+  {
+    "code": "MINA",
+    "name": "PT Sanurhasta Mitra Tbk.",
+    "entry_date": "18 Des 2025",
+    "exit_date": "02 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "TRON",
+    "name": "PT Teknologi Karya Digital Nusa Tbk.",
+    "entry_date": "19 Des 2025",
+    "exit_date": "05 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "DEFI",
+    "name": "Danasupra Erapacific Tbk",
+    "entry_date": "19 Des 2025",
+    "exit_date": "05 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "GTSI",
+    "name": "PT GTS Internasional Tbk",
+    "entry_date": "19 Des 2025",
+    "exit_date": "05 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "CITY",
+    "name": "PT Natura City Developments Tbk.",
+    "entry_date": "22 Des 2025",
+    "exit_date": "06 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "DOOH",
+    "name": "PT Era Media Sejahtera Tbk",
+    "entry_date": "23 Des 2025",
+    "exit_date": "07 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "NINE",
+    "name": "PT Techno9 Indonesia Tbk",
+    "entry_date": "23 Des 2025",
+    "exit_date": "07 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "RICY",
+    "name": "Ricky Putra Globalindo Tbk",
+    "entry_date": "24 Des 2025",
+    "exit_date": "14 Apr 2026",
+    "criteria": "5"
+  },
+  {
+    "code": "SSTM",
+    "name": "Sunson Textile Manufacturer Tbk",
+    "entry_date": "29 Des 2025",
+    "exit_date": "09 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "FOLK",
+    "name": "PT Multi Garam Utama Tbk.",
+    "entry_date": "29 Des 2025",
+    "exit_date": "09 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "IRSX",
+    "name": "PT Folago Global Nusantara Tbk",
+    "entry_date": "30 Des 2025",
+    "exit_date": "12 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "CARE",
+    "name": "PT Metro Healthcare Indonesia Tbk",
+    "entry_date": "30 Des 2025",
+    "exit_date": "12 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "AYLS",
+    "name": "PT Agro Yasa Lestari Tbk",
+    "entry_date": "30 Des 2025",
+    "exit_date": "12 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ESTA",
+    "name": "PT Esta Multi Usaha Tbk.",
+    "entry_date": "06 Jan 2026",
+    "exit_date": "15 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "YELO",
+    "name": "PT Yelooo Integra Datanet Tbk.",
+    "entry_date": "06 Jan 2026",
+    "exit_date": "15 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ALTO",
+    "name": "Tri Banyan Tirta Tbk",
+    "entry_date": "07 Jan 2026",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "KIOS",
+    "name": "PT Kioson Komersial Indonesia Tbk.",
+    "entry_date": "07 Jan 2026",
+    "exit_date": "19 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "RMKO",
+    "name": "PT Royaltama Mulia Kontraktorindo Tbk.",
+    "entry_date": "09 Jan 2026",
+    "exit_date": "21 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BBRM",
+    "name": "Pelayaran Nasional Bina Buana Raya Tbk",
+    "entry_date": "12 Jan 2026",
+    "exit_date": "22 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BNBR",
+    "name": "Bakrie & Brothers Tbk",
+    "entry_date": "12 Jan 2026",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "ALII",
+    "name": "PT Ancara Logistics Indonesia Tbk",
+    "entry_date": "13 Jan 2026",
+    "exit_date": "23 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "COCO",
+    "name": "PT Wahana Interfood Nusantara Tbk.",
+    "entry_date": "13 Jan 2026",
+    "exit_date": "02 Apr 2026",
+    "criteria": "5"
+  },
+  {
+    "code": "PKPK",
+    "name": "Paragon Karya Perkasa Tbk",
+    "entry_date": "15 Jan 2026",
+    "exit_date": "27 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "INAF",
+    "name": "Indofarma Tbk.",
+    "entry_date": "19 Jan 2026",
+    "exit_date": null,
+    "criteria": "5, 7"
+  },
+  {
+    "code": "NSSS",
+    "name": "PT Nusantara Sawit Sejahtera Tbk",
+    "entry_date": "20 Jan 2026",
+    "exit_date": "29 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "UNSP",
+    "name": "Bakrie Sumatera Plantations Tbk",
+    "entry_date": "21 Jan 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "INPS",
+    "name": "PT Indah Prakasa Sentosa Tbk.",
+    "entry_date": "21 Jan 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "HUMI",
+    "name": "PT Humpuss Maritim Internasional Tbk",
+    "entry_date": "21 Jan 2026",
+    "exit_date": "30 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "FIRE",
+    "name": "PT Alfa Energi Investama Tbk.",
+    "entry_date": "21 Jan 2026",
+    "exit_date": "30 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "AHAP",
+    "name": "Asuransi Harta Aman Pratama Tbk",
+    "entry_date": "21 Jan 2026",
+    "exit_date": "30 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "RMKE",
+    "name": "PT RMK Energy Tbk",
+    "entry_date": "21 Jan 2026",
+    "exit_date": "30 Jan 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SOCI",
+    "name": "PT Soechi Lines Tbk.",
+    "entry_date": "22 Jan 2026",
+    "exit_date": "02 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BIPI",
+    "name": "PT Astrindo Nusantara Infrastruktur Tbk.",
+    "entry_date": "22 Jan 2026",
+    "exit_date": "02 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ATAP",
+    "name": "PT Trimitra Prawara Goldland Tbk",
+    "entry_date": "23 Jan 2026",
+    "exit_date": "03 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ARKO",
+    "name": "PT Arkora Hydro Tbk.",
+    "entry_date": "23 Jan 2026",
+    "exit_date": "03 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "LEAD",
+    "name": "PT Logindo Samudramakmur Tbk.",
+    "entry_date": "23 Jan 2026",
+    "exit_date": "03 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "TRUE",
+    "name": "PT Triniti Dinamik Tbk",
+    "entry_date": "23 Jan 2026",
+    "exit_date": "03 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "GRPM",
+    "name": "PT Graha Prima Mentari Tbk.",
+    "entry_date": "26 Jan 2026",
+    "exit_date": "04 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "KOCI",
+    "name": "PT Kokoh Exa Nusantara",
+    "entry_date": "27 Jan 2026",
+    "exit_date": "05 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "PADI",
+    "name": "Minna Padi Investama Sekuritas Tbk",
+    "entry_date": "27 Jan 2026",
+    "exit_date": "05 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SOTS",
+    "name": "PT Satria Mega Kencana Tbk.",
+    "entry_date": "29 Jan 2026",
+    "exit_date": "09 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "TRAM",
+    "name": "Trada Alam Minera Tbk.",
+    "entry_date": "30 Jan 2026",
+    "exit_date": null,
+    "criteria": "1, 6"
+  },
+  {
+    "code": "TOPS",
+    "name": "PT Totalindo Eka Persada Tbk.",
+    "entry_date": "30 Jan 2026",
+    "exit_date": null,
+    "criteria": "1, 3, 6"
+  },
+  {
+    "code": "HOTL",
+    "name": "Saraswati Griya Lestari Tbk",
+    "entry_date": "30 Jan 2026",
+    "exit_date": null,
+    "criteria": "1, 6, 8, 9"
+  },
+  {
+    "code": "RLCO",
+    "name": "PT Abadi Lestari Indonesia Tbk",
+    "entry_date": "30 Jan 2026",
+    "exit_date": "10 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SPRE",
+    "name": "PT Soraya Berjaya Indonesia Tbk",
+    "entry_date": "02 Feb 2026",
+    "exit_date": "11 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "NATO",
+    "name": "PT Surya Permata Andalan Tbk",
+    "entry_date": "02 Feb 2026",
+    "exit_date": "11 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "MGNA",
+    "name": "PT Magna Investama Mandiri Tbk",
+    "entry_date": "02 Feb 2026",
+    "exit_date": "11 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "MKAP",
+    "name": "PT Multikarya Asia Pasifik Raya Tbk",
+    "entry_date": "02 Feb 2026",
+    "exit_date": "11 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "MDIA",
+    "name": "PT Intermedia Capital Tbk.",
+    "entry_date": "02 Feb 2026",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "INDS",
+    "name": "Indospring Tbk",
+    "entry_date": "03 Feb 2026",
+    "exit_date": "12 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ROCK",
+    "name": "PT Rockfields Properti Indonesia Tbk.",
+    "entry_date": "03 Feb 2026",
+    "exit_date": "12 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BELL",
+    "name": "PT Trisula Textile Industries Tbk",
+    "entry_date": "04 Feb 2026",
+    "exit_date": "13 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "VISI",
+    "name": "PT Satu Visi Putra Tbk.",
+    "entry_date": "05 Feb 2026",
+    "exit_date": "18 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "PPGL",
+    "name": "PT Prima Globalindo Logistik Tbk.",
+    "entry_date": "06 Feb 2026",
+    "exit_date": "19 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "DPUM",
+    "name": "PT Dua Putra Utama Makmur Tbk.",
+    "entry_date": "09 Feb 2026",
+    "exit_date": "20 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SIPD",
+    "name": "PT Sreeya Sewu Indonesia Tbk",
+    "entry_date": "10 Feb 2026",
+    "exit_date": "27 Feb 2026",
+    "criteria": "7"
+  },
+  {
+    "code": "PMMP",
+    "name": "PT Panca Mitra Multiperdana Tbk.",
+    "entry_date": "11 Feb 2026",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "STAR",
+    "name": "PT Buana Artha Anugerah Tbk.",
+    "entry_date": "11 Feb 2026",
+    "exit_date": "24 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "IBOS",
+    "name": "PT Indo Boga Sukses Tbk",
+    "entry_date": "11 Feb 2026",
+    "exit_date": "24 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SINI",
+    "name": "PT Singaraja Putra Tbk.",
+    "entry_date": "12 Feb 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "ELPI",
+    "name": "PT Pelayaran Nasional Ekalya Purnamasari Tbk",
+    "entry_date": "13 Feb 2026",
+    "exit_date": "26 Feb 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "MPPA",
+    "name": "Matahari Putra Prima Tbk",
+    "entry_date": "19 Feb 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "ENZO",
+    "name": "PT Morenzo Abadi Perkasa Tbk",
+    "entry_date": "24 Feb 2026",
+    "exit_date": "27 Feb 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "CANI",
+    "name": "PT Capitol Nusantara Indonesia Tbk.",
+    "entry_date": "27 Feb 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "IBFN",
+    "name": "PT Intan Baru Prana Tbk",
+    "entry_date": "27 Feb 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "INTA",
+    "name": "Intraco Penta Tbk",
+    "entry_date": "27 Feb 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "GLOB",
+    "name": "PT Globe Kita Terang Tbk",
+    "entry_date": "27 Feb 2026",
+    "exit_date": null,
+    "criteria": "5, 7"
+  },
+  {
+    "code": "MDRN",
+    "name": "Modern Internasional Tbk",
+    "entry_date": "27 Feb 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "HKMU",
+    "name": "PT HK Metals Utama Tbk",
+    "entry_date": "03 Mar 2026",
+    "exit_date": null,
+    "criteria": "1, 2, 5"
+  },
+  {
+    "code": "NZIA",
+    "name": "PT Nusantara Almazia, Tbk.",
+    "entry_date": "05 Mar 2026",
+    "exit_date": "16 Mar 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "POLA",
+    "name": "PT Pool Advista Finance Tbk.",
+    "entry_date": "05 Mar 2026",
+    "exit_date": "16 Mar 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ZATA",
+    "name": "PT Bersama Zatta Jaya Tbk",
+    "entry_date": "05 Mar 2026",
+    "exit_date": "16 Mar 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "LUCY",
+    "name": "PT Lima Dua Lima Tiga Tbk",
+    "entry_date": "11 Mar 2026",
+    "exit_date": "27 Mar 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "AGII",
+    "name": "PT Samator Indo Gas Tbk",
+    "entry_date": "12 Mar 2026",
+    "exit_date": "30 Mar 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "RSGK",
+    "name": "PT Kedoya Adyaraya Tbk",
+    "entry_date": "25 Mar 2026",
+    "exit_date": "29 Mei 2026",
+    "criteria": "7"
+  },
+  {
+    "code": "PGJO",
+    "name": "PT Bahtera Bumi Raya Tbk",
+    "entry_date": "02 Apr 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "ACST",
+    "name": "PT Acset Indonusa Tbk.",
+    "entry_date": "02 Apr 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "TIRT",
+    "name": "Tirta Mahakam Resources Tbk",
+    "entry_date": "06 Apr 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "MGLV",
+    "name": "PT Panca Anugrah Wisesa Tbk",
+    "entry_date": "06 Apr 2026",
+    "exit_date": "15 Apr 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "TAMA",
+    "name": "PT Lancartama Sejati Tbk.",
+    "entry_date": "06 Apr 2026",
+    "exit_date": "29 Mei 2026",
+    "criteria": "1"
+  },
+  {
+    "code": "ASPR",
+    "name": "PT Asia Pramulia Tbk",
+    "entry_date": "15 Apr 2026",
+    "exit_date": "24 Apr 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "UDNG",
+    "name": "PT Agro Bahari Nusantara Tbk",
+    "entry_date": "17 Apr 2026",
+    "exit_date": "28 Apr 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "YPAS",
+    "name": "Yanaprima Hastapersada Tbk",
+    "entry_date": "22 Apr 2026",
+    "exit_date": "04 Mei 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "EURO",
+    "name": "PT Estee Gold Feet Tbk",
+    "entry_date": "29 Apr 2026",
+    "exit_date": "11 Mei 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "DUTI",
+    "name": "Duta Pertiwi Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "MENN",
+    "name": "PT Menn Teknologi Indonesia Tbk.",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "MLIA",
+    "name": "Mulia Industrindo Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "IFSH",
+    "name": "PT Ifishdeco Tbk.",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "ZBRA",
+    "name": "PT Dosni Roha Indonesia Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "1, 6, 9"
+  },
+  {
+    "code": "URBN",
+    "name": "PT Urban Jakarta Propertindo Tbk.",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "TECH",
+    "name": "PT Indosterling Technomedia Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "1"
+  },
+  {
+    "code": "PURE",
+    "name": "PT Trinitan Metals and Minerals Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "5, 6, 7"
+  },
+  {
+    "code": "PTDU",
+    "name": "PT Djasa Ubersakti Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": null,
+    "criteria": "5, 6"
+  },
+  {
+    "code": "PTSP",
+    "name": "Pioneerindo Gourmet International Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": "04 Mei 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "SGRO",
+    "name": "PT Prime Agri Resources Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": "04 Mei 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "KOPI",
+    "name": "PT Mitra Energi Persada Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": "13 Mei 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "BABY",
+    "name": "PT Multitrend Indo Tbk.",
+    "entry_date": "30 Apr 2026",
+    "exit_date": "09 Jun 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "CSAP",
+    "name": "Catur Sentosa Adiprana Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": "18 Jun 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "JECC",
+    "name": "Jembo Cable Company Tbk",
+    "entry_date": "30 Apr 2026",
+    "exit_date": "18 Jun 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "WBSA",
+    "name": "PT BSA Logistics Indonesia Tbk",
+    "entry_date": "05 Mei 2026",
+    "exit_date": "18 Mei 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "MKNT",
+    "name": "PT Mitra Komunikasi Nusantara Tbk.",
+    "entry_date": "06 Mei 2026",
+    "exit_date": null,
+    "criteria": "1, 3, 5"
+  },
+  {
+    "code": "BAIK",
+    "name": "PT Bersama Mencapai Puncak Tbk.",
+    "entry_date": "06 Mei 2026",
+    "exit_date": "19 Mei 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "ZINC",
+    "name": "PT Kapuas Prima Coal Tbk",
+    "entry_date": "08 Mei 2026",
+    "exit_date": null,
+    "criteria": "1, 2"
+  },
+  {
+    "code": "CTTH",
+    "name": "Citatah Tbk",
+    "entry_date": "22 Mei 2026",
+    "exit_date": "05 Jun 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BIMA",
+    "name": "Primarindo Asia Infrastructure Tbk",
+    "entry_date": "29 Mei 2026",
+    "exit_date": null,
+    "criteria": "2, 7"
+  },
+  {
+    "code": "MAPB",
+    "name": "PT Map Boga Adiperkasa Tbk",
+    "entry_date": "29 Mei 2026",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "INRU",
+    "name": "Toba Pulp Lestari Tbk",
+    "entry_date": "29 Mei 2026",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "MTPS",
+    "name": "PT Meta Epsi Tbk.",
+    "entry_date": "29 Mei 2026",
+    "exit_date": null,
+    "criteria": "3, 7"
+  },
+  {
+    "code": "MYTX",
+    "name": "PT Asia Pacific Investama Tbk.",
+    "entry_date": "29 Mei 2026",
+    "exit_date": null,
+    "criteria": "5"
+  },
+  {
+    "code": "MSIE",
+    "name": "PT Multisarana Intan Eduka Tbk",
+    "entry_date": "03 Jun 2026",
+    "exit_date": "12 Jun 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "KING",
+    "name": "PT Hoffmen Cleanindo Tbk",
+    "entry_date": "11 Jun 2026",
+    "exit_date": "23 Jun 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "MMIX",
+    "name": "PT Multi Medika Internasional Tbk",
+    "entry_date": "17 Jun 2026",
+    "exit_date": "26 Jun 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SHIP",
+    "name": "PT Sillo Maritime Perdana Tbk",
+    "entry_date": "22 Jun 2026",
+    "exit_date": "01 Jul 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "FORU",
+    "name": "Fortune Indonesia Tbk",
+    "entry_date": "24 Jun 2026",
+    "exit_date": "03 Jul 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BKDP",
+    "name": "Bukit Darmo Property Tbk",
+    "entry_date": "30 Jun 2026",
+    "exit_date": "09 Jul 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "BAPA",
+    "name": "Bekasi Asri Pemula Tbk",
+    "entry_date": "08 Jul 2026",
+    "exit_date": "08 Jul 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "SQMI",
+    "name": "Wilton Makmur Indonesia Tbk",
+    "entry_date": "08 Jul 2026",
+    "exit_date": "08 Jul 2026",
+    "criteria": "5"
+  },
+  {
+    "code": "FLMC",
+    "name": "PT Falmaco Nonwoven Industri Tbk",
+    "entry_date": "17 Jul 2026",
+    "exit_date": "29 Jul 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "AIMS",
+    "name": "PT Artha Mahiya Investama Tbk",
+    "entry_date": "20 Jul 2026",
+    "exit_date": "29 Jul 2026",
+    "criteria": "3"
+  },
+  {
+    "code": "AKKU",
+    "name": "PT Anugerah Kagum Karya Utama Tbk",
+    "entry_date": "27 Jul 2026",
+    "exit_date": null,
+    "criteria": "1, 2"
+  },
+  {
+    "code": "ADES",
+    "name": "Akasha Wira International Tbk  Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "COAL",
+    "name": "PT Black Diamond Resources Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": null,
+    "criteria": "3, 6"
+  },
+  {
+    "code": "INCF",
+    "name": "PT Indo Komoditi Korpora Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "SONA",
+    "name": "Sona Topas Tourism Industry Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "POLL",
+    "name": "PT Pollux Properties Indonesia Tbk.",
+    "entry_date": "31 Jul 2026",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "PNGO",
+    "name": "PT AEP Pinago Plantations Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": null,
+    "criteria": "6"
+  },
+  {
+    "code": "PDES",
+    "name": "Destinasi Tirta Nusantara Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": "06 Agt 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "RDTX",
+    "name": "Roda Vivatex Tbk",
+    "entry_date": "31 Jul 2026",
+    "exit_date": "06 Agt 2026",
+    "criteria": "6"
+  },
+  {
+    "code": "AGAR",
+    "name": "PT Asia Sejahtera Mina Tbk",
+    "entry_date": "03 Agt 2026",
+    "exit_date": "12 Agt 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "HILL",
+    "name": "PT Hillcon Tbk",
+    "entry_date": "04 Agt 2026",
+    "exit_date": null,
+    "criteria": "5, 9"
+  },
+  {
+    "code": "ALMI",
+    "name": "Alumindo Light Metal Industry Tbk",
+    "entry_date": "05 Agt 2026",
+    "exit_date": null,
+    "criteria": "6, 7"
+  },
+  {
+    "code": "SMRU",
+    "name": "SMR Utama Tbk",
+    "entry_date": "06 Agt 2026",
+    "exit_date": null,
+    "criteria": "1, 5"
+  },
+  {
+    "code": "ALKA",
+    "name": "Alakasa Industrindo Tbk",
+    "entry_date": "06 Agt 2026",
+    "exit_date": "18 Agt 2026",
+    "criteria": "10"
+  },
+  {
+    "code": "RGAS",
+    "name": "PT Kian Santang Muliatama Tbk.",
+    "entry_date": "11 Agt 2026",
+    "exit_date": null,
+    "criteria": "10"
+  },
+  {
+    "code": "FIMP",
+    "name": "PT Fimperkasa Utama Tbk",
+    "entry_date": "12 Agt 2026",
+    "exit_date": null,
+    "criteria": "7"
+  },
+  {
+    "code": "TGUK",
+    "name": "PT Platinum Wahab Nusantara Tbk.",
+    "entry_date": "18 Agt 2026",
+    "exit_date": null,
+    "criteria": "7, 11"
+  }
+]

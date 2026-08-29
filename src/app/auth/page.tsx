@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Shield, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { track } from '@/lib/analytics'
+import BrandLogo from '@/components/brand-logo'
 
 type Mode = 'login' | 'register'
 
@@ -76,12 +77,10 @@ export default function AuthPage() {
       <div className="w-full max-w-sm">
 
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-2xl bg-purple-500/15 border border-purple-500/30 mb-4">
-            <Shield size={26} className="text-purple-400" />
-          </div>
-          <h1 className="text-xl font-semibold">BDMFlow</h1>
-          <p className="text-xs text-muted-foreground mt-1">IDX Flow Intelligence</p>
+        <div className="flex flex-col items-center justify-center text-center mb-8">
+          <Link href="/" className="inline-block hover:scale-105 transition-transform mb-2">
+            <BrandLogo size="lg" showText={true} />
+          </Link>
         </div>
 
         {/* Why register — value reminder at the conversion point */}

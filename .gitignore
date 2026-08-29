@@ -1,0 +1,38 @@
+# ── Secrets / env ──────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Dependencies ───────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ── Next.js build output ───────────────────────
+.next/
+out/
+build/
+next-env.d.ts
+
+# ── Build / TS artifacts ───────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── Logs / OS / editor ─────────────────────────
+npm-debug.log*
+pnpm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ── Local DB schema dump (sensitive: full schema) ──
+# Remove this line if you intentionally want it in the repo.
+INFO DB.json
+
+# ── Local warehouse backup ─────────────────────
+# Parquet export of MotherDuck (~1 GB). The default target lives outside the
+# repo; these patterns only matter if you point --out at the project folder.
+backup/
+*.parquet
+*.duckdb

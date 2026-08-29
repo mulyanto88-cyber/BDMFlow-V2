@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id" class="antialiased h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDMFlow — Preview Tema Geist Light</title>
+
+<!-- Geist & Geist Mono (premium Swiss typography) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap" rel="stylesheet">
+
+<!-- Lucide Icons + Chart.js + Tailwind CDN (internet required, like the reference) -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Geist', 'system-ui', 'sans-serif'],
+        mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
+      },
+      boxShadow: {
+        'premium':  '0 20px 40px -15px rgba(0,0,0,0.05)',
+        'floating': '0 30px 60px -20px rgba(0,0,0,0.08), 0 0 20px 0 rgba(0,0,0,0.02)',
+        'card-hover': '0 12px 24px -8px rgba(0,0,0,0.06), 0 4px 8px -4px rgba(0,0,0,0.04)',
+        'inner-soft': 'inset 0 2px 4px 0 rgba(0,0,0,0.02)',
+        'ai-glow': '0 0 20px 0 rgba(79,70,229,0.15)',
+      },
+    },
+  },
+}
+</script>
+
+<style>
+/* ────────────────────────────────────────────────────────────
+   BDMFLOW — GEIST LIGHT (Preview) · token semantik per tema
+   Light (default) = Swiss-minimal · Dark = Obsidian terpoles
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --body-bg:    #f1f5f9;
+  --grid-line:  rgba(15, 23, 42, 0.022);
+  --radial:     radial-gradient(circle at 50% 0%, #ffffff 0%, transparent 100%);
+  --win-bg:     rgba(255, 255, 255, 0.98);
+  --card:       #ffffff;
+  --panel:      #f1f5f9;
+  --panel-2:    #f8fafc;
+  --dark-card:  #0d1420;
+  --text:       #0f172a;
+  --muted:      #64748b;
+  --micro:      #94a3b8;
+  --line:       rgba(15, 23, 42, 0.05);
+  --line-2:     rgba(15, 23, 42, 0.08);
+  --ring-card:  rgba(15, 23, 42, 0.04);
+  --brand:      #c49a1a;
+  --ai:         #4f46e5;
+  --btn-bg:     #090d16;
+  --btn-fg:     #ffffff;
+  --chip-bg:    #f1f5f9;
+  --chip-fg:    #475569;
+  --scroll:     #cbd5e1;
+  --scroll-hv:  #94a3b8;
+}
+[data-theme="dark"] {
+  --body-bg:    #05070d;
+  --grid-line:  rgba(255, 255, 255, 0.02);
+  --radial:     radial-gradient(circle at 50% 0%, rgba(30,41,59,0.45) 0%, transparent 100%);
+  --win-bg:     rgba(9, 12, 20, 0.98);
+  --card:       #0d1420;
+  --panel:      #111a2e;
+  --panel-2:    #0a111f;
+  --dark-card:  #111a2e;
+  --text:       #f8fafc;
+  --muted:      #94a3b8;
+  --micro:      #64748b;
+  --line:       rgba(255, 255, 255, 0.06);
+  --line-2:     rgba(255, 255, 255, 0.10);
+  --ring-card:  rgba(255, 255, 255, 0.06);
+  --btn-bg:     #f8fafc;
+  --btn-fg:     #0f172a;
+  --chip-bg:    #16223a;
+  --chip-fg:    #b6c2d9;
+  --scroll:     #334155;
+  --scroll-hv:  #475569;
+}
+
+/* Utility semantik */
+.tx      { color: var(--text); }
+.tx-mut  { color: var(--muted); }
+.tx-mic  { color: var(--micro); }
+.bg-win  { background: var(--win-bg); }
+.bg-card { background: var(--card); }
+.bg-panel{ background: var(--panel); }
+.bg-panel2{ background: var(--panel-2); }
+.b-line  { border-color: var(--line); }
+.b-line2 { border-color: var(--line-2); }
+
+/* Background grid engineering — identitas tema */
+body {
+  background-color: var(--body-bg);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    var(--radial);
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease;
+}
+
+/* Micro typography */
+.micro-caps {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+.data-heavy {
+  font-family: 'Geist Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Scrollbar 4px */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hv); }
+
+/* Framed app window */
+.app-window {
+  height: calc(100vh - 1.5rem);
+  margin: 0.75rem;
+  background: var(--win-bg);
+  backdrop-filter: blur(24px);
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.03),
+    0 30px 60px -10px rgba(0,0,0,0.08),
+    0 10px 20px -5px rgba(0,0,0,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.3s ease;
+}
+[data-theme="dark"] .app-window { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 30px 60px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06); }
+@media (max-width: 768px) { .app-window { height: 100vh; margin: 0; border-radius: 0; } }
+
+/* Seamless ticker */
+@keyframes ticker { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-50%,0,0); } }
+.ticker-move { display: flex; width: max-content; animation: ticker 40s linear infinite; }
+.ticker-move:hover { animation-play-state: paused; }
+
+/* Segmented control */
+.segmented-nav {
+  background: var(--panel);
+  padding: 3px;
+  border-radius: 10px;
+  display: inline-flex;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+  border: 1px solid var(--line);
+}
+.segmented-btn {
+  padding: 5px 14px;
+  border-radius: 7px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.segmented-btn.active {
+  background: var(--card);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.03);
+}
+
+/* Neo card — inset ring, bukan border */
+.neo-card {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px var(--ring-card), 0 2px 4px rgba(0,0,0,0.01);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neo-card:hover {
+  box-shadow: 0 0 0 1px var(--line-2), 0 12px 24px -8px rgba(0,0,0,0.06), 0 4px 8px -4px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
+}
+
+/* Badge pill — ring inset */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* AI gradient ring (restraint) */
+.ai-gradient-bg { position: relative; background: var(--card); }
+.ai-gradient-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(79,70,229,0.3), rgba(192,38,211,0.1), rgba(245,158,11,0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Tabel pro */
+.pro-table th {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--micro);
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+.pro-table td {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+.pro-table tr:last-child td { border-bottom: none; }
+.pro-table tr:hover td { background: var(--panel-2); }
+
+/* Nav item */
+.nav-btn { transition: all 0.15s ease; cursor: pointer; }
+
+/* Workspace fade */
+.workspace-view { animation: viewFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes viewFadeIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body class="font-sans">
+
+<!-- MAIN APP WINDOW -->
+<div class="app-window mx-auto max-w-[1600px]">
+
+  <!-- TICKER BAR -->
+  <div class="px-4 py-1 flex items-center justify-between z-50 shrink-0 border-b b-line bg-win">
+    <div class="flex items-center gap-4 overflow-hidden w-full">
+      <div class="flex items-center gap-1.5 shrink-0 pr-3 border-r b-line2">
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></div>
+        <span class="micro-caps tx-mut">BDMFlow Live</span>
+      </div>
+      <div class="overflow-hidden flex-1 data-heavy text-[11px]">
+        <div class="ticker-move space-x-8 tx-mut">
+          <div class="flex space-x-8">
+            <span class="inline-flex items-center gap-2"><strong class="tx">IHSG</strong> <span class="text-emerald-600">7,852.40 ▲ 0.64%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">LQ45</strong> <span class="text-emerald-600">982.10 ▲ 0.76%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">BMHS</strong> <span class="tx-mut">189 0.00%</span> <span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">SB 62</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">GEMS</strong> <span class="text-emerald-600">6,700 ▲ 0.37%</span> <span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">WHALE</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">IMAS</strong> <span class="text-rose-600">895 ▼ 0.56%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">CASS</strong> <span class="text-emerald-600">1,860 ▲ 0.81%</span> <span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">INSIDER ACC</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">SMMA</strong> <span class="text-emerald-600">20,200 ▲ 0.37%</span> <span class="badge-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/50">KSEI 20</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">SDMU</strong> <span class="text-emerald-600">96 ▲ 17.07%</span> <span class="badge-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/50">HOT</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">LUCY</strong> <span class="text-rose-600">300 ▼ 0.66%</span> <span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">FF +13.1B</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">WGSH</strong> <span class="text-emerald-600">180 ▲ 3.45%</span></span>
+          </div>
+          <div class="flex space-x-8" aria-hidden="true">
+            <span class="inline-flex items-center gap-2"><strong class="tx">IHSG</strong> <span class="text-emerald-600">7,852.40 ▲ 0.64%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">LQ45</strong> <span class="text-emerald-600">982.10 ▲ 0.76%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">BMHS</strong> <span class="tx-mut">189 0.00%</span> <span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">SB 62</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">GEMS</strong> <span class="text-emerald-600">6,700 ▲ 0.37%</span> <span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">WHALE</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">IMAS</strong> <span class="text-rose-600">895 ▼ 0.56%</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">CASS</strong> <span class="text-emerald-600">1,860 ▲ 0.81%</span> <span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">INSIDER ACC</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">SMMA</strong> <span class="text-emerald-600">20,200 ▲ 0.37%</span> <span class="badge-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/50">KSEI 20</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">SDMU</strong> <span class="text-emerald-600">96 ▲ 17.07%</span> <span class="badge-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/50">HOT</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">LUCY</strong> <span class="text-rose-600">300 ▼ 0.66%</span> <span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">FF +13.1B</span></span>
+            <span class="inline-flex items-center gap-2"><strong class="tx">WGSH</strong> <span class="text-emerald-600">180 ▲ 3.45%</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="shrink-0 pl-3 border-l b-line2 data-heavy text-[10px] tx-mic flex items-center gap-2">
+      <span>WIB (UTC+7)</span>
+      <button onclick="toggleTheme()" class="p-1 rounded-md hover:bg-panel transition-colors" title="Ganti tema preview">
+        <i data-lucide="sun-moon" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="px-5 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b b-line bg-win z-40 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-[10px] flex items-center justify-center shadow-md"
+           style="background: linear-gradient(135deg, #c49a1a 0%, #9c7b15 100%);">
+        <i data-lucide="candlestick-chart" class="w-4 h-4 text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold tracking-tight tx leading-none">BDMFLOW</h1>
+        <span class="micro-caps tx-mic mt-1 block tracking-widest">IDX Flow Intelligence</span>
+      </div>
+    </div>
+
+    <div class="flex-1 max-w-md relative group">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i>
+      </div>
+      <input type="text" placeholder="Tanya AI atau lompat ke ticker (⌘K)…"
+        class="block w-full pl-9 pr-12 py-1.5 bg-panel border b-line2 text-xs rounded-xl tx placeholder:tx-mic focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-card transition-all outline-none shadow-inner-soft">
+      <button class="absolute inset-y-1 right-1 px-2 bg-card border b-line2 rounded-lg text-[9px] font-bold tx-mut hover:tx transition-colors shadow-sm flex items-center">↵</button>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="hidden lg:flex items-center gap-4 mr-2 data-heavy text-xs">
+        <div class="flex flex-col"><span class="tx-mic text-[8px] font-bold uppercase tracking-wider">Net Foreign</span><span class="text-emerald-600 font-bold">+993.6 B</span></div>
+        <div class="flex flex-col"><span class="tx-mic text-[8px] font-bold uppercase tracking-wider">Market Value</span><span class="tx font-bold">15.35 T</span></div>
+        <div class="flex flex-col"><span class="tx-mic text-[8px] font-bold uppercase tracking-wider">Data</span><span class="tx font-bold">T+1 · 21 Aug</span></div>
+      </div>
+      <span class="badge-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/50">PRO</span>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden bg-win relative">
+
+    <!-- SIDEBAR -->
+    <aside class="w-16 md:w-[212px] flex-shrink-0 flex flex-col p-3 gap-6 border-r b-line bg-panel2/60">
+      <nav class="space-y-1">
+        <div class="micro-caps tx-mic mb-2 px-2 hidden md:block">Analytics Core</div>
+        <button class="nav-btn active w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx bg-card shadow-sm ring-1 ring-inset b-line2 transition-all font-medium text-xs group">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-600"></i>
+          <span class="hidden md:inline">Morning Brief</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="line-chart" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Composite Command</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="crown" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Bandarmologi</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="pie-chart" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Sector Analytics</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="brain" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Smart Money Matrix</span>
+        </button>
+      </nav>
+
+      <nav class="space-y-1">
+        <div class="micro-caps tx-mic mb-2 px-2 hidden md:block">Screeners</div>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="search" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Pro Screener</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="zap" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Breakout Scanner</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="globe" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Foreign Flow</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="activity" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Broker Flow</span>
+        </button>
+      </nav>
+
+      <nav class="space-y-1">
+        <div class="micro-caps tx-mic mb-2 px-2 hidden md:block">Pro Tools</div>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="flask-conical" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Backtest Lab</span>
+        </button>
+        <button class="nav-btn w-full flex items-center gap-3 px-2 py-2 md:px-3 rounded-lg tx-mut hover:bg-card hover:tx transition-all font-medium text-xs group border border-transparent hover:ring-1 hover:ring-inset b-line2" title="Preview — halaman asli di BDMFlow">
+          <i data-lucide="calculator" class="w-4 h-4 tx-mic group-hover:text-slate-600"></i>
+          <span class="hidden md:inline">Right Issue Calc</span>
+        </button>
+      </nav>
+
+      <div class="mt-auto bg-panel p-3 rounded-xl border b-line2 hidden md:block">
+        <div class="flex items-center gap-2 mb-1.5">
+          <i data-lucide="cpu" class="w-3.5 h-3.5 text-indigo-500"></i>
+          <span class="text-[9px] font-bold tx tracking-wider">BDMFLOW ENGINE</span>
+        </div>
+        <p class="text-[9px] tx-mut leading-relaxed">Composite v2 · KSEI · Broker Flow — data T+1 dari 966 emiten IDX.</p>
+        <div class="mt-2 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="data-heavy text-[9px] tx-mut">Refresh 20:33 WIB</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER VIEWPORT -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 relative scroll-smooth bg-win">
+
+      <section class="workspace-view space-y-5">
+
+        <!-- AI EXECUTIVE BRIEF -->
+        <div class="neo-card ai-gradient-bg p-5 md:p-6 relative overflow-hidden flex flex-col md:flex-row gap-5 items-start justify-between">
+          <div class="max-w-3xl space-y-2.5 relative z-10">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100/50 micro-caps">
+                <i data-lucide="sparkles" class="w-3 h-3"></i> AI Executive Brief
+              </span>
+              <span class="data-heavy text-[9px] tx-mic font-medium">21 AGUSTUS 2026</span>
+              <span class="text-[8px] uppercase tracking-wider bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded-full border border-sky-100 font-bold">Grounded · Data T+1</span>
+            </div>
+
+            <h2 class="text-lg md:text-xl font-bold tracking-tight tx leading-snug">
+              Regime Bullish Kuat — Asing Masuk Rp 993,6 M, Akumulasi Terkonsentrasi di Healthcare &amp; Energy
+            </h2>
+            <p class="text-xs md:text-sm tx-mut leading-relaxed max-w-2xl">
+              Net foreign hari ini +Rp 993,55 miliar (INFLOW) dengan 96 whale events. Composite v2 menempatkan
+              <strong class="tx">BMHS (62 · STRONG_BUY)</strong> dan <strong class="tx">GEMS (60 · STRONG_BUY)</strong>
+              di puncak — akumulasi cenderung selektif: dari 966 saham hanya 1 BUY dan 4 ACCUMULATE yang lolos.
+            </p>
+
+            <div class="pt-2 text-[9px] tx-mic flex items-center gap-2">
+              <span class="font-semibold uppercase">Sumber:</span>
+              <span class="gap-2 inline-flex flex-wrap">
+                <span class="hover:text-indigo-600 underline cursor-pointer">tb_market_pulse</span>
+                <span class="hover:text-indigo-600 underline cursor-pointer">tb_composite_v2</span>
+                <span class="hover:text-indigo-600 underline cursor-pointer">tb_radar</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="flex md:flex-col gap-2 shrink-0 z-10 w-full md:w-auto">
+            <button class="flex-1 md:flex-none justify-center px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 shadow-sm active:scale-95" style="background: var(--btn-bg); color: var(--btn-fg);">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              <span>Generate Live</span>
+            </button>
+            <button class="flex-1 md:flex-none justify-center px-4 py-2 bg-card tx-mut border b-line2 rounded-lg text-xs font-semibold hover:tx transition-all flex items-center gap-2 shadow-sm active:scale-95">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-indigo-500"></i>
+              <span>Listen (TTS)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI ROW -->
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="neo-card p-4">
+            <div class="micro-caps tx-mic mb-2">Net Foreign Hari Ini</div>
+            <div class="data-heavy text-2xl font-bold tx tracking-tighter">+993.6 B</div>
+            <div class="mt-2 inline-flex"><span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">INFLOW · KUAT</span></div>
+          </div>
+          <div class="neo-card p-4">
+            <div class="micro-caps tx-mic mb-2">Whale Events</div>
+            <div class="data-heavy text-2xl font-bold tx tracking-tighter">96</div>
+            <div class="mt-2 inline-flex"><span class="badge-pill bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200/50">BANDAR AKTIF</span></div>
+          </div>
+          <div class="neo-card p-4">
+            <div class="micro-caps tx-mic mb-2">Market Regime</div>
+            <div class="data-heavy text-2xl font-bold tx tracking-tighter">BULL</div>
+            <div class="mt-2 inline-flex"><span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">ACCUMULATION DAY</span></div>
+          </div>
+          <div class="neo-card p-4">
+            <div class="micro-caps tx-mic mb-2">Market Value</div>
+            <div class="data-heavy text-2xl font-bold tx tracking-tighter">15.35 T</div>
+            <div class="mt-2 inline-flex"><span class="badge-pill bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/50">966 SAHAM</span></div>
+          </div>
+        </div>
+
+        <!-- CHART + HIGH CONVICTION -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+          <div class="xl:col-span-2 neo-card p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3 border-b b-line pb-3">
+              <div>
+                <h3 class="micro-caps tx-mic mb-0.5">Composite Index (IHSG)</h3>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold data-heavy tx tracking-tighter">7,852.40</span>
+                  <span class="text-xs data-heavy text-emerald-700 font-bold badge-pill bg-emerald-50">+0.64%</span>
+                </div>
+              </div>
+              <div class="segmented-nav hidden sm:flex">
+                <button class="segmented-btn active" onclick="setSegment(this)">1D</button>
+                <button class="segmented-btn" onclick="setSegment(this)">1W</button>
+                <button class="segmented-btn" onclick="setSegment(this)">1M</button>
+                <button class="segmented-btn" onclick="setSegment(this)">YTD</button>
+              </div>
+            </div>
+            <div class="flex-1 w-full min-h-[240px] relative">
+              <canvas id="ihsgChart"></canvas>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            <!-- High Conviction (panel gelap khas premium) -->
+            <div class="neo-card p-4 border-transparent shadow-xl" style="background: var(--dark-card);">
+              <div class="flex justify-between items-center mb-3 border-b pb-2" style="border-color: rgba(255,255,255,0.08);">
+                <h3 class="micro-caps" style="color:#94a3b8;">High Conviction · Composite v2</h3>
+                <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-400"></i>
+              </div>
+              <div class="space-y-1" id="conviction-list">
+                <div class="cursor-pointer p-2 -mx-2 rounded-lg transition-colors" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+                  <div class="flex justify-between items-end mb-1.5">
+                    <div><span class="data-heavy text-base font-bold text-white">BMHS</span><span class="text-[9px] text-slate-400 ml-1">Healthcare</span></div>
+                    <span class="badge-pill bg-emerald-500/20 text-emerald-400 text-[8px]">STRONG BUY · 62</span>
+                  </div>
+                  <div class="flex justify-between text-[10px] data-heavy">
+                    <span class="text-slate-400">Target: <strong class="text-slate-200">205</strong></span>
+                    <span class="text-slate-400">SL: <strong class="text-rose-400">178</strong></span>
+                  </div>
+                </div>
+                <div class="w-full h-px" style="background: rgba(255,255,255,0.08);"></div>
+                <div class="cursor-pointer p-2 -mx-2 rounded-lg transition-colors" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+                  <div class="flex justify-between items-end mb-1.5">
+                    <div><span class="data-heavy text-base font-bold text-white">GEMS</span><span class="text-[9px] text-slate-400 ml-1">Energy · Whale</span></div>
+                    <span class="badge-pill bg-emerald-500/20 text-emerald-400 text-[8px]">STRONG BUY · 60</span>
+                  </div>
+                  <div class="flex justify-between text-[10px] data-heavy">
+                    <span class="text-slate-400">Target: <strong class="text-slate-200">7,300</strong></span>
+                    <span class="text-slate-400">SL: <strong class="text-rose-400">6,400</strong></span>
+                  </div>
+                </div>
+                <div class="w-full h-px" style="background: rgba(255,255,255,0.08);"></div>
+                <div class="cursor-pointer p-2 -mx-2 rounded-lg transition-colors" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+                  <div class="flex justify-between items-end mb-1.5">
+                    <div><span class="data-heavy text-base font-bold text-white">CASS</span><span class="text-[9px] text-slate-400 ml-1">Infrastructures</span></div>
+                    <span class="badge-pill bg-emerald-500/20 text-emerald-400 text-[8px]">BUY · 54</span>
+                  </div>
+                  <div class="flex justify-between text-[10px] data-heavy">
+                    <span class="text-slate-400">Target: <strong class="text-slate-200">2,000</strong></span>
+                    <span class="text-slate-400">SL: <strong class="text-rose-400">1,770</strong></span>
+                  </div>
+                </div>
+                <div class="w-full h-px" style="background: rgba(255,255,255,0.08);"></div>
+                <div class="cursor-pointer p-2 -mx-2 rounded-lg transition-colors" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+                  <div class="flex justify-between items-end mb-1.5">
+                    <div><span class="data-heavy text-base font-bold text-white">IMAS</span><span class="text-[9px] text-slate-400 ml-1">Consumer Cyclicals</span></div>
+                    <span class="badge-pill bg-emerald-500/20 text-emerald-400 text-[8px]">BUY · 56</span>
+                  </div>
+                  <div class="flex justify-between text-[10px] data-heavy">
+                    <span class="text-slate-400">Target: <strong class="text-slate-200">965</strong></span>
+                    <span class="text-slate-400">SL: <strong class="text-rose-400">850</strong></span>
+                  </div>
+                </div>
+                <div class="w-full h-px" style="background: rgba(255,255,255,0.08);"></div>
+                <div class="cursor-pointer p-2 -mx-2 rounded-lg transition-colors" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
+                  <div class="flex justify-between items-end mb-1.5">
+                    <div><span class="data-heavy text-base font-bold text-white">SMMA</span><span class="text-[9px] text-slate-400 ml-1">Financials</span></div>
+                    <span class="badge-pill bg-amber-500/20 text-amber-400 text-[8px]">BUY · 54 ⚠</span>
+                  </div>
+                  <div class="flex justify-between text-[10px] data-heavy">
+                    <span class="text-slate-400">Target: <strong class="text-slate-200">21,600</strong></span>
+                    <span class="text-slate-400">SL: <strong class="text-rose-400">19,200</strong></span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-[8px] text-slate-500 mt-2 leading-relaxed">Target/SL ilustratif (±8%/±6% dari close 21 Aug). ⚠ SMMA: insider signal DISTRIBUTE.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMART MONEY MATRIX -->
+        <div class="neo-card overflow-hidden">
+          <div class="p-4 border-b b-line flex justify-between items-center bg-panel2/60">
+            <h3 class="micro-caps tx-mut">Smart Money Matrix · Top Composite v2</h3>
+            <div class="segmented-nav">
+              <button class="segmented-btn active" onclick="setSegment(this)">1D</button>
+              <button class="segmented-btn" onclick="setSegment(this)">5D</button>
+              <button class="segmented-btn" onclick="setSegment(this)">20D</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left pro-table data-heavy text-[11px]">
+              <thead>
+                <tr>
+                  <th class="pl-5 pt-3">Ticker</th>
+                  <th class="pt-3">Sektor</th>
+                  <th class="pt-3 text-right">Harga</th>
+                  <th class="pt-3 text-right">Chg</th>
+                  <th class="pt-3 text-right">Score v2</th>
+                  <th class="pt-3 text-center">Tier</th>
+                  <th class="pt-3 text-center">Whale</th>
+                  <th class="pt-3 text-right">Foreign 20d</th>
+                  <th class="pt-3 text-right">KSEI</th>
+                  <th class="pt-3">Insider</th>
+                  <th class="pr-5 pt-3">Flow Context</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">BMHS</td>
+                  <td class="tx-mut">Healthcare</td>
+                  <td class="text-right tx">189</td>
+                  <td class="text-right tx-mut">0.00%</td>
+                  <td class="text-right font-bold tx">62</td>
+                  <td class="text-center"><span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">STRONG BUY</span></td>
+                  <td class="text-center text-emerald-600">●</td>
+                  <td class="text-right text-emerald-600 font-bold">+0.25 B</td>
+                  <td class="text-right tx">4</td>
+                  <td><span class="tx-mic">—</span></td>
+                  <td class="pr-5 tx-mut">HOLDING ABOVE VWMA</td>
+                </tr>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">GEMS</td>
+                  <td class="tx-mut">Energy</td>
+                  <td class="text-right tx">6,700</td>
+                  <td class="text-right text-emerald-600">+0.37%</td>
+                  <td class="text-right font-bold tx">60</td>
+                  <td class="text-center"><span class="badge-pill bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/50">STRONG BUY</span></td>
+                  <td class="text-center text-emerald-600">●</td>
+                  <td class="text-right text-rose-600 font-bold">−0.97 B</td>
+                  <td class="text-right tx">0</td>
+                  <td><span class="tx-mut">⚪ Neutral</span></td>
+                  <td class="pr-5 tx-mut">HOLDING ABOVE VWMA</td>
+                </tr>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">IMAS</td>
+                  <td class="tx-mut">Consumer Cyclicals</td>
+                  <td class="text-right tx">895</td>
+                  <td class="text-right text-rose-600">−0.56%</td>
+                  <td class="text-right font-bold tx">56</td>
+                  <td class="text-center"><span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">BUY</span></td>
+                  <td class="text-center text-emerald-600">●</td>
+                  <td class="text-right text-rose-600 font-bold">−2.43 B</td>
+                  <td class="text-right tx">0</td>
+                  <td><span class="tx-mut">⚪ Neutral</span></td>
+                  <td class="pr-5 tx-mut">HOLDING ABOVE VWMA</td>
+                </tr>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">CASS</td>
+                  <td class="tx-mut">Infrastructures</td>
+                  <td class="text-right tx">1,860</td>
+                  <td class="text-right text-emerald-600">+0.81%</td>
+                  <td class="text-right font-bold tx">54</td>
+                  <td class="text-center"><span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">BUY</span></td>
+                  <td class="text-center text-emerald-600">●</td>
+                  <td class="text-right text-emerald-600 font-bold">+1.66 B</td>
+                  <td class="text-right tx">0</td>
+                  <td><span class="text-emerald-600 font-bold">● STRONG ACC</span></td>
+                  <td class="pr-5 tx-mut">CONSOLIDATING</td>
+                </tr>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">SMMA</td>
+                  <td class="tx-mut">Financials</td>
+                  <td class="text-right tx">20,200</td>
+                  <td class="text-right text-emerald-600">+0.37%</td>
+                  <td class="text-right font-bold tx">54</td>
+                  <td class="text-center"><span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">BUY</span></td>
+                  <td class="text-center tx-mic">○</td>
+                  <td class="text-right text-emerald-600 font-bold">+0.07 B</td>
+                  <td class="text-right font-bold tx">20</td>
+                  <td><span class="text-rose-600 font-bold">● STRONG DIST ⚠</span></td>
+                  <td class="pr-5 tx-mut">HOLDING ABOVE VWMA</td>
+                </tr>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">SDMU</td>
+                  <td class="tx-mut">Transportation &amp; Logistic</td>
+                  <td class="text-right tx">96</td>
+                  <td class="text-right text-emerald-600 font-bold">+17.07%</td>
+                  <td class="text-right font-bold tx">52</td>
+                  <td class="text-center"><span class="badge-pill bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/50">HOT</span></td>
+                  <td class="text-center text-emerald-600">●</td>
+                  <td class="text-right text-rose-600 font-bold">−0.31 B</td>
+                  <td class="text-right tx">0</td>
+                  <td><span class="tx-mut">⚪ Neutral</span></td>
+                  <td class="pr-5 tx-mut">MOMENTUM UP · EXTENDED</td>
+                </tr>
+                <tr class="cursor-pointer group">
+                  <td class="pl-5 font-bold tx group-hover:text-indigo-600 transition-colors">LUCY</td>
+                  <td class="tx-mut">Consumer Cyclicals</td>
+                  <td class="text-right tx">300</td>
+                  <td class="text-right text-rose-600">−0.66%</td>
+                  <td class="text-right font-bold tx">43</td>
+                  <td class="text-center"><span class="badge-pill bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/50">BUY</span></td>
+                  <td class="text-center text-emerald-600">●</td>
+                  <td class="text-right text-emerald-600 font-bold">+13.07 B</td>
+                  <td class="text-right tx">4</td>
+                  <td><span class="text-rose-600 font-bold">● DIST</span></td>
+                  <td class="pr-5 tx-mut">HOLDING ABOVE VWMA</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- MARKET PULSE + BREADTH -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <div class="neo-card p-4">
+            <div class="flex justify-between items-end mb-2">
+              <h3 class="micro-caps tx-mic">Market Breadth</h3>
+              <span class="text-[10px] font-bold text-emerald-700 data-heavy">BULLISH · 100/100</span>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-[9px] tx-mic mb-1 uppercase tracking-wider"><span>Breadth 5 hari</span><span class="data-heavy tx font-bold">73</span></div>
+                <div class="w-full h-1.5 bg-panel rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full" style="width: 73%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[9px] tx-mic mb-1 uppercase tracking-wider"><span>Breadth 20 hari</span><span class="data-heavy tx font-bold">58.5</span></div>
+                <div class="w-full h-1.5 bg-panel rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full" style="width: 58.5%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[9px] tx-mic mb-1 uppercase tracking-wider"><span>Foreign 5 hari</span><span class="data-heavy text-emerald-600 font-bold">+157.2 B</span></div>
+                <div class="w-full h-1.5 bg-panel rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full" style="width: 68%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="neo-card p-4">
+            <h3 class="micro-caps tx-mic mb-3">Market Pulse · Distribusi Sinyal</h3>
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-full h-2 bg-panel rounded-full flex overflow-hidden" title="966 saham — distribusi sinyal composite v2">
+                <div class="bg-emerald-500 h-full" style="width: 0.5%" title="BUY: 1"></div>
+                <div class="bg-emerald-400 h-full" style="width: 1%" title="ACCUMULATE: 4"></div>
+                <div class="bg-amber-400 h-full" style="width: 9%" title="WATCH: 88"></div>
+                <div class="bg-slate-400 h-full" style="width: 42%" title="NEUTRAL: 406"></div>
+                <div class="bg-rose-500 h-full" style="width: 47.5%" title="AVOID: 467"></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-5 gap-2 text-center">
+              <div class="bg-panel2 rounded-lg p-2 border b-line"><div class="data-heavy text-sm font-bold text-emerald-600">1</div><div class="micro-caps tx-mic text-[8px]">BUY</div></div>
+              <div class="bg-panel2 rounded-lg p-2 border b-line"><div class="data-heavy text-sm font-bold text-emerald-500">4</div><div class="micro-caps tx-mic text-[8px]">ACCUM</div></div>
+              <div class="bg-panel2 rounded-lg p-2 border b-line"><div class="data-heavy text-sm font-bold text-amber-500">88</div><div class="micro-caps tx-mic text-[8px]">WATCH</div></div>
+              <div class="bg-panel2 rounded-lg p-2 border b-line"><div class="data-heavy text-sm font-bold tx-mut">406</div><div class="micro-caps tx-mic text-[8px]">NEUTRAL</div></div>
+              <div class="bg-panel2 rounded-lg p-2 border b-line"><div class="data-heavy text-sm font-bold text-rose-500">467</div><div class="micro-caps tx-mic text-[8px]">AVOID</div></div>
+            </div>
+            <p class="text-[9px] tx-mut mt-3 leading-relaxed">Sinyal sangat selektif — kualitas pasar terkonsentrasi di sedikit nama (top-5 composite v2).</p>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- FOOTER STRIP -->
+  <footer class="px-5 py-2 border-t b-line bg-win shrink-0 flex items-center justify-between">
+    <span class="data-heavy text-[9px] tx-mic">Data T+1 · Sesi 21 Aug 2026 · Refresh 20:33 WIB</span>
+    <span class="micro-caps tx-mic">Preview Tema Geist Light — halaman asli tidak berubah</span>
+  </footer>
+
+</div>
+
+<script>
+// Segment buttons
+function setSegment(btn) {
+  btn.parentElement.querySelectorAll('.segmented-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Nav active state (visual only — preview satu view)
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.remove('active','bg-card','shadow-sm','ring-1','ring-inset');
+      b.classList.add('tx-mut','border-transparent');
+    });
+    btn.classList.add('active','bg-card','shadow-sm','ring-1','ring-inset','tx');
+    btn.classList.remove('tx-mut','border-transparent');
+  });
+});
+
+// Theme toggle (Light Geist ⇄ Dark Obsidian terpoles)
+function toggleTheme() {
+  const root = document.documentElement;
+  if (root.dataset.theme === 'dark') { delete root.dataset.theme; }
+  else { root.dataset.theme = 'dark'; }
+  buildChart();
+}
+
+// Chart — warna mengikuti tema
+let chart = null;
+function buildChart() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  const gridColor = dark ? 'rgba(148,163,184,0.12)' : 'rgba(226,232,240,0.6)';
+  const tickColor = dark ? '#64748b' : '#94a3b8';
+  const tipBg = dark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.95)';
+  const tipTitle = dark ? '#94a3b8' : '#64748b';
+  const tipBody = dark ? '#f8fafc' : '#0f172a';
+  const tipBorder = dark ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.06)';
+
+  if (chart) { chart.destroy(); }
+  const ctx = document.getElementById('ihsgChart').getContext('2d');
+  const gradientFill = ctx.createLinearGradient(0, 0, 0, 240);
+  gradientFill.addColorStop(0, 'rgba(5, 150, 105, 0.15)');
+  gradientFill.addColorStop(1, 'rgba(5, 150, 105, 0.0)');
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['09:00','10:00','11:00','12:00','13:30','14:30','15:00','16:00'],
+      datasets: [{
+        label: 'IHSG',
+        data: [7802, 7815, 7828, 7820, 7835, 7848, 7840, 7852.4],
+        borderColor: '#059669',
+        borderWidth: 2,
+        fill: true,
+        backgroundColor: gradientFill,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#ffffff',
+        pointHoverBorderColor: '#059669',
+        pointHoverBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tipBg,
+          titleColor: tipTitle,
+          bodyColor: tipBody,
+          borderColor: tipBorder,
+          borderWidth: 1,
+          titleFont: { family: 'Geist', size: 10 },
+          bodyFont: { family: 'Geist Mono', size: 12, weight: 'bold' },
+          padding: 8,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: { label: function(c) { return c.parsed.y.toLocaleString('id-ID'); } }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Geist Mono', size: 9 }, color: tickColor } },
+        y: { grid: { color: gridColor, drawBorder: false }, ticks: { font: { family: 'Geist Mono', size: 9 }, color: tickColor } }
+      }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  buildChart();
+});
+</script>
+</body>
+</html>
