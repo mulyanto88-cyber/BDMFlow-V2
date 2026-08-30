@@ -17,6 +17,9 @@ export interface ScalperStockResult {
   change_percent: number
   volume: number
   value: number
+  val_kemarin_miliar: number
+  avg_val_20d_miliar: number
+  market_cap_triliun: number
   vol_vs_ma20_ratio: number
   aov_ratio_ma20: number
   whale_signal: boolean
@@ -28,8 +31,10 @@ export interface ScalperStockResult {
   smart_money_score: number
   tier_v2: string
   flow_context: string
+  liner_tier: 'TIER_1_BLUE_CHIP' | 'SECOND_LINER' | 'THIRD_LINER_SMALL'
   scalper_score: number
   grade: 'SUPER_POTENTIAL' | 'STRONG_BUY' | 'WATCH' | 'AVOID'
+  is_gocap: boolean
 }
 
 export async function POST(req: NextRequest) {
@@ -84,6 +89,9 @@ export async function POST(req: NextRequest) {
           d.frequency,
           d.vwma_20d,
           d.ma20_volume,
+          d.tradeable_shares,
+          (COALESCE(d.tradeable_shares, 0) * d.close) AS market_cap,
+          (COALESCE(d.ma20_volume, 0) * d.close) AS ma20_value,
           d.avg_order_volume,
           d.aov_ratio_ma20,
           d.whale_signal,
@@ -116,6 +124,9 @@ export async function POST(req: NextRequest) {
         m.change_percent,
         m.volume,
         m.value,
+        ROUND((m.value / 1e9)::NUMERIC, 2) AS val_kemarin_miliar,
+        ROUND((m.ma20_value / 1e9)::NUMERIC, 2) AS avg_val_20d_miliar,
+        ROUND((m.market_cap / 1e12)::NUMERIC, 2) AS market_cap_triliun,
         COALESCE(m.vol_vs_ma20_ratio, 1.0) AS vol_vs_ma20_ratio,
         COALESCE(m.aov_ratio_ma20, 1.0) AS aov_ratio_ma20,
         COALESCE(m.whale_signal, false) AS whale_signal,
@@ -128,9 +139,17 @@ export async function POST(req: NextRequest) {
         COALESCE(sm.tier_v2, 'NEUTRAL') AS tier_v2,
         COALESCE(sm.flow_context, 'NORMAL') AS flow_context,
 
+        -- Liner / Market Cap Tier Classification
+        CASE 
+          WHEN m.market_cap >= 50e12 OR m.ma20_value >= 40e9 THEN 'TIER_1_BLUE_CHIP'
+          WHEN m.market_cap >= 5e12 OR m.ma20_value >= 5e9 THEN 'SECOND_LINER'
+          ELSE 'THIRD_LINER_SMALL'
+        END AS liner_tier,
+
         -- Scalper Quality Score (0 - 100)
         ROUND(
           LEAST(100, GREATEST(0,
+            (CASE WHEN m.close <= 50 THEN -30 ELSE 0 END) +
             (CASE WHEN m.vol_vs_ma20_ratio >= 1.5 THEN 35 WHEN m.vol_vs_ma20_ratio >= 1.0 THEN 20 ELSE 5 END) +
             (CASE WHEN m.aov_ratio_ma20 >= 1.5 THEN 25 WHEN m.aov_ratio_ma20 >= 1.0 THEN 15 ELSE 5 END) +
             (COALESCE(sm.smart_money_score, 50) * 0.25) +
@@ -144,18 +163,29 @@ export async function POST(req: NextRequest) {
 
     const rows = await run<any>(query, [cleanCodes])
 
-    // Annotate grades
+    // Annotate grades & flags
     const results: ScalperStockResult[] = rows.map((r: any) => {
       const score = Number(r.scalper_score) || 0
+      const isGocap = Number(r.close) <= 50
+
       let grade: ScalperStockResult['grade'] = 'AVOID'
-      if (score >= 80) grade = 'SUPER_POTENTIAL'
-      else if (score >= 65) grade = 'STRONG_BUY'
-      else if (score >= 45) grade = 'WATCH'
+      if (!isGocap) {
+        if (score >= 80) grade = 'SUPER_POTENTIAL'
+        else if (score >= 65) grade = 'STRONG_BUY'
+        else if (score >= 45) grade = 'WATCH'
+      }
 
       return {
         ...r,
+        val_kemarin_miliar: Number(r.val_kemarin_miliar) || 0,
+        avg_val_20d_miliar: Number(r.avg_val_20d_miliar) || 0,
+        market_cap_triliun: Number(r.market_cap_triliun) || 0,
+        vol_vs_ma20_ratio: Number(r.vol_vs_ma20_ratio) || 0,
+        aov_ratio_ma20: Number(r.aov_ratio_ma20) || 0,
+        smart_money_score: Number(r.smart_money_score) || 0,
         scalper_score: score,
         grade,
+        is_gocap: isGocap,
       }
     })
 
