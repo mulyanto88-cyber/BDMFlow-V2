@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Activity, TrendingUp, AlertTriangle, BarChart3, Zap, Shield } from 'lucide-react'
+import { Activity, TrendingUp, AlertTriangle, BarChart3, Zap, Shield, Bot } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/context/auth-context'
+import AICopilotModal from '@/components/ai-copilot'
 
 const ADMIN_EMAILS = ['mulyanto.my88@gmail.com']
 
@@ -60,6 +61,7 @@ export default function ActionCenter() {
   const [expanded, setExpanded] = useState(false)
   const [hasNew, setHasNew] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)
 
   const load = useCallback(async () => {
     const data = await fetchActionSignals()
@@ -86,30 +88,40 @@ export default function ActionCenter() {
   if (!mounted) return null
 
   return (
-    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-5 right-3 sm:right-5 z-40 md:z-50 flex flex-col items-end gap-2 pointer-events-auto">
-      
-      {/* Floating Admin & Scalper Lab Dock (Exclusive for Master Admin) */}
-      {isAdmin && (
-        <div className="flex items-center gap-1.5 bg-black/90 backdrop-blur-xl p-1 rounded-full border border-amber-500/35 shadow-2xl shadow-amber-500/10 animate-fade-in">
-          <Link
-            href="/scalper-copas"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black text-amber-400 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition-all active:scale-95 shadow-xs"
-            title="Buka Scalper Lab (Private Master Tool)"
-          >
-            <Zap size={13} className="text-amber-400 animate-pulse" />
-            <span>⚡ Scalper Lab</span>
-          </Link>
+    <>
+      <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-5 right-3 sm:right-5 z-40 md:z-50 flex flex-col items-end gap-2 pointer-events-auto">
+        
+        {/* Floating Admin & Scalper Lab & AI Copilot Dock (Exclusive for Master Admin) */}
+        {isAdmin && (
+          <div className="flex items-center gap-1.5 bg-black/90 backdrop-blur-xl p-1 rounded-full border border-amber-500/35 shadow-2xl shadow-amber-500/10 animate-fade-in">
+            <button
+              onClick={() => setAiOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black text-amber-300 bg-gradient-to-r from-amber-500/30 to-amber-600/30 hover:from-amber-500/40 hover:to-amber-600/40 border border-amber-500/50 transition-all active:scale-95 shadow-sm"
+              title="Buka BDMFlow AI Intelligence (VIP Copilot)"
+            >
+              <Bot size={13} className="text-amber-400 animate-pulse" />
+              <span>🤖 AI Copilot</span>
+            </button>
 
-          <Link
-            href="/admin"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all active:scale-95"
-            title="Buka Admin Live Activity Tracker"
-          >
-            <Shield size={12} className="text-amber-400" />
-            <span>Admin</span>
-          </Link>
-        </div>
-      )}
+            <Link
+              href="/scalper-copas"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold text-amber-400/90 hover:text-amber-400 hover:bg-amber-500/15 transition-all active:scale-95"
+              title="Buka Scalper Lab (Private Master Tool)"
+            >
+              <Zap size={12} className="text-amber-400" />
+              <span>Scalper Lab</span>
+            </Link>
+
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all active:scale-95"
+              title="Buka Admin Live Activity Tracker"
+            >
+              <Shield size={12} className="text-amber-400" />
+              <span>Admin</span>
+            </Link>
+          </div>
+        )}
 
       {/* Signal list */}
       {expanded && signals.length > 0 && (
@@ -145,20 +157,24 @@ export default function ActionCenter() {
         </div>
       )}
 
-      {/* Toggle Alerts button */}
-      {signals.length > 0 && (
-        <button
-          onClick={() => { setExpanded(!expanded); setHasNew(false) }}
-          className={`relative flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full border border-line-5 bg-black/85 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
-            hasNew ? 'ring-2 ring-emerald-400/50 animate-glow-pulse' : ''
-          }`}
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[9px] sm:text-[10px] font-black text-foreground uppercase tracking-wider sm:tracking-widest">
-            {signals.length} Alert{signals.length !== 1 ? 's' : ''}
-          </span>
-        </button>
-      )}
-    </div>
+        {/* Toggle Alerts button */}
+        {signals.length > 0 && (
+          <button
+            onClick={() => { setExpanded(!expanded); setHasNew(false) }}
+            className={`relative flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full border border-line-5 bg-black/85 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+              hasNew ? 'ring-2 ring-emerald-400/50 animate-glow-pulse' : ''
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[9px] sm:text-[10px] font-black text-foreground uppercase tracking-wider sm:tracking-widest">
+              {signals.length} Alert{signals.length !== 1 ? 's' : ''}
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* VIP AI Copilot Modal */}
+      <AICopilotModal isOpen={aiOpen} onClose={() => setAiOpen(false)} />
+    </>
   )
 }

@@ -6,9 +6,12 @@ import { useParams } from 'next/navigation'
 import {
   Target, Building2, Activity, Globe,
   TrendingUp, Users, Key, BarChart as BarChartIcon,
-  Loader2, AlertTriangle, PieChart
+  Loader2, AlertTriangle, PieChart, Bot
 } from 'lucide-react'
 import nextDynamic from 'next/dynamic'
+import { useAuth } from '@/context/auth-context'
+
+const ADMIN_EMAILS = ['mulyanto.my88@gmail.com']
 
 const WidgetSkeleton = () => <div className="h-48 shimmer rounded-xl w-full" />
 
@@ -23,11 +26,12 @@ const KSEIIntelWidget = nextDynamic(() => import('@/components/widgets/KSEIIntel
 const InsiderWidget = nextDynamic(() => import('@/components/widgets/InsiderWidget').then(m => m.InsiderWidget), { loading: () => <WidgetSkeleton /> })
 const OwnershipWidget = nextDynamic(() => import('@/components/widgets/OwnershipWidget').then(m => m.OwnershipWidget), { loading: () => <WidgetSkeleton /> })
 const TechnicalsWidget = nextDynamic(() => import('@/components/widgets/TechnicalsWidget').then(m => m.TechnicalsWidget), { loading: () => <WidgetSkeleton /> })
+const AICopilotWidget = nextDynamic(() => import('@/components/widgets/AICopilotWidget').then(m => m.AICopilotWidget), { loading: () => <WidgetSkeleton /> })
 import { useStockOverview } from '@/hooks/use-stock'
 import { useTerminalStore } from '@/store/terminal-store'
 
-// ─── Tab Definitions ──────────────────────────────────────────────────────────
-const TABS = [
+// ─── Base Tab Definitions ───────────────────────────────────────────────────
+const BASE_TABS = [
   { id: 'overview',   label: 'Overview',            icon: Target },
   { id: 'keystats',   label: 'Key Stats & Valuasi', icon: PieChart },
   { id: 'broker',     label: 'Broker DNA',          icon: Building2 },
@@ -44,6 +48,9 @@ export default function StockDetailPage() {
   const params = useParams()
   const stockCode = (params?.code as string)?.toUpperCase() || ''
 
+  const { user } = useAuth()
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())
+
   const { period, setActiveTicker } = useTerminalStore()
 
   useEffect(() => {
@@ -54,6 +61,13 @@ export default function StockDetailPage() {
 
   const { isLoading, error } = useStockOverview(stockCode, period)
   const errorMsg = error?.message || ''
+
+  // Inject VIP AI tab right after Overview if user is Master Admin
+  const tabs = [
+    BASE_TABS[0],
+    ...(isAdmin ? [{ id: 'ai', label: '🤖 AI Copilot (VIP)', icon: Bot }] : []),
+    ...BASE_TABS.slice(1),
+  ]
 
   // ─── Guards ────────────────────────────────────────────────────────────────
   if (isLoading) return (
@@ -80,20 +94,25 @@ export default function StockDetailPage() {
         {/* Left/Right subtle fade hints for mobile overflow */}
         <div className="md:hidden pointer-events-none absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-background to-transparent z-10" />
         <div className="flex gap-1.5 overflow-x-auto pb-1.5 pt-0.5 px-0.5 scroll-smooth no-scrollbar touch-pan-x">
-          {TABS.map(t => {
+          {tabs.map(t => {
             const Icon = t.icon
             const active = activeTab === t.id
+            const isAiTab = t.id === 'ai'
             return (
               <button 
                 key={t.id} 
                 onClick={() => setActiveTab(t.id)}
                 className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs border transition-all whitespace-nowrap font-bold active:scale-95 shrink-0 ${
                   active 
-                    ? 'bg-amber-400/15 text-amber-400 border-amber-400/40 shadow-sm' 
-                    : 'bg-surface-2 border-line-3 text-muted-foreground hover:text-foreground hover:border-line-5'
+                    ? isAiTab 
+                      ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/20 font-black'
+                      : 'bg-amber-400/15 text-amber-400 border-amber-400/40 shadow-sm' 
+                    : isAiTab
+                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+                      : 'bg-surface-2 border-line-3 text-muted-foreground hover:text-foreground hover:border-line-5'
                 }`}
               >
-                <Icon size={13} className={active ? 'text-amber-400' : 'text-muted-foreground/70'} />
+                <Icon size={13} className={active ? (isAiTab ? 'text-black' : 'text-amber-400') : (isAiTab ? 'text-amber-400' : 'text-muted-foreground/70')} />
                 {t.label}
               </button>
             )
@@ -108,6 +127,7 @@ export default function StockDetailPage() {
           <ChartWidget stockCode={stockCode} />
         </div>
       )}
+      {activeTab === 'ai'         && <AICopilotWidget stockCode={stockCode} />}
       {activeTab === 'keystats'   && <KeyStatsWidget stockCode={stockCode} />}
       {activeTab === 'broker'     && <BrokerDNAWidget stockCode={stockCode} />}
       {activeTab === 'broksum'    && <BroksumWidget stockCode={stockCode} />}
