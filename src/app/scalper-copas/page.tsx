@@ -51,6 +51,7 @@ type SortKey =
   | 'change_percent'
   | 'val_kemarin_miliar'
   | 'avg_val_20d_miliar'
+  | 'net_foreign_value'
   | 'vol_vs_ma20_ratio'
   | 'aov_ratio_ma20'
   | 'smart_money_score'
@@ -308,7 +309,7 @@ export default function ScalperCopasPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-[1720px] w-full mx-auto px-3 sm:px-6 py-6 pb-32 space-y-6">
       
       {/* Header Banner */}
       <div className="glass rounded-3xl p-6 border border-border/40 space-y-3 relative overflow-hidden">
@@ -639,6 +640,17 @@ export default function ScalperCopasPage() {
                       </div>
                     </th>
 
+                    {/* Sortable: Net Foreign Flow Kemarin */}
+                    <th
+                      onClick={() => handleSort('net_foreign_value')}
+                      className="py-2.5 px-3 text-right cursor-pointer hover:text-foreground transition-colors group"
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <span>Net Foreign Semalam</span>
+                        {renderSortArrow('net_foreign_value')}
+                      </div>
+                    </th>
+
                     {/* Sortable: Vol Surge Kemarin */}
                     <th
                       onClick={() => handleSort('vol_vs_ma20_ratio')}
@@ -791,6 +803,21 @@ export default function ScalperCopasPage() {
                           <div className="text-muted-foreground font-medium">
                             Rp {Number(item.avg_val_20d_miliar).toFixed(2)} M
                           </div>
+                        </td>
+
+                        {/* Net Foreign Flow Kemarin */}
+                        <td className="py-3 px-3 text-right font-bold text-[11px]">
+                          {item.net_foreign_value > 0 ? (
+                            <span className="text-emerald-400">
+                              +Rp {(item.net_foreign_value / 1e9).toFixed(2)} M
+                            </span>
+                          ) : item.net_foreign_value < 0 ? (
+                            <span className="text-rose-400">
+                              -Rp {Math.abs(item.net_foreign_value / 1e9).toFixed(2)} M
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/50">Rp 0 M</span>
+                          )}
                         </td>
 
                         {/* Vol Surge */}

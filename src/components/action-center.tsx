@@ -1,8 +1,9 @@
-'use client'
-
 import React, { useState, useEffect, useCallback } from 'react'
-import { Activity, TrendingUp, AlertTriangle, BarChart3 } from 'lucide-react'
+import { Activity, TrendingUp, AlertTriangle, BarChart3, Zap, Shield } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/context/auth-context'
+
+const ADMIN_EMAILS = ['mulyanto.my88@gmail.com']
 
 interface ActionSignal {
   id: string
@@ -29,8 +30,6 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 }
 
 async function fetchActionSignals(): Promise<ActionSignal[]> {
-  // Reuse the SAME cached, prioritized source as the /alerts page — no separate raw-SQL query,
-  // so the two alert surfaces stay consistent and we drop the uncached /api/motherduck POST.
   try {
     const res = await fetch('/api/alerts/summary')
     const data = await res.json()
@@ -54,6 +53,9 @@ async function fetchActionSignals(): Promise<ActionSignal[]> {
 }
 
 export default function ActionCenter() {
+  const { user } = useAuth()
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())
+
   const [signals, setSignals] = useState<ActionSignal[]>([])
   const [expanded, setExpanded] = useState(false)
   const [hasNew, setHasNew] = useState(false)
@@ -81,12 +83,36 @@ export default function ActionCenter() {
     }
   }, [hasNew])
 
-  if (!mounted || signals.length === 0) return null
+  if (!mounted) return null
 
   return (
     <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-5 right-3 sm:right-5 z-40 md:z-50 flex flex-col items-end gap-2 pointer-events-auto">
+      
+      {/* Floating Admin & Scalper Lab Dock (Exclusive for Master Admin) */}
+      {isAdmin && (
+        <div className="flex items-center gap-1.5 bg-black/90 backdrop-blur-xl p-1 rounded-full border border-amber-500/35 shadow-2xl shadow-amber-500/10 animate-fade-in">
+          <Link
+            href="/scalper-copas"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black text-amber-400 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition-all active:scale-95 shadow-xs"
+            title="Buka Scalper Lab (Private Master Tool)"
+          >
+            <Zap size={13} className="text-amber-400 animate-pulse" />
+            <span>⚡ Scalper Lab</span>
+          </Link>
+
+          <Link
+            href="/admin"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all active:scale-95"
+            title="Buka Admin Live Activity Tracker"
+          >
+            <Shield size={12} className="text-amber-400" />
+            <span>Admin</span>
+          </Link>
+        </div>
+      )}
+
       {/* Signal list */}
-      {expanded && (
+      {expanded && signals.length > 0 && (
         <div className="glass rounded-2xl border border-line-4 shadow-2xl w-[calc(100vw-24px)] max-w-xs sm:w-80 max-h-[55vh] overflow-y-auto p-3 space-y-2 animate-scale-in">
           <div className="flex items-center justify-between px-1 mb-1">
             <div className="flex items-center gap-2">
@@ -119,18 +145,20 @@ export default function ActionCenter() {
         </div>
       )}
 
-      {/* Toggle button */}
-      <button
-        onClick={() => { setExpanded(!expanded); setHasNew(false) }}
-        className={`relative flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full border border-line-5 bg-black/85 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${
-          hasNew ? 'ring-2 ring-emerald-400/50 animate-glow-pulse' : ''
-        }`}
-      >
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="text-[9px] sm:text-[10px] font-black text-foreground uppercase tracking-wider sm:tracking-widest">
-          {signals.length} Alert{signals.length !== 1 ? 's' : ''}
-        </span>
-      </button>
+      {/* Toggle Alerts button */}
+      {signals.length > 0 && (
+        <button
+          onClick={() => { setExpanded(!expanded); setHasNew(false) }}
+          className={`relative flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full border border-line-5 bg-black/85 backdrop-blur-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+            hasNew ? 'ring-2 ring-emerald-400/50 animate-glow-pulse' : ''
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[9px] sm:text-[10px] font-black text-foreground uppercase tracking-wider sm:tracking-widest">
+            {signals.length} Alert{signals.length !== 1 ? 's' : ''}
+          </span>
+        </button>
+      )}
     </div>
   )
 }

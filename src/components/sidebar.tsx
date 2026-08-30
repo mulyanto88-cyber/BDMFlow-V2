@@ -239,55 +239,26 @@ export default function Sidebar() {
         {!collapsed ? (
           <div className="p-3 shrink-0 space-y-2" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
             {isPro ? (
-              <div className="rounded-xl p-3 bg-gradient-to-br from-amber-500/8 to-amber-500/3 border border-amber-500/15">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Star size={11} className="text-amber-400 fill-amber-400" />
-                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.14em]">Pro Aktif</span>
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                <div className="flex items-center gap-1.5 font-black text-amber-400">
+                  <Star size={12} className="text-amber-400 fill-amber-400" />
+                  <span className="text-[10.5px] uppercase tracking-wider">Pro Member</span>
                 </div>
-                <p className="text-[9px] text-muted-foreground/50 leading-snug">
-                  Semua fitur terbuka. Data T+1 setiap hari.
-                </p>
+                <span className="text-[9px] font-mono font-bold text-amber-400/80 bg-amber-500/15 px-1.5 py-0.5 rounded">
+                  AKTIF
+                </span>
               </div>
             ) : (
               <Link
                 href="/pricing"
-                className="block rounded-xl p-3 bg-gradient-to-br from-amber-500/8 to-amber-500/3 border border-amber-500/15 hover:border-amber-500/35 transition-colors"
+                className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 text-xs font-black text-amber-400 transition-colors"
               >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Crown size={11} className="text-amber-400" />
-                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.14em]">Upgrade ke Pro</span>
+                <div className="flex items-center gap-1.5">
+                  <Crown size={12} />
+                  <span className="text-[10.5px] uppercase tracking-wider">Upgrade Pro</span>
                 </div>
-                <p className="text-[9px] text-muted-foreground/50 leading-snug">
-                  Buka Screener Pro, KSEI Intel &amp; Broker Tracker.
-                </p>
+                <span className="text-[10px]">→</span>
               </Link>
-            )}
-
-            {/* Admin Live Tracker & Scalper Lab (Exclusive to mulyanto.my88@gmail.com) */}
-            {user?.email?.toLowerCase() === 'mulyanto.my88@gmail.com' && (
-              <div className="space-y-1">
-                <Link
-                  href="/scalper-copas"
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[10.5px] font-black text-amber-400 hover:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 transition-all shadow-xs"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <Zap size={12} className="text-amber-400 animate-pulse" />
-                    <span>⚡ Scalper Lab (Private)</span>
-                  </div>
-                  <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">COP</span>
-                </Link>
-
-                <Link
-                  href="/admin"
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold text-muted-foreground hover:text-foreground bg-surface-2 hover:bg-surface-3 border border-line-2 transition-all"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <Shield size={12} />
-                    <span>Admin Live Tracker</span>
-                  </div>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                </Link>
-              </div>
             )}
 
             {/* User Profile & Logout */}
@@ -428,35 +399,6 @@ export default function Sidebar() {
 
               {/* User Account & Logout in drawer */}
               <div className="pt-2 space-y-2">
-                {/* Admin Exclusive Links in Mobile Drawer */}
-                {user?.email?.toLowerCase() === 'mulyanto.my88@gmail.com' && (
-                  <div className="space-y-1">
-                    <Link
-                      href="/scalper-copas"
-                      onClick={() => setDrawerOpen(false)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-amber-400 bg-amber-500/15 border border-amber-500/35 active:scale-95 transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Zap size={14} className="text-amber-400 animate-pulse" />
-                        <span>⚡ Scalper Lab (Private)</span>
-                      </div>
-                      <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">COP</span>
-                    </Link>
-
-                    <Link
-                      href="/admin"
-                      onClick={() => setDrawerOpen(false)}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-muted-foreground bg-surface-2 border border-line-2 active:scale-95 transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Shield size={14} />
-                        <span>Admin Live Tracker</span>
-                      </div>
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    </Link>
-                  </div>
-                )}
-
                 {user ? (
                   <div className="p-3 rounded-xl bg-surface-2/90 border border-line-2 space-y-2.5">
                     <div className="flex items-center justify-between">
