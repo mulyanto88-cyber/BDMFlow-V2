@@ -1,5 +1,5 @@
 # =============================================================================
-# STOCKBIT KEY STATS & FUNDAMENTALS PIPELINE — Production Edition
+# STOCKBIT KEY STATS & FUNDAMENTALS PIPELINE — High-Performance Parallel Edition
 # Endpoint: https://exodus.stockbit.com/keystats/ratio/v1/{STOCK_CODE}?year_limit=10
 # =============================================================================
 import os
@@ -10,7 +10,9 @@ import random
 import re
 import requests
 import duckdb
+import threading
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
@@ -28,6 +30,11 @@ MD_SCHEMA        = 'market'
 MD_TABLE         = 'company_keystats'
 BASE_URL         = 'https://exodus.stockbit.com/keystats/ratio/v1'
 
+# Global Lock for DB Writes & Token Refreshes
+db_lock          = threading.Lock()
+token_lock       = threading.Lock()
+global_token     = None
+
 # =============================================================================
 # HELPERS & PARSERS
 # =============================================================================
@@ -41,13 +48,20 @@ def authenticate():
     )
     return build('sheets', 'v4', credentials=creds, cache_discovery=False)
 
-def make_headers(token):
+def make_headers(token, stock_code=None):
+    ref = f'https://stockbit.com/symbol/{stock_code}/keystats' if stock_code else 'https://stockbit.com/'
     return {
-        'Authorization': f'Bearer {token}',
-        'Accept':        'application/json',
-        'User-Agent':    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Referer':       'https://stockbit.com/',
-        'Origin':        'https://stockbit.com',
+        'Authorization':   f'Bearer {token}',
+        'Accept':          'application/json, text/plain, */*',
+        'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Referer':         ref,
+        'Origin':          'https://stockbit.com',
+        'sec-ch-ua':       '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        'sec-ch-ua-mobile':'?0',
+        'sec-ch-ua-platform':'"Windows"',
+        'sec-fetch-dest':  'empty',
+        'sec-fetch-mode':  'cors',
+        'sec-fetch-site':  'same-site',
     }
 
 def clean_val(val_str):
@@ -101,23 +115,30 @@ def get_stock_codes(con):
         print(f"⚠️ Gagal ambil list dari company_profile: {e}")
         return ['BBCA', 'BBRI', 'BMRI', 'BBNI', 'ASII', 'TLKM', 'BRMS', 'AMMN', 'BRIS', 'ADRO']
 
-def fetch_keystats_stock(headers, stock_code, sheets_svc=None, sheet_id=None):
+def fetch_keystats_single(session, stock_code, sheets_svc=None, sheet_id=None):
+    global global_token
+    token = global_token
+    headers = make_headers(token, stock_code)
     url = f'{BASE_URL}/{stock_code}?year_limit=10'
     
     for attempt in range(3):
         try:
-            r = requests.get(url, headers=headers, timeout=20)
+            r = session.get(url, headers=headers, timeout=15)
             
-            # Auto-refresh token if expired mid-run
+            # Handle token expiration (401/403)
             if r.status_code in (401, 403) and sheets_svc and sheet_id:
-                print(f"\n🔄 Token refresh otomatis untuk {stock_code}...", end='', flush=True)
-                new_token = get_or_refresh_token(sheets_svc, sheet_id)
-                headers['Authorization'] = f'Bearer {new_token}'
-                time.sleep(2)
+                with token_lock:
+                    if token == global_token:
+                        print(f"\n🔄 Token refresh otomatis untuk {stock_code}...", flush=True)
+                        global_token = get_or_refresh_token(sheets_svc, sheet_id)
+                    token = global_token
+                headers = make_headers(token, stock_code)
+                time.sleep(1.5)
                 continue
 
+            # Handle rate limiting (429)
             if r.status_code == 429:
-                time.sleep(4 + attempt * 3)
+                time.sleep(3 + attempt * 2 + random.uniform(0.5, 1.5))
                 continue
 
             r.raise_for_status()
@@ -127,10 +148,10 @@ def fetch_keystats_stock(headers, stock_code, sheets_svc=None, sheet_id=None):
             stats = data.get('stats') or {}
             closure_results = data.get('closure_fin_items_results') or []
 
-            # If payload is empty due to temporary throttle, retry
+            # If payload is empty, jitter and retry once
             if not stats and not closure_results:
                 if attempt < 2:
-                    time.sleep(2 + attempt * 2)
+                    time.sleep(1.5 + attempt * 1.5)
                     continue
 
             mcap_b        = clean_val(stats.get('market_cap'))
@@ -210,54 +231,81 @@ def fetch_keystats_stock(headers, stock_code, sheets_svc=None, sheet_id=None):
                 'cash_quarter_b':          item_map.get('Cash (Quarter)'),
                 'total_assets_b':          item_map.get('Total Assets (Quarter)'),
                 'total_liabilities_b':     item_map.get('Total Liabilities (Quarter)'),
-                'total_equity_b':          item_map.get('Total Equity'),
-                'total_debt_b':            item_map.get('Total Debt (Quarter)'),
-                'net_debt_b':              item_map.get('Net Debt (Quarter)'),
-                'cash_from_ops_ttm_b':     item_map.get('Cash From Operations (TTM)'),
-                'free_cash_flow_ttm_b':    item_map.get('Free cash flow (TTM)'),
-
-                # Metadata
+                'total_equity_b':          item_map.get('Total Equity (Quarter)'),
+                'free_cash_flow_ttm_b':    item_map.get('Free Cash Flow (TTM)'),
+                
                 'period_latest':           latest_period,
-                'updated_at':              datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at':              datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
         except Exception as e:
             if attempt == 2:
-                raise e
-            time.sleep(2)
+                return {'stock_code': stock_code, 'error': str(e)}
+            time.sleep(1.0 + attempt)
+
+    return {'stock_code': stock_code, 'error': 'Max attempts reached'}
+
+def commit_batch_to_db(con, batch_rows):
+    if not batch_rows:
+        return
+    import pandas as pd
+    valid_rows = [
+        r for r in batch_rows 
+        if r.get('pe_ratio_ttm') is not None 
+        or r.get('pbv_ratio') is not None 
+        or r.get('roe_ttm_pct') is not None 
+        or r.get('market_cap_b') is not None
+        or r.get('free_float_pct') is not None
+    ]
+    if not valid_rows:
+        return
+
+    with db_lock:
+        df = pd.DataFrame(valid_rows)
+        con.register('df_batch', df)
+        con.execute(f"""
+            CREATE TABLE IF NOT EXISTS {MD_SCHEMA}.{MD_TABLE} AS SELECT * FROM df_batch LIMIT 0;
+            DELETE FROM {MD_SCHEMA}.{MD_TABLE} WHERE stock_code IN (SELECT stock_code FROM df_batch);
+            INSERT INTO {MD_SCHEMA}.{MD_TABLE} SELECT * FROM df_batch;
+        """)
+        con.unregister('df_batch')
+        print(f"   💾 [DB] Committed chunk of {len(valid_rows)} valid stocks to MotherDuck!", flush=True)
 
 # =============================================================================
-# MAIN
+# MAIN PIPELINE
 # =============================================================================
 def main():
+    global global_token
     print("=" * 65)
-    print("📊 STOCKBIT KEY STATS & FUNDAMENTALS PIPELINE (v1/ratio)")
+    print("🚀 STOCKBIT KEY STATS & FUNDAMENTALS PIPELINE (PARALLEL EDITION)")
+    print(f"⏰ Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 65)
 
-    # 1. Auth & Token
+    # 1. Google Sheets Auth & Token
+    print("\n🔐 Menghubungkan ke Google Sheets...")
     sheets_svc = authenticate()
-    token = get_or_refresh_token(sheets_svc, TOKEN_SHEET_ID)
-    headers = make_headers(token)
+    global_token = get_or_refresh_token(sheets_svc, TOKEN_SHEET_ID)
 
-    # 2. Connect MotherDuck
+    # 2. MotherDuck Connection
+    print("\n🦆 Menghubungkan ke MotherDuck...")
     con = duckdb.connect(f'md:{MOTHERDUCK_DB}?motherduck_token={MOTHERDUCK_TOKEN}')
     con.execute(f"CREATE SCHEMA IF NOT EXISTS {MD_SCHEMA}")
 
-    # Check if existing table has outdated column count, auto drop to migrate
-    try:
-        col_count = len(con.execute(f"PRAGMA table_info('{MD_SCHEMA}.{MD_TABLE}')").fetchall())
-        if 0 < col_count != 46:
-            print(f"🔄 Menyesuaikan schema tabel {MD_SCHEMA}.{MD_TABLE} ({col_count} -> 46 kolom)...")
-            con.execute(f"DROP TABLE {MD_SCHEMA}.{MD_TABLE}")
-    except Exception:
-        pass
-
-    # 3. Stock List
+    # 3. Stock List & CLI Arguments
     args = sys.argv[1:]
     custom_stocks = None
     if '--stocks' in args:
         idx = args.index('--stocks')
         if idx + 1 < len(args):
             custom_stocks = [s.strip().upper() for s in args[idx + 1].split(',')]
+
+    workers = 6
+    if '--workers' in args:
+        idx = args.index('--workers')
+        if idx + 1 < len(args):
+            try:
+                workers = max(1, min(12, int(args[idx + 1])))
+            except ValueError:
+                pass
 
     if custom_stocks:
         stocks = custom_stocks
@@ -269,46 +317,103 @@ def main():
             if idx + 1 < len(args):
                 limit_n = int(args[idx + 1])
                 stocks = stocks[:limit_n]
-        print(f"📋 Total {len(stocks)} emiten akan diproses...")
+        print(f"📋 Total {len(stocks)} emiten akan diproses dengan {workers} Thread Workers...")
 
-    # 4. Extraction Loop
-    results = []
+    # 4. Multi-threaded Parallel Extraction
+    session = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(pool_connections=workers * 2, pool_maxsize=workers * 4, max_retries=2)
+    session.mount('https://', adapter)
+
+    start_time = time.time()
     success_count = 0
+    empty_count = 0
     fail_count = 0
+    empty_codes = []
+    
+    batch_buffer = []
+    processed_count = 0
+    total_stocks = len(stocks)
 
-    for i, code in enumerate(stocks, 1):
-        print(f"[{i}/{len(stocks)}] Fetching Key Stats {code}... ", end='', flush=True)
-        try:
-            row = fetch_keystats_stock(headers, code, sheets_svc=sheets_svc, sheet_id=TOKEN_SHEET_ID)
-            results.append(row)
-            success_count += 1
-            print(f"✅ OK (PER: {row['pe_ratio_ttm'] or '-'}, PBV: {row['pbv_ratio'] or '-'}, ROE: {row['roe_ttm_pct'] or '-'}%)")
-        except Exception as e:
-            fail_count += 1
-            print(f"⚠️ Gagal: {str(e)[:50]}")
+    print(f"\n⚡ Memulai penarikan paralel ({workers} workers)...")
 
-        # Politeness delay between stocks
-        time.sleep(0.7 + random.uniform(0.1, 0.3))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        future_to_stock = {
+            executor.submit(fetch_keystats_single, session, code, sheets_svc, TOKEN_SHEET_ID): code
+            for code in stocks
+        }
 
-        # Batch insert to MotherDuck
-        if len(results) >= 25 or i == len(stocks):
-            if results:
-                import pandas as pd
-                df = pd.DataFrame(results)
-                con.register('df_batch', df)
-                con.execute(f"""
-                    CREATE TABLE IF NOT EXISTS {MD_SCHEMA}.{MD_TABLE} AS SELECT * FROM df_batch LIMIT 0;
-                    DELETE FROM {MD_SCHEMA}.{MD_TABLE} WHERE stock_code IN (SELECT stock_code FROM df_batch);
-                    INSERT INTO {MD_SCHEMA}.{MD_TABLE} SELECT * FROM df_batch;
-                """)
-                con.unregister('df_batch')
-                print(f"   💾 [DB] Tersimpan batch {len(results)} saham ke MotherDuck!")
-                results = []
+        for future in as_completed(future_to_stock):
+            code = future_to_stock[future]
+            processed_count += 1
+            try:
+                row = future.result()
+                if row.get('error'):
+                    fail_count += 1
+                    print(f"❌ [{processed_count}/{total_stocks}] {code}: {row['error'][:30]}", flush=True)
+                else:
+                    has_any = any(
+                        row.get(k) is not None
+                        for k in ('pe_ratio_ttm', 'pbv_ratio', 'roe_ttm_pct', 'market_cap_b', 'free_float_pct')
+                    )
+                    if has_any:
+                        success_count += 1
+                        batch_buffer.append(row)
+                        print(f"✅ [{processed_count}/{total_stocks}] {code} (PER: {row['pe_ratio_ttm'] or '-'}, PBV: {row['pbv_ratio'] or '-'}, ROE: {row['roe_ttm_pct'] or '-'}%)", flush=True)
+                    else:
+                        empty_count += 1
+                        empty_codes.append(code)
+                        print(f"⚠️ [{processed_count}/{total_stocks}] {code} [KOSONG / 200 OK]", flush=True)
+            except Exception as e:
+                fail_count += 1
+                print(f"❌ [{processed_count}/{total_stocks}] {code} Exception: {str(e)[:30]}", flush=True)
+
+            # Atomic commit every 25 stocks
+            if len(batch_buffer) >= 25:
+                to_commit = list(batch_buffer)
+                batch_buffer = []
+                commit_batch_to_db(con, to_commit)
+
+    # Commit any remaining buffered stocks
+    if batch_buffer:
+        commit_batch_to_db(con, batch_buffer)
+        batch_buffer = []
+
+    elapsed = time.time() - start_time
+    print("\n" + "=" * 65)
+    print(f"🏁 Ronde Utama Selesai dalam {elapsed:.1f} detik ({elapsed/60:.1f} menit)!")
+    print(f"📊 Hasil: ✅ Berhasil: {success_count} · ⚠️ Kosong: {empty_count} · ❌ Gagal: {fail_count}")
+    print("=" * 65)
+
+    # 5. Fast Retry Pass for Empty/Failed Codes
+    if empty_codes:
+        print(f"\n🔁 Melakukan Quick Retry untuk {len(empty_codes)} saham kosong...")
+        retry_rows = []
+        with ThreadPoolExecutor(max_workers=min(4, workers)) as executor:
+            future_retry = {
+                executor.submit(fetch_keystats_single, session, code, sheets_svc, TOKEN_SHEET_ID): code
+                for code in empty_codes
+            }
+            for future in as_completed(future_retry):
+                code = future_retry[future]
+                try:
+                    row = future.result()
+                    has_any = any(
+                        row.get(k) is not None
+                        for k in ('pe_ratio_ttm', 'pbv_ratio', 'roe_ttm_pct', 'market_cap_b', 'free_float_pct')
+                    )
+                    if has_any:
+                        retry_rows.append(row)
+                        print(f"   ↻ ✅ PULIH {code}!", flush=True)
+                except Exception:
+                    pass
+
+        if retry_rows:
+            commit_batch_to_db(con, retry_rows)
+            print(f"   💾 [DB] Berhasil memulihkan {len(retry_rows)} saham dari retry pass!")
 
     total_in_db = con.execute(f"SELECT COUNT(*) FROM {MD_SCHEMA}.{MD_TABLE}").fetchone()[0]
-    print("=" * 65)
-    print(f"🎉 SELESAI! Sukses: {success_count} · Gagal: {fail_count}")
-    print(f"📊 Total emiten di {MD_SCHEMA}.{MD_TABLE}: {total_in_db} rows")
+    print("\n" + "=" * 65)
+    print(f"🎉 PIPELINE SELESAI! Total emiten tersimpan di {MD_SCHEMA}.{MD_TABLE}: {total_in_db} emiten.")
     print("=" * 65)
     con.close()
 
