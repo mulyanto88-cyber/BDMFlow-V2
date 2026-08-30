@@ -1,6 +1,7 @@
 // =============================================================================
 // src/lib/gemini.ts
 // Google Gemini API Client & Financial Market AI Engine for BDMFlow
+// Built with Resilient Multi-Model Fallback Chain
 // =============================================================================
 
 export interface GeminiMessage {
@@ -8,7 +9,16 @@ export interface GeminiMessage {
   parts: { text: string }[]
 }
 
-const DEFAULT_MODEL = 'gemini-1.5-flash'
+// Ordered fallback list of supported Gemini models
+const CANDIDATE_MODELS = [
+  { model: 'gemini-1.5-flash-latest', apiVersion: 'v1beta' },
+  { model: 'gemini-1.5-flash',        apiVersion: 'v1beta' },
+  { model: 'gemini-2.0-flash',        apiVersion: 'v1beta' },
+  { model: 'gemini-1.5-pro-latest',   apiVersion: 'v1beta' },
+  { model: 'gemini-1.5-pro',          apiVersion: 'v1beta' },
+  { model: 'gemini-1.5-flash',        apiVersion: 'v1' },
+  { model: 'gemini-pro',              apiVersion: 'v1' },
+]
 
 export function getGeminiApiKey(): string | null {
   return process.env.GEMINI_API_KEY || null
@@ -36,7 +46,6 @@ export async function callGemini({
   prompt,
   systemInstruction = IDX_ANALYST_SYSTEM_INSTRUCTION,
   history = [],
-  model = DEFAULT_MODEL,
   temperature = 0.4,
 }: {
   prompt: string
@@ -50,53 +59,70 @@ export async function callGemini({
     throw new Error('GEMINI_API_KEY_MISSING')
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+  let lastError: Error | null = null
 
-  const contents: GeminiMessage[] = [
-    ...history,
-    {
-      role: 'user',
-      parts: [{ text: prompt }],
-    },
-  ]
+  // Iterate over candidate models until one succeeds
+  for (const { model, apiVersion } of CANDIDATE_MODELS) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`
 
-  const payload: any = {
-    contents,
-    generationConfig: {
-      temperature,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 2048,
-    },
-  }
+      const contents: GeminiMessage[] = [
+        ...history,
+        {
+          role: 'user',
+          parts: [{ text: prompt }],
+        },
+      ]
 
-  if (systemInstruction) {
-    payload.systemInstruction = {
-      parts: [{ text: systemInstruction }],
+      const payload: any = {
+        contents,
+        generationConfig: {
+          temperature,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+      }
+
+      // systemInstruction is supported in v1beta
+      if (systemInstruction && apiVersion === 'v1beta') {
+        payload.systemInstruction = {
+          parts: [{ text: systemInstruction }],
+        }
+      } else if (systemInstruction && apiVersion === 'v1') {
+        // Prepend to prompt for older endpoints
+        if (contents.length > 0 && contents[contents.length - 1].parts.length > 0) {
+          contents[contents.length - 1].parts[0].text = `[Instruksi Sistem: ${systemInstruction}]\n\n${contents[contents.length - 1].parts[0].text}`
+        }
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const errorBody = await response.text()
+        console.warn(`[Gemini Fallback] Model ${model} (${apiVersion}) returned ${response.status}: ${errorBody.slice(0, 100)}`)
+        lastError = new Error(`Gemini API error (${response.status}): ${errorBody}`)
+        continue // Try next candidate model
+      }
+
+      const data = await response.json()
+      const candidate = data?.candidates?.[0]
+      const text = candidate?.content?.parts?.[0]?.text
+
+      if (text) {
+        return text // Success!
+      }
+    } catch (err: any) {
+      console.warn(`[Gemini Fallback] Exception with ${model}:`, err.message)
+      lastError = err
     }
   }
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!response.ok) {
-    const errorBody = await response.text()
-    console.error('[Gemini API Error]', response.status, errorBody)
-    throw new Error(`Gemini API error (${response.status}): ${errorBody}`)
-  }
-
-  const data = await response.json()
-  const candidate = data?.candidates?.[0]
-  const text = candidate?.content?.parts?.[0]?.text
-
-  if (!text) {
-    throw new Error('No content returned from Gemini API.')
-  }
-
-  return text
+  throw lastError || new Error('All Gemini candidate models failed to respond.')
 }

@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       try {
         const [latestRows, statsRows] = await Promise.all([
           run(`
-            SELECT trading_date, close, change_percent, volume, value, net_foreign
+            SELECT trading_date, close, change_percent, volume, value, net_foreign_value
             FROM market.daily_transactions
             WHERE stock_code = $1
             ORDER BY CAST(trading_date AS DATE) DESC
@@ -87,9 +87,9 @@ export async function POST(req: NextRequest) {
           const s = statsRows[0] || {}
           tickerContextText = `
 Konteks Emiten Aktif (${currentTicker}):
-- Harga Terakhir: Rp ${l.close} (${l.change_percent > 0 ? '+' : ''}${l.change_percent}%)
+- Harga Terakhir: Rp ${l.close} (${Number(l.change_percent || 0) > 0 ? '+' : ''}${Number(l.change_percent || 0).toFixed(2)}%)
 - Nilai Transaksi: Rp ${(Number(l.value || 0) / 1e9).toFixed(2)} Miliar
-- Net Foreign: Rp ${(Number(l.net_foreign || 0) / 1e9).toFixed(2)} Miliar
+- Net Foreign: Rp ${(Number(l.net_foreign_value || 0) / 1e9).toFixed(2)} Miliar
 - PER: ${s.pe_ratio_ttm ?? '-'} | PBV: ${s.pbv_ratio ?? '-'} | ROE: ${s.roe_ttm_pct ? s.roe_ttm_pct + '%' : '-'}
 `
         }

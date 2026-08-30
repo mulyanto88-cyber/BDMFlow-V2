@@ -58,14 +58,17 @@ export async function POST(req: NextRequest) {
       // A. Recent 20 trading days
       run(`
         SELECT 
-          trading_date, close, previous, change, change_percent, 
-          volume, value, frequency, foreign_buy, foreign_sell, net_foreign,
-          high, low, open
+          trading_date, close, previous, change_percent, 
+          volume, value, frequency, foreign_buy_value, foreign_sell_value, net_foreign_value,
+          high, low, open_price, vwma_20d, ma20_volume, aov_ratio_ma20, whale_signal, signal
         FROM market.daily_transactions
         WHERE stock_code = $1
         ORDER BY CAST(trading_date AS DATE) DESC
         LIMIT 20
-      `, [rawStockCode]).catch(() => []),
+      `, [rawStockCode]).catch((err) => {
+        console.error('[AI Analyze DB Error - daily_transactions]', err)
+        return []
+      }),
 
       // B. Fundamental Key Stats
       run(`
@@ -73,7 +76,10 @@ export async function POST(req: NextRequest) {
         FROM market.company_keystats
         WHERE stock_code = $1
         LIMIT 1
-      `, [rawStockCode]).catch(() => []),
+      `, [rawStockCode]).catch((err) => {
+        console.error('[AI Analyze DB Error - company_keystats]', err)
+        return []
+      }),
 
       // C. Company Profile
       run(`
@@ -106,10 +112,10 @@ export async function POST(req: NextRequest) {
     const stats = keyStatsRows?.[0] || {}
 
     // Calculate MA20 & Volume Anomaly
-    const avgVol20 = priceDataRows.reduce((acc, r) => acc + Number(r.volume || 0), 0) / priceDataRows.length
+    const avgVol20 = Number(latest.ma20_volume || 0) || (priceDataRows.reduce((acc, r) => acc + Number(r.volume || 0), 0) / priceDataRows.length)
     const avgVal20 = priceDataRows.reduce((acc, r) => acc + Number(r.value || 0), 0) / priceDataRows.length
     const volRatio = avgVol20 > 0 ? (Number(latest.volume || 0) / avgVol20) : 1
-    const netForeignKemarinMiliar = Number(latest.net_foreign || 0) / 1_000_000_000
+    const netForeignKemarinMiliar = Number(latest.net_foreign_value || 0) / 1_000_000_000
 
     // Top Brokers Accumulator vs Distributer
     const buyBrokers = brokerRows.filter((b: any) => b.side === 'BUY').slice(0, 5)
@@ -123,10 +129,14 @@ export async function POST(req: NextRequest) {
       last_trading_date: latest.trading_date,
       close_price: latest.close,
       previous_price: latest.previous,
-      change_percent: latest.change_percent,
-      volume_kemarin: latest.volume,
-      avg_volume_20d: Math.round(avgVol20),
+      change_percent: Number(latest.change_percent || 0).toFixed(2) + '%',
+      volume_kemarin: Number(latest.volume || 0).toLocaleString(),
+      avg_volume_20d: Math.round(avgVol20).toLocaleString(),
       volume_surge_ratio: volRatio.toFixed(2) + 'x',
+      aov_whale_ratio: Number(latest.aov_ratio_ma20 || 1).toFixed(2) + 'x',
+      whale_signal: latest.whale_signal ? 'YES (Whale Flow)' : 'Normal',
+      smart_money_bandar_verdict: latest.signal || 'Neutral',
+      vwma_20d: latest.vwma_20d ? Math.round(latest.vwma_20d) : 'N/A',
       value_kemarin_miliar: (Number(latest.value || 0) / 1_000_000_000).toFixed(2),
       avg_value_20d_miliar: (avgVal20 / 1_000_000_000).toFixed(2),
       net_foreign_kemarin_miliar: netForeignKemarinMiliar.toFixed(2),
