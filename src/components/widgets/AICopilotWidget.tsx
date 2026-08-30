@@ -7,6 +7,7 @@ import {
   Lock, ArrowUpRight
 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
+import { authFetch } from '@/lib/api'
 
 const ADMIN_EMAILS = ['mulyanto.my88@gmail.com']
 
@@ -32,7 +33,7 @@ export function AICopilotWidget({ stockCode }: AICopilotWidgetProps) {
     setError(null)
 
     try {
-      const res = await fetch('/api/ai/analyze', {
+      const res = await authFetch('/api/ai/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -75,7 +76,7 @@ export function AICopilotWidget({ stockCode }: AICopilotWidgetProps) {
     setError(null)
 
     try {
-      const res = await fetch('/api/ai/chat', {
+      const res = await authFetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

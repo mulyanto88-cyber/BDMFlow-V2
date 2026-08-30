@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { useTerminalStore } from '@/store/terminal-store'
+import { authFetch } from '@/lib/api'
 
 interface ChatMessage {
   id: string
@@ -92,7 +93,7 @@ Pilih salah satu tombol cepat di bawah atau tanyakan apa saja terkait analisa **
 
     try {
       // If user asks about specific stock analysis, call analyze or chat
-      const res = await fetch('/api/ai/chat', {
+      const res = await authFetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -148,7 +149,7 @@ Pilih salah satu tombol cepat di bawah atau tanyakan apa saja terkait analisa **
     setMessages((prev) => [...prev, userMsg])
 
     try {
-      const res = await fetch('/api/ai/analyze', {
+      const res = await authFetch('/api/ai/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
