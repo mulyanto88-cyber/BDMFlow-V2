@@ -15,8 +15,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const preset = searchParams.get('preset') || 'all'
 
-    // Base query
+    // Base query with defensive 1:1 deduplication
     let sql = `
+      WITH dedup_cp AS (
+        SELECT stock_code, company_name, group_name, sector
+        FROM (
+          SELECT *, ROW_NUMBER() OVER (
+            PARTITION BY stock_code 
+            ORDER BY company_name IS NOT NULL DESC, (CASE WHEN free_float > 1 THEN 2 WHEN free_float IS NOT NULL THEN 1 ELSE 0 END) DESC
+          ) AS rn
+          FROM market.company_profile
+        ) WHERE rn = 1
+      ),
+      dedup_sl AS (
+        SELECT stock_code, close, change_percent, whale_signal, net_foreign_value
+        FROM (
+          SELECT *, ROW_NUMBER() OVER (PARTITION BY stock_code ORDER BY trading_date DESC) AS rn
+          FROM market.tb_stock_latest
+        ) WHERE rn = 1
+      )
       SELECT
         ks.stock_code,
         COALESCE(cp.company_name, cp.group_name, ks.stock_code) AS company_name,
@@ -63,8 +80,8 @@ export async function GET(request: NextRequest) {
         ks.period_latest,
         ks.updated_at::VARCHAR AS updated_at
       FROM market.company_keystats ks
-      LEFT JOIN market.company_profile cp ON cp.stock_code = ks.stock_code
-      LEFT JOIN market.tb_stock_latest sl ON sl.stock_code = ks.stock_code
+      LEFT JOIN dedup_cp cp ON cp.stock_code = ks.stock_code
+      LEFT JOIN dedup_sl sl ON sl.stock_code = ks.stock_code
       LEFT JOIN (
         SELECT stock_code, close, change_percent, whale_signal, net_foreign_value
         FROM market.daily_transactions
