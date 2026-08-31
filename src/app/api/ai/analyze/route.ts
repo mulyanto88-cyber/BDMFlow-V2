@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getViewer, getAdmin } from '@/lib/auth-server'
 import { run } from '@/lib/db'
 import { callGemini, getAIApiKey } from '@/lib/gemini'
+import { checkRateLimit, getCachedAnalysis, setCachedAnalysis } from '@/lib/ai-guardian'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,27 +34,53 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Check API Key (DeepSeek or Gemini)
+    // 2. Rate Limiter (Max 20 requests/minute per user)
+    const rateLimit = checkRateLimit(viewer.userId, 20, 60_000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: `Terlalu banyak permintaan AI. Silakan tunggu ${rateLimit.retryAfterSeconds} detik sebelum mencoba kembali demi efisiensi token.`,
+          isRateLimited: true,
+        },
+        { status: 429 }
+      )
+    }
+
+    // 3. Check API Key (DeepSeek or Gemini)
     if (!getAIApiKey()) {
       return NextResponse.json(
         {
-          error: 'DEEPSEEK_API_KEY atau GEMINI_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... di Environment Settings untuk mengaktifkan AI Copilot.',
+          error: 'DEEPSEEK_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... di Environment Settings untuk mengaktifkan AI Copilot.',
           isConfigError: true,
         },
         { status: 503 }
       )
     }
 
-    // 3. Parse Request
+    // 4. Parse Request
     const body = await req.json()
     const rawStockCode = String(body.stock_code || '').trim().toUpperCase()
     const promptStyle = body.prompt_style || 'COMPREHENSIVE' // 'COMPREHENSIVE' | 'SCALPER' | 'BANDAR' | 'VALUATION'
 
     if (!rawStockCode || rawStockCode.length > 6) {
-      return NextResponse.json({ error: 'Stock code tidak valid.' }, { status: 400 })
+      return NextResponse.json({ error: 'Kode saham tidak valid.' }, { status: 400 })
     }
 
-    // 4. Query Market Data from MotherDuck
+    // 5. In-Memory Cache Check (TTL: 10 minutes)
+    const cacheKey = `${rawStockCode}_${promptStyle}`
+    const cached = getCachedAnalysis(cacheKey, 10 * 60 * 1000)
+    if (cached) {
+      return NextResponse.json({
+        success: true,
+        stock_code: rawStockCode,
+        analysis: cached.analysis,
+        snapshot: cached.snapshot,
+        is_cached: true,
+        generated_at: new Date(cached.timestamp).toISOString(),
+      })
+    }
+
+    // 6. Query Market Data from MotherDuck (Parallelized)
     const [priceDataRows, keyStatsRows, profileRows, brokerRows] = await Promise.all([
       // A. Recent 20 trading days
       run(`
@@ -89,20 +116,19 @@ export async function POST(req: NextRequest) {
         LIMIT 1
       `, [rawStockCode]).catch(() => []),
 
-      // D. Recent Broksum Activity
+      // D. Recent Broksum Activity (Fast query)
       run(`
         SELECT date, broker_code, side, value, lot, avg_price, freq
         FROM broker_activity
         WHERE stock_code = $1
-          AND date = (SELECT MAX(date) FROM broker_activity WHERE stock_code = $1)
-        ORDER BY value DESC
+        ORDER BY date DESC, value DESC
         LIMIT 15
       `, [rawStockCode]).catch(() => []),
     ])
 
     if (!priceDataRows || priceDataRows.length === 0) {
       return NextResponse.json(
-        { error: `Data transaksi untuk saham ${rawStockCode} tidak ditemukan di database.` },
+        { error: `Data transaksi untuk saham ${rawStockCode} belum tersedia di database.` },
         { status: 404 }
       )
     }
@@ -184,6 +210,9 @@ Sajikan laporan dengan struktur berikut:
 
     const analysis = await callGemini({ prompt: aiPrompt })
 
+    // Cache the result for 10 minutes
+    setCachedAnalysis(cacheKey, analysis, stockContext)
+
     return NextResponse.json({
       success: true,
       stock_code: rawStockCode,
@@ -192,9 +221,10 @@ Sajikan laporan dengan struktur berikut:
       generated_at: new Date().toISOString(),
     })
   } catch (err: any) {
-    console.error('[API /api/ai/analyze error]', err)
+    // Sanitize error: Log full details on server, return clean message to client
+    console.error('[API /api/ai/analyze internal error]', err)
     return NextResponse.json(
-      { error: err.message || 'Gagal memproses analisa AI.' },
+      { error: 'Gagal memproses analisa AI saat ini. Silakan coba beberapa saat lagi.' },
       { status: 500 }
     )
   }

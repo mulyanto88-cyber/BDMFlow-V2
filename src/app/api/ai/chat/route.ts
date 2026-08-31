@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getViewer, getAdmin } from '@/lib/auth-server'
 import { run } from '@/lib/db'
 import { callGemini, getAIApiKey, GeminiMessage } from '@/lib/gemini'
+import { checkRateLimit } from '@/lib/ai-guardian'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,36 +34,49 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Check API Key (DeepSeek or Gemini)
+    // 2. Rate Limiter (Max 25 chat messages/minute per user)
+    const rateLimit = checkRateLimit(viewer.userId, 25, 60_000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: `Terlalu banyak pesan chat dalam waktu singkat. Silakan tunggu ${rateLimit.retryAfterSeconds} detik.`,
+          isRateLimited: true,
+        },
+        { status: 429 }
+      )
+    }
+
+    // 3. Check API Key (DeepSeek or Gemini)
     if (!getAIApiKey()) {
       return NextResponse.json(
         {
-          error: 'DEEPSEEK_API_KEY atau GEMINI_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... untuk mengaktifkan fitur AI.',
+          error: 'DEEPSEEK_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... untuk mengaktifkan fitur AI.',
           isConfigError: true,
         },
         { status: 503 }
       )
     }
 
-    // 3. Parse Request
+    // 4. Parse Request & Cap History (Token Saver)
     const body = await req.json()
-    const messages = body.messages || []
+    const rawMessages = body.messages || []
     const currentTicker = String(body.current_ticker || '').trim().toUpperCase()
 
-    if (!Array.isArray(messages) || messages.length === 0) {
+    if (!Array.isArray(rawMessages) || rawMessages.length === 0) {
       return NextResponse.json({ error: 'Pesan chat tidak boleh kosong.' }, { status: 400 })
     }
 
-    const lastMessage = messages[messages.length - 1]
-    const userPrompt = lastMessage.content || ''
+    const lastMessage = rawMessages[rawMessages.length - 1]
+    const userPrompt = String(lastMessage.content || '').slice(0, 1000)
 
-    // Convert previous chat history to Gemini format
-    const history: GeminiMessage[] = messages.slice(0, -1).map((m: any) => ({
+    // Token Saver: Cap history to max 4 previous messages, max 500 chars each
+    const recentHistory = rawMessages.slice(0, -1).slice(-4)
+    const history: GeminiMessage[] = recentHistory.map((m: any) => ({
       role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content || '' }],
+      content: String(m.content || '').slice(0, 500),
     }))
 
-    // Optional: Fetch ticker context if available
+    // 5. Optional: Fetch ticker context if available
     let tickerContextText = ''
     if (currentTicker && currentTicker.length <= 6) {
       try {
@@ -113,9 +127,10 @@ Konteks Emiten Aktif (${currentTicker}):
       message: reply,
     })
   } catch (err: any) {
-    console.error('[API /api/ai/chat error]', err)
+    // Sanitize error: Log full details on server, return clean message to client
+    console.error('[API /api/ai/chat internal error]', err)
     return NextResponse.json(
-      { error: err.message || 'Gagal memproses pesan AI.' },
+      { error: 'Gagal memproses pesan AI saat ini. Silakan coba beberapa saat lagi.' },
       { status: 500 }
     )
   }
