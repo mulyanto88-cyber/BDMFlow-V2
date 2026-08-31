@@ -259,12 +259,12 @@ Pilih salah satu tombol cepat di bawah atau tanyakan apa saja terkait analisa **
           <div className="mx-4 sm:mx-6 mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-300">
             <AlertCircle size={16} className="shrink-0 text-amber-400 mt-0.5" />
             <div>
-              <p className="font-bold">Konfigurasi Kunci API Dibutuhkan:</p>
+              <p className="font-bold">Konfigurasi Kunci API DeepSeek Dibutuhkan:</p>
               <p className="text-[11px] text-amber-200/80 mt-0.5">
-                Buka file <code className="bg-black/40 px-1 py-0.5 rounded text-amber-400">.env.local</code> di proyek Anda dan tambahkan baris:
+                Buka Environment Variables di Vercel atau file <code className="bg-black/40 px-1 py-0.5 rounded text-amber-400">.env.local</code> dan tambahkan:
                 <br />
                 <code className="bg-black/60 px-2 py-1 rounded text-white font-mono block mt-1 select-all">
-                  GEMINI_API_KEY=AIzaSy...
+                  DEEPSEEK_API_KEY=sk-...
                 </code>
               </p>
             </div>
