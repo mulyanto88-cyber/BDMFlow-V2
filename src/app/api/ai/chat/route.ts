@@ -127,8 +127,13 @@ Konteks Emiten Aktif (${currentTicker}):
       message: reply,
     })
   } catch (err: any) {
-    // Sanitize error: Log full details on server, return clean message to client
     console.error('[API /api/ai/chat internal error]', err)
+    if (err.message && err.message.includes('INSUFFICIENT_BALANCE')) {
+      return NextResponse.json(
+        { error: '⚠️ Saldo token DeepSeek telah habis. Silakan top-up saldo Anda di platform.deepseek.com.' },
+        { status: 402 }
+      )
+    }
     return NextResponse.json(
       { error: 'Gagal memproses pesan AI saat ini. Silakan coba beberapa saat lagi.' },
       { status: 500 }

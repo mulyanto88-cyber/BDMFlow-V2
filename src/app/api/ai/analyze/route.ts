@@ -221,8 +221,13 @@ Sajikan laporan dengan struktur berikut:
       generated_at: new Date().toISOString(),
     })
   } catch (err: any) {
-    // Sanitize error: Log full details on server, return clean message to client
     console.error('[API /api/ai/analyze internal error]', err)
+    if (err.message && err.message.includes('INSUFFICIENT_BALANCE')) {
+      return NextResponse.json(
+        { error: '⚠️ Saldo token DeepSeek telah habis. Silakan top-up saldo Anda di platform.deepseek.com.' },
+        { status: 402 }
+      )
+    }
     return NextResponse.json(
       { error: 'Gagal memproses analisa AI saat ini. Silakan coba beberapa saat lagi.' },
       { status: 500 }

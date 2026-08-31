@@ -109,6 +109,11 @@ export async function callDeepSeek({
       if (!response.ok) {
         const errText = await response.text()
         console.warn(`[DeepSeek] Model ${targetModel} returned ${response.status}: ${errText.slice(0, 150)}`)
+
+        if (response.status === 402 || errText.toLowerCase().includes('insufficient balance') || errText.toLowerCase().includes('insufficient_quota')) {
+          throw new Error('INSUFFICIENT_BALANCE: Saldo token DeepSeek Anda telah habis. Silakan top up saldo di platform.deepseek.com.')
+        }
+
         lastError = new Error(`DeepSeek API error (${response.status}): ${errText}`)
         continue
       }
