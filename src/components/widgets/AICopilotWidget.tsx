@@ -133,7 +133,7 @@ export function AICopilotWidget({ stockCode }: AICopilotWidgetProps) {
                   AI Deep-Dive Intelligence: <span className="text-amber-400 font-mono">{stockCode}</span>
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black border border-amber-500/40">
-                  GEMINI 1.5 FLASH
+                  DEEPSEEK AI
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getViewer, getAdmin } from '@/lib/auth-server'
 import { run } from '@/lib/db'
-import { callGemini, getGeminiApiKey, GeminiMessage } from '@/lib/gemini'
+import { callGemini, getAIApiKey, GeminiMessage } from '@/lib/gemini'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,11 +33,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Check API Key
-    if (!getGeminiApiKey()) {
+    // 2. Check API Key (DeepSeek or Gemini)
+    if (!getAIApiKey()) {
       return NextResponse.json(
         {
-          error: 'GEMINI_API_KEY belum dikonfigurasi di file .env.local.',
+          error: 'DEEPSEEK_API_KEY atau GEMINI_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... untuk mengaktifkan fitur AI.',
           isConfigError: true,
         },
         { status: 503 }

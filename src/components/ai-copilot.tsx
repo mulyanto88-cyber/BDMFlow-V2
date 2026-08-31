@@ -219,7 +219,7 @@ Pilih salah satu tombol cepat di bawah atau tanyakan apa saja terkait analisa **
                   </span>
                 </h3>
               </div>
-              <p className="text-[10px] text-muted-foreground">Powered by Gemini 1.5 Flash • IDX Specialist Engine</p>
+              <p className="text-[10px] text-muted-foreground">Powered by DeepSeek AI • IDX Specialist Engine</p>
             </div>
           </div>
 
