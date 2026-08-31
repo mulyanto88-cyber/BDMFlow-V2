@@ -22,9 +22,12 @@ export interface ScalperStockResult {
   market_cap_triliun: number
   vol_vs_ma20_ratio: number
   aov_ratio_ma20: number
+  max_aov_7d: number
   whale_signal: boolean
+  whale_in_7d: boolean
   big_player_anomaly: boolean
   net_foreign_value: number
+  net_foreign_7d: number
   vwma_20d: number
   is_above_vwma20: boolean
   sector: string
@@ -74,10 +77,7 @@ export async function POST(req: NextRequest) {
     }
 
     const query = `
-      WITH latest_date AS (
-        SELECT MAX(trading_date) AS max_date FROM market.daily_transactions
-      ),
-      latest_metrics AS (
+      WITH recent_days AS (
         SELECT 
           d.stock_code,
           d.trading_date,
@@ -90,18 +90,34 @@ export async function POST(req: NextRequest) {
           d.vwma_20d,
           d.ma20_volume,
           d.tradeable_shares,
-          (COALESCE(d.tradeable_shares, 0) * d.close) AS market_cap,
-          (COALESCE(d.ma20_volume, 0) * d.close) AS ma20_value,
           d.avg_order_volume,
           d.aov_ratio_ma20,
           d.whale_signal,
           d.big_player_anomaly,
           d.signal,
           d.net_foreign_value,
-          ROUND((d.volume::NUMERIC / NULLIF(d.ma20_volume, 0)), 2) AS vol_vs_ma20_ratio
+          DENSE_RANK() OVER (PARTITION BY d.stock_code ORDER BY CAST(d.trading_date AS DATE) DESC) as day_rank
         FROM market.daily_transactions d
-        JOIN latest_date l ON d.trading_date = l.max_date
         WHERE d.stock_code = ANY($1::VARCHAR[])
+      ),
+      agg_7d AS (
+        SELECT 
+          stock_code,
+          COALESCE(SUM(net_foreign_value), 0) AS net_foreign_7d,
+          COALESCE(MAX(aov_ratio_ma20), 1.0) AS max_aov_7d,
+          COALESCE(BOOL_OR(whale_signal), false) AS whale_in_7d
+        FROM recent_days
+        WHERE day_rank <= 7
+        GROUP BY stock_code
+      ),
+      latest_metrics AS (
+        SELECT 
+          r.*,
+          (COALESCE(r.tradeable_shares, 0) * r.close) AS market_cap,
+          (COALESCE(r.ma20_volume, 0) * r.close) AS ma20_value,
+          ROUND((r.volume::NUMERIC / NULLIF(r.ma20_volume, 0)), 2) AS vol_vs_ma20_ratio
+        FROM recent_days r
+        WHERE r.day_rank = 1
       ),
       smart_money AS (
         SELECT 
@@ -129,9 +145,12 @@ export async function POST(req: NextRequest) {
         ROUND((m.market_cap / 1e12)::NUMERIC, 2) AS market_cap_triliun,
         COALESCE(m.vol_vs_ma20_ratio, 1.0) AS vol_vs_ma20_ratio,
         COALESCE(m.aov_ratio_ma20, 1.0) AS aov_ratio_ma20,
+        COALESCE(a7.max_aov_7d, m.aov_ratio_ma20, 1.0) AS max_aov_7d,
         COALESCE(m.whale_signal, false) AS whale_signal,
+        COALESCE(a7.whale_in_7d, m.whale_signal, false) AS whale_in_7d,
         COALESCE(m.big_player_anomaly, false) AS big_player_anomaly,
         COALESCE(m.net_foreign_value, 0) AS net_foreign_value,
+        COALESCE(a7.net_foreign_7d, m.net_foreign_value, 0) AS net_foreign_7d,
         COALESCE(m.vwma_20d, m.close) AS vwma_20d,
         (m.close >= COALESCE(m.vwma_20d, 0)) AS is_above_vwma20,
         COALESCE(sm.sector, 'Lainnya') AS sector,
@@ -146,17 +165,18 @@ export async function POST(req: NextRequest) {
           ELSE 'THIRD_LINER_SMALL'
         END AS liner_tier,
 
-        -- Scalper Quality Score (0 - 100)
+        -- Scalper Quality Score (0 - 100) with 7D Whale Accumulation Recognition
         ROUND(
           LEAST(100, GREATEST(0,
             (CASE WHEN m.close <= 50 THEN -30 ELSE 0 END) +
             (CASE WHEN m.vol_vs_ma20_ratio >= 1.5 THEN 35 WHEN m.vol_vs_ma20_ratio >= 1.0 THEN 20 ELSE 5 END) +
-            (CASE WHEN m.aov_ratio_ma20 >= 1.5 THEN 25 WHEN m.aov_ratio_ma20 >= 1.0 THEN 15 ELSE 5 END) +
+            (CASE WHEN GREATEST(m.aov_ratio_ma20, a7.max_aov_7d) >= 1.5 OR a7.whale_in_7d THEN 25 WHEN GREATEST(m.aov_ratio_ma20, a7.max_aov_7d) >= 1.0 THEN 15 ELSE 5 END) +
             (COALESCE(sm.smart_money_score, 50) * 0.25) +
             (CASE WHEN m.close >= COALESCE(m.vwma_20d, 0) THEN 15 ELSE 0 END)
           ))::NUMERIC, 0
         ) AS scalper_score
       FROM latest_metrics m
+      LEFT JOIN agg_7d a7 ON m.stock_code = a7.stock_code
       LEFT JOIN smart_money sm ON m.stock_code = sm.stock_code
       ORDER BY scalper_score DESC, m.vol_vs_ma20_ratio DESC;
     `
@@ -182,6 +202,10 @@ export async function POST(req: NextRequest) {
         market_cap_triliun: Number(r.market_cap_triliun) || 0,
         vol_vs_ma20_ratio: Number(r.vol_vs_ma20_ratio) || 0,
         aov_ratio_ma20: Number(r.aov_ratio_ma20) || 0,
+        max_aov_7d: Number(r.max_aov_7d) || 0,
+        net_foreign_value: Number(r.net_foreign_value) || 0,
+        net_foreign_7d: Number(r.net_foreign_7d) || 0,
+        whale_in_7d: Boolean(r.whale_in_7d),
         smart_money_score: Number(r.smart_money_score) || 0,
         scalper_score: score,
         grade,

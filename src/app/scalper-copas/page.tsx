@@ -28,9 +28,12 @@ interface ScalperResult {
   market_cap_triliun: number
   vol_vs_ma20_ratio: number
   aov_ratio_ma20: number
+  max_aov_7d: number
   whale_signal: boolean
+  whale_in_7d: boolean
   big_player_anomaly: boolean
   net_foreign_value: number
+  net_foreign_7d: number
   vwma_20d: number
   is_above_vwma20: boolean
   sector: string
@@ -52,8 +55,10 @@ type SortKey =
   | 'val_kemarin_miliar'
   | 'avg_val_20d_miliar'
   | 'net_foreign_value'
+  | 'net_foreign_7d'
   | 'vol_vs_ma20_ratio'
   | 'aov_ratio_ma20'
+  | 'max_aov_7d'
   | 'smart_money_score'
   | 'liner_tier'
   | 'grade'
@@ -215,7 +220,7 @@ export default function ScalperCopasPage() {
     } else if (activeFilter === 'VOL_SURGE') {
       filtered = filtered.filter((r) => r.vol_vs_ma20_ratio >= 1.5)
     } else if (activeFilter === 'AOV_WHALE') {
-      filtered = filtered.filter((r) => r.aov_ratio_ma20 >= 1.5 || r.whale_signal)
+      filtered = filtered.filter((r) => r.max_aov_7d >= 1.5 || r.whale_in_7d || r.aov_ratio_ma20 >= 1.5 || r.whale_signal)
     } else if (activeFilter === 'TIER_1') {
       filtered = filtered.filter((r) => r.liner_tier === 'TIER_1_BLUE_CHIP')
     } else if (activeFilter === 'SECOND_LINER') {
@@ -246,7 +251,7 @@ export default function ScalperCopasPage() {
   const gradeCountA = useMemo(() => results.filter((r) => r.grade === 'SUPER_POTENTIAL').length, [results])
   const gradeCountB = useMemo(() => results.filter((r) => r.grade === 'STRONG_BUY').length, [results])
   const volSurgeCount = useMemo(() => results.filter((r) => r.vol_vs_ma20_ratio >= 1.5).length, [results])
-  const aovWhaleCount = useMemo(() => results.filter((r) => r.aov_ratio_ma20 >= 1.5 || r.whale_signal).length, [results])
+  const aovWhaleCount = useMemo(() => results.filter((r) => r.max_aov_7d >= 1.5 || r.whale_in_7d || r.aov_ratio_ma20 >= 1.5 || r.whale_signal).length, [results])
   const tier1Count = useMemo(() => results.filter((r) => r.liner_tier === 'TIER_1_BLUE_CHIP').length, [results])
   const tier2Count = useMemo(() => results.filter((r) => r.liner_tier === 'SECOND_LINER').length, [results])
   const tier3Count = useMemo(() => results.filter((r) => r.liner_tier === 'THIRD_LINER_SMALL').length, [results])
@@ -640,14 +645,14 @@ export default function ScalperCopasPage() {
                       </div>
                     </th>
 
-                    {/* Sortable: Net Foreign Flow Kemarin */}
+                    {/* Sortable: Net Foreign Flow 7D */}
                     <th
-                      onClick={() => handleSort('net_foreign_value')}
+                      onClick={() => handleSort('net_foreign_7d')}
                       className="py-2.5 px-3 text-right cursor-pointer hover:text-foreground transition-colors group"
                     >
                       <div className="flex items-center justify-end gap-1">
-                        <span>Net Foreign Semalam</span>
-                        {renderSortArrow('net_foreign_value')}
+                        <span>Net Foreign 7D</span>
+                        {renderSortArrow('net_foreign_7d')}
                       </div>
                     </th>
 
@@ -662,14 +667,14 @@ export default function ScalperCopasPage() {
                       </div>
                     </th>
 
-                    {/* Sortable: AOV Whale Kemarin */}
+                    {/* Sortable: AOV Whale (Max 7D) */}
                     <th
-                      onClick={() => handleSort('aov_ratio_ma20')}
+                      onClick={() => handleSort('max_aov_7d')}
                       className="py-2.5 px-3 text-center cursor-pointer hover:text-foreground transition-colors group"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span>AOV Whale Semalam</span>
-                        {renderSortArrow('aov_ratio_ma20')}
+                        <span>AOV Whale (Max 7D)</span>
+                        {renderSortArrow('max_aov_7d')}
                       </div>
                     </th>
 
@@ -805,15 +810,15 @@ export default function ScalperCopasPage() {
                           </div>
                         </td>
 
-                        {/* Net Foreign Flow Kemarin */}
+                        {/* Net Foreign Flow 7D */}
                         <td className="py-3 px-3 text-right font-bold text-[11px]">
-                          {item.net_foreign_value > 0 ? (
+                          {item.net_foreign_7d > 0 ? (
                             <span className="text-emerald-400">
-                              +Rp {(item.net_foreign_value / 1e9).toFixed(2)} M
+                              +Rp {(item.net_foreign_7d / 1e9).toFixed(2)} M
                             </span>
-                          ) : item.net_foreign_value < 0 ? (
+                          ) : item.net_foreign_7d < 0 ? (
                             <span className="text-rose-400">
-                              -Rp {Math.abs(item.net_foreign_value / 1e9).toFixed(2)} M
+                              -Rp {Math.abs(item.net_foreign_7d / 1e9).toFixed(2)} M
                             </span>
                           ) : (
                             <span className="text-muted-foreground/50">Rp 0 M</span>
@@ -834,15 +839,15 @@ export default function ScalperCopasPage() {
                           )}
                         </td>
 
-                        {/* AOV Whale */}
+                        {/* AOV Whale Max 7D */}
                         <td className="py-3 px-3 text-center">
-                          {item.aov_ratio_ma20 >= 1.5 || item.whale_signal ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 font-bold text-[11px] border border-sky-500/30">
-                              <span>🐋 {Number(item.aov_ratio_ma20).toFixed(1)}x</span>
+                          {item.max_aov_7d >= 1.5 || item.whale_in_7d || item.aov_ratio_ma20 >= 1.5 || item.whale_signal ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 font-bold text-[11px] border border-sky-500/30" title={`AOV Kemarin: ${Number(item.aov_ratio_ma20 || 0).toFixed(1)}x, Max 7D: ${Number(item.max_aov_7d || 0).toFixed(1)}x`}>
+                              <span>🐋 {Number(item.max_aov_7d || item.aov_ratio_ma20).toFixed(1)}x</span>
                             </span>
                           ) : (
-                            <span className="text-muted-foreground/50 text-[11px]">
-                              {Number(item.aov_ratio_ma20 || 0).toFixed(1)}x
+                            <span className="text-muted-foreground/50 text-[11px]" title={`AOV Kemarin: ${Number(item.aov_ratio_ma20 || 0).toFixed(1)}x`}>
+                              {Number(item.max_aov_7d || item.aov_ratio_ma20 || 0).toFixed(1)}x
                             </span>
                           )}
                         </td>
