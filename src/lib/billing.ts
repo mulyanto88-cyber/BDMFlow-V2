@@ -14,16 +14,16 @@ import { createHash, timingSafeEqual } from 'crypto'
 export const PRO_PLANS = {
   monthly: {
     id: 'pro_monthly',
-    priceIdr: 55_000,
+    priceIdr: 30_000,
     months: 1,
-    label: 'BDMFlow Pro — 1 Bulan',
+    label: 'BDMFlow Pro — 1 Bulan (Early Bird)',
     invoiceDurationSec: 3 * 24 * 3600, // 3 days to pay before it expires
   },
   quarterly: {
     id: 'pro_quarterly',
-    priceIdr: 135_000, // Diskon 18.2% dari Rp 165.000 (hanya Rp 45.000/bulan)
+    priceIdr: 79_000, // Diskon dari Rp 90.000 (hanya Rp 26.300/bulan)
     months: 3,
-    label: 'BDMFlow Pro — 3 Bulan (Hemat 18%)',
+    label: 'BDMFlow Pro — 3 Bulan (Hemat Ekstra)',
     invoiceDurationSec: 3 * 24 * 3600,
   },
 } as const
