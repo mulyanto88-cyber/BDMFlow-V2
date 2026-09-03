@@ -53,7 +53,7 @@ export function UpgradePrompt({
             Daftar gratis — 7 hari Pro
           </Link>
           <p className="mt-3 text-xs text-muted-foreground/60">
-            Tanpa kartu kredit. Setelah trial, Rp 55K per bulan.
+            Tanpa kartu kredit. Setelah trial, promo mulai Rp 30K per bulan.
           </p>
         </>
       ) : (
@@ -63,10 +63,10 @@ export function UpgradePrompt({
             className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/15 px-5 py-2.5 text-sm font-bold text-amber-300 transition-colors hover:border-amber-500/50 hover:bg-amber-500/25"
           >
             <Crown size={15} />
-            Upgrade ke Pro — Rp 55K/bulan
+            Upgrade ke Pro — Promo Rp 30K/bulan
           </Link>
           <p className="mt-3 text-xs text-muted-foreground/60">
-            Masa trial Anda sudah berakhir. Berhenti kapan saja.
+            Masa trial Anda sudah berakhir. Promo terbatas Rp 30K/bln.
           </p>
         </>
       )}

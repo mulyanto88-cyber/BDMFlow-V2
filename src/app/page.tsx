@@ -446,7 +446,7 @@ export default function LandingPage() {
             >
               {/* Popular badge */}
               <div className="absolute top-5 right-5 text-[9px] font-black uppercase tracking-[0.14em] px-3 py-1.5 rounded-full text-black btn-gradient-gold shadow-[0_4px_16px_rgba(245,158,11,0.3)]">
-                Terpopuler
+                🔥 Early Bird Promo
               </div>
 
               {/* Gold glow */}
@@ -454,11 +454,14 @@ export default function LandingPage() {
 
               <div className="mb-8 relative">
                 <p className="text-[9px] font-black uppercase tracking-[0.22em] text-amber-400/80 mb-4">Pro Plan</p>
-                <div className="flex items-end gap-1">
-                  <span className="text-5xl font-black gradient-gold">Rp 55K</span>
-                  <span className="text-sm text-muted-foreground/40 mb-2">/ bulan</span>
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-base font-bold text-muted-foreground/50 line-through font-mono">Rp 55K</span>
+                  <span className="text-5xl font-black gradient-gold">Rp 30K</span>
+                  <span className="text-sm text-muted-foreground/40 mb-1">/ bulan</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground/60 mt-2 font-medium">Akses penuh ke semua fitur tanpa batasan</p>
+                <p className="text-[11px] text-amber-400/90 mt-2 font-medium">
+                  Atau <strong>Rp 79K / 3 bulan</strong> (Hanya Rp 26.300/bln)
+                </p>
               </div>
 
               <ul className="space-y-3 flex-1 mb-8 relative">
@@ -482,9 +485,9 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center text-[10px] text-muted-foreground/35">
-            * Harga dapat berubah sewaktu-waktu. Lihat halaman{' '}
+            * Promo Early Bird terbatas. Lihat halaman{' '}
             <Link href="/pricing" className="underline hover:text-muted-foreground/60 transition-colors">pricing</Link>
-            {' '}untuk opsi langganan 3 bulan (diskon 18%).
+            {' '}untuk opsi langganan 3 bulan (hanya Rp 26.300/bln).
           </p>
         </section>
 
