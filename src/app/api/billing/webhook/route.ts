@@ -41,6 +41,14 @@ export async function POST(req: NextRequest) {
     }, { status: 200 })
   }
 
+  // ── Ignore Mayar Payment Reminders (sent to user when payment is pending) ─
+  if (body && (body.event === 'payment.reminder' || String(body.event || '').toLowerCase().includes('reminder'))) {
+    return NextResponse.json({
+      ok: true,
+      skipped: 'Payment reminder notification acknowledged, awaiting actual payment confirmation.',
+    }, { status: 200 })
+  }
+
   // ── Dispatch on the gateway's auth scheme ──────────────────────────────
   const xenditToken = req.headers.get('x-callback-token')
   const mayarToken = req.headers.get('x-mayar-token') || req.headers.get('x-callback-token')

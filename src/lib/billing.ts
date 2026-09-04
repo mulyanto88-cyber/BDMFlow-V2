@@ -120,14 +120,31 @@ export function parseMayarWebhook(body: unknown): WebhookEvent | null {
   const statusStr = String(data.status || data.transactionStatus || event).toUpperCase()
   if (!id) return null
 
-  const isPaid =
-    statusStr.includes('SUCCESS') ||
-    statusStr.includes('PAID') ||
-    statusStr.includes('SETTLEMENT') ||
-    event.includes('payment.received') ||
-    event.includes('payment.paid') ||
-    event.includes('transaction.paid') ||
-    event.includes('invoice.paid')
+  const isReminder = event.includes('reminder')
+  if (isReminder) {
+    return {
+      eventId: `mayar:${String(id)}:REMINDER`,
+      status: 'PENDING',
+      externalId: null,
+      gatewayRef: String(id),
+      amount: Number(data.amount ?? data.paymentLinkAmount ?? b.amount ?? 0),
+      customerEmail: null,
+    }
+  }
+
+  // Only explicit payment events or confirmed transactionStatus mean PAID
+  const isPaidEvent =
+    event === 'payment.received' ||
+    event === 'payment.paid' ||
+    event === 'transaction.paid' ||
+    event === 'invoice.paid' ||
+    event.endsWith('.received') ||
+    event.endsWith('.paid')
+
+  const txStatus = String(data.transactionStatus || '').toUpperCase()
+  const isPaidTxStatus = txStatus === 'PAID' || txStatus === 'SETTLED' || txStatus === 'SETTLEMENT'
+
+  const isPaid = isPaidEvent || isPaidTxStatus
   const status = isPaid ? 'PAID' : statusStr.includes('EXPIRE') ? 'EXPIRED' : statusStr.includes('FAIL') ? 'FAILED' : 'PENDING'
 
   // Look for external_id (e.g. bdm-xxxx-xxxx) in productDescription, description, notes, or full body

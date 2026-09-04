@@ -147,6 +147,24 @@ describe('parseMayarWebhook', () => {
     expect(ev?.status).toBe('PAID')
   })
 
+  it('treats payment.reminder as PENDING, never PAID (even if data.status is SUCCESS)', () => {
+    const reminderPayload = {
+      event: 'payment.reminder',
+      data: {
+        id: '8d28597a-2a7c-40ad-a8c7-324ff64a87af',
+        status: 'SUCCESS',
+        transactionStatus: 'created',
+        amount: 30000,
+        customerEmail: 'ahmadruswandi245@gmail.com',
+        productDescription: 'Langganan BDMFlow (bdm-xxx)',
+      },
+    }
+
+    const ev = parseMayarWebhook(reminderPayload)
+    expect(ev?.status).toBe('PENDING')
+    expect(ev?.status).not.toBe('PAID')
+  })
+
   it('rejects invalid Mayar payloads', () => {
     expect(parseMayarWebhook(null)).toBeNull()
     expect(parseMayarWebhook({})).toBeNull()
