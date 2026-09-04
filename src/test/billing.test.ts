@@ -8,6 +8,7 @@ import {
   verifyMidtransSignature,
   parseWebhookEvent,
   parseMidtransNotification,
+  parseMayarWebhook,
   PRO_PLAN,
 } from '@/lib/billing'
 
@@ -92,6 +93,7 @@ describe('parseWebhookEvent', () => {
       externalId: 'bdm-x-1',
       gatewayRef: 'evt-1',
       amount: 55000,
+      customerEmail: null,
     })
   })
 
@@ -99,6 +101,56 @@ describe('parseWebhookEvent', () => {
     expect(parseWebhookEvent({ status: 'PAID' })).toBeNull()
     expect(parseWebhookEvent({ id: 'evt-1' })).toBeNull()
     expect(parseWebhookEvent(null)).toBeNull()
+  })
+})
+
+describe('parseMayarWebhook', () => {
+  it('correctly parses real Mayar payload with productDescription and customerEmail', () => {
+    const payload = {
+      event: 'payment.received',
+      data: {
+        id: '376e17c2-bafa-4537-b088-a4649c1e95f3',
+        status: 'SUCCESS',
+        amount: 79000,
+        customerName: 'rudie.junior96',
+        customerEmail: 'rudie.junior96@gmail.com',
+        productDescription: 'Langganan BDMFlow Pro — 3 Bulan (Hemat Ekstra) - BDMFlow IDX Intelligence (bdm-6e48f326-1788513711099)',
+      },
+    }
+
+    const ev = parseMayarWebhook(payload)
+    expect(ev).toEqual({
+      eventId: 'mayar:376e17c2-bafa-4537-b088-a4649c1e95f3:PAID',
+      status: 'PAID',
+      externalId: 'bdm-6e48f326-1788513711099',
+      gatewayRef: '376e17c2-bafa-4537-b088-a4649c1e95f3',
+      amount: 79000,
+      customerEmail: 'rudie.junior96@gmail.com',
+    })
+  })
+
+  it('handles snake_case fields as fallback', () => {
+    const payload = {
+      type: 'payment.paid',
+      data: {
+        transaction_id: 'tx-mayar-1',
+        status: 'PAID',
+        amount: 30000,
+        customer_email: 'USER@EXAMPLE.COM ',
+        description: 'BDMFlow (bdm-user-12345)',
+      },
+    }
+
+    const ev = parseMayarWebhook(payload)
+    expect(ev?.externalId).toBe('bdm-user-12345')
+    expect(ev?.customerEmail).toBe('user@example.com')
+    expect(ev?.status).toBe('PAID')
+  })
+
+  it('rejects invalid Mayar payloads', () => {
+    expect(parseMayarWebhook(null)).toBeNull()
+    expect(parseMayarWebhook({})).toBeNull()
+    expect(parseMayarWebhook({ event: 'unknown' })).toBeNull()
   })
 })
 

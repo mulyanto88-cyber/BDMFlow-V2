@@ -114,28 +114,55 @@ export function parseWebhookEvent(body: unknown): WebhookEvent | null {
 export function parseMayarWebhook(body: unknown): WebhookEvent | null {
   const b = body as Record<string, unknown> | null
   if (!b || typeof b !== 'object') return null
-  const data = (b.data || b) as Record<string, unknown>
+  const data = ((b.data && typeof b.data === 'object' ? b.data : b) || {}) as Record<string, unknown>
   const event = String(b.event || b.type || '').toLowerCase()
   const id = data.id ?? data.transaction_id ?? data.payment_id ?? b.id
-  const statusStr = String(data.status || event).toUpperCase()
+  const statusStr = String(data.status || data.transactionStatus || event).toUpperCase()
   if (!id) return null
 
-  const isPaid = statusStr.includes('SUCCESS') || statusStr.includes('PAID') || event.includes('payment.received') || event.includes('payment.paid') || event.includes('transaction.paid') || event.includes('invoice.paid')
+  const isPaid =
+    statusStr.includes('SUCCESS') ||
+    statusStr.includes('PAID') ||
+    statusStr.includes('SETTLEMENT') ||
+    event.includes('payment.received') ||
+    event.includes('payment.paid') ||
+    event.includes('transaction.paid') ||
+    event.includes('invoice.paid')
   const status = isPaid ? 'PAID' : statusStr.includes('EXPIRE') ? 'EXPIRED' : statusStr.includes('FAIL') ? 'FAILED' : 'PENDING'
 
-  const desc = String(data.description || data.notes || '')
-  const match = desc.match(/bdm-[a-zA-Z0-9_-]+/)
-  const externalId = (data.external_id as string) || (match ? match[0] : null) || (data.order_id as string) || null
+  // Look for external_id (e.g. bdm-xxxx-xxxx) in productDescription, description, notes, or full body
+  const desc = String(
+    data.productDescription ||
+    data.description ||
+    data.product_description ||
+    data.notes ||
+    b.productDescription ||
+    b.description ||
+    ''
+  )
+  const fullBodyStr = JSON.stringify(body)
+  const match = desc.match(/bdm-[a-zA-Z0-9_-]+/) || fullBodyStr.match(/bdm-[a-zA-Z0-9_-]+/)
+  const externalId = (data.external_id as string) || (data.externalId as string) || (match ? match[0] : null) || (data.order_id as string) || (data.orderId as string) || null
 
   const customerObj = (data.customer || b.customer) as Record<string, unknown> | undefined
-  const customerEmail = (data.customer_email as string) || (data.email as string) || (customerObj?.email as string) || (b.customer_email as string) || (b.email as string) || null
+  const customerEmail =
+    (data.customerEmail as string) ||
+    (data.customer_email as string) ||
+    (data.email as string) ||
+    (customerObj?.email as string) ||
+    (b.customerEmail as string) ||
+    (b.customer_email as string) ||
+    (b.email as string) ||
+    null
+
+  const rawAmount = data.amount ?? data.paymentLinkAmount ?? data.nettAmount ?? b.amount ?? 0
 
   return {
     eventId: `mayar:${String(id)}:${status}`,
     status,
     externalId,
     gatewayRef: String(id),
-    amount: Number(data.amount ?? b.amount ?? 0),
+    amount: Number(rawAmount),
     customerEmail: customerEmail ? customerEmail.trim().toLowerCase() : null,
   }
 }

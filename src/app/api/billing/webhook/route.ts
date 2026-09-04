@@ -102,12 +102,12 @@ export async function POST(req: NextRequest) {
   }
 
   // 1. Try to find the invoice by external_id
-  let invoice: { user_id: string; status: string; amount: number } | null = null
+  let invoice: { external_id?: string; user_id: string; status: string; amount: number } | null = null
 
   if (ev.externalId) {
     const { data: inv } = await admin
       .from('billing_invoices')
-      .select('user_id, status, amount')
+      .select('external_id, user_id, status, amount')
       .eq('external_id', ev.externalId)
       .single()
     if (inv) invoice = inv
@@ -123,17 +123,19 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (profile) {
+      const externalId = ev.externalId || `mayar-direct-${profile.id.slice(0, 8)}-${Date.now()}`
+      const amount = ev.amount || 30000
       invoice = {
+        external_id: externalId,
         user_id: profile.id,
         status: 'PENDING',
-        amount: ev.amount || 55000,
+        amount,
       }
       // Create record in billing_invoices
-      const externalId = ev.externalId || `mayar-direct-${profile.id.slice(0, 8)}-${Date.now()}`
       await admin.from('billing_invoices').insert({
         external_id: externalId,
         user_id: profile.id,
-        amount: ev.amount || 55000,
+        amount,
         status: 'PAID',
         paid_at: new Date().toISOString(),
         gateway_invoice_id: ev.gatewayRef ?? ev.eventId,
@@ -143,6 +145,8 @@ export async function POST(req: NextRequest) {
 
   if (!invoice) {
     console.warn('[billing] webhook for unknown customer/invoice:', ev.externalId, ev.customerEmail)
+    // Remove from ledger so future callbacks or retries are not falsely blocked by duplicate check
+    await admin.from('billing_webhooks').delete().eq('event_id', ev.eventId)
     return NextResponse.json({ ok: true, skipped: 'unknown invoice or customer' })
   }
 
@@ -151,15 +155,23 @@ export async function POST(req: NextRequest) {
   }
 
   if (ev.status === 'PAID') {
-    if (ev.externalId) {
+    const resolvedExternalId = ev.externalId || invoice.external_id
+    if (resolvedExternalId) {
       await admin
         .from('billing_invoices')
         .update({ status: 'PAID', paid_at: new Date().toISOString(), gateway_invoice_id: ev.gatewayRef ?? ev.eventId })
-        .eq('external_id', ev.externalId)
+        .eq('external_id', resolvedExternalId)
+
+      // Ensure billing_webhooks ledger has the resolved external_id
+      await admin
+        .from('billing_webhooks')
+        .update({ external_id: resolvedExternalId })
+        .eq('event_id', ev.eventId)
     }
 
-    // Determine months from invoice amount (148500 = 3 months, 55000 = 1 month)
-    const monthsToGrant = (invoice.amount && invoice.amount >= 100_000) ? 3 : 1
+    // Determine months from invoice amount (quarterly: 79,000 IDR -> 3 months, monthly: 30,000 / 55,000 IDR -> 1 month)
+    const effectiveAmount = invoice.amount || ev.amount || 0
+    const monthsToGrant = effectiveAmount >= 70_000 ? 3 : 1
 
     // Grant PRO via RPC
     const { error: profErr } = await admin.rpc('grant_pro_subscription', {
@@ -169,22 +181,26 @@ export async function POST(req: NextRequest) {
 
     if (profErr) {
       console.warn('[billing] grant_pro_subscription RPC failed, attempting direct profile update:', profErr.message)
-      // Fallback: direct update to profiles table
-      const days = monthsToGrant * 30
-      const proUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      // Fallback: direct update to profiles table with correct columns (plan_expires_at, not pro_until)
+      const now = new Date()
+      const expiry = new Date(now)
+      expiry.setMonth(expiry.getMonth() + monthsToGrant)
       await admin.from('profiles').update({
         plan: 'pro',
-        pro_until: proUntil,
+        plan_since: now.toISOString(),
+        plan_activated_at: now.toISOString(),
+        plan_expires_at: expiry.toISOString(),
       }).eq('id', invoice.user_id)
     }
 
     console.log(`[billing] Successfully granted PRO (${monthsToGrant}m) to user ${invoice.user_id}`)
   } else {
-    if (ev.status !== 'PENDING' && ev.externalId) {
+    const targetExternalId = ev.externalId || invoice.external_id
+    if (ev.status !== 'PENDING' && targetExternalId) {
       await admin
         .from('billing_invoices')
         .update({ status: ev.status })
-        .eq('external_id', ev.externalId)
+        .eq('external_id', targetExternalId)
         .neq('status', 'PAID')
     }
   }
