@@ -46,11 +46,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 3. Check API Key (DeepSeek or Gemini)
+    // 3. Check API Key (Gemini)
     if (!getAIApiKey()) {
       return NextResponse.json(
         {
-          error: 'DEEPSEEK_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... untuk mengaktifkan fitur AI.',
+          error: 'GEMINI_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan GEMINI_API_KEY untuk mengaktifkan fitur AI.',
           isConfigError: true,
         },
         { status: 503 }
@@ -128,10 +128,16 @@ Konteks Emiten Aktif (${currentTicker}):
     })
   } catch (err: any) {
     console.error('[API /api/ai/chat internal error]', err)
-    if (err.message && err.message.includes('INSUFFICIENT_BALANCE')) {
+    if (err.message?.includes('GEMINI_RATE_LIMIT')) {
       return NextResponse.json(
-        { error: '⚠️ Saldo token DeepSeek telah habis. Silakan top-up saldo Anda di platform.deepseek.com.' },
-        { status: 402 }
+        { error: '⚠️ API Gemini sedang sibuk. Tunggu beberapa detik, lalu coba lagi.', isRateLimited: true },
+        { status: 429 }
+      )
+    }
+    if (err.message?.includes('GEMINI_AUTH_ERROR')) {
+      return NextResponse.json(
+        { error: '⚠️ GEMINI_API_KEY tidak valid. Periksa konfigurasi environment.' },
+        { status: 401 }
       )
     }
     return NextResponse.json(

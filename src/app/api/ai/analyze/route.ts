@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getViewer, getAdmin } from '@/lib/auth-server'
 import { run } from '@/lib/db'
-import { callGemini, getAIApiKey } from '@/lib/gemini'
+import { callGemini, callGeminiAnalysis, getAIApiKey } from '@/lib/gemini'
 import { checkRateLimit, getCachedAnalysis, setCachedAnalysis } from '@/lib/ai-guardian'
 
 export const dynamic = 'force-dynamic'
@@ -46,11 +46,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 3. Check API Key (DeepSeek or Gemini)
+    // 3. Check API Key (Gemini)
     if (!getAIApiKey()) {
       return NextResponse.json(
         {
-          error: 'DEEPSEEK_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan DEEPSEEK_API_KEY=sk-... di Environment Settings untuk mengaktifkan AI Copilot.',
+          error: 'GEMINI_API_KEY belum dikonfigurasi di Environment Vercel. Tambahkan GEMINI_API_KEY di Environment Settings untuk mengaktifkan AI Copilot.',
           isConfigError: true,
         },
         { status: 503 }
@@ -208,7 +208,7 @@ Sajikan laporan dengan struktur berikut:
 5. **⚠️ KEY WATCHLIST & RISIKO** (Katalis positif atau risiko yang harus diwaspadai besok)
 `
 
-    const analysis = await callGemini({ prompt: aiPrompt })
+    const analysis = await callGeminiAnalysis({ prompt: aiPrompt })
 
     // Cache the result for 10 minutes
     setCachedAnalysis(cacheKey, analysis, stockContext)
@@ -222,10 +222,16 @@ Sajikan laporan dengan struktur berikut:
     })
   } catch (err: any) {
     console.error('[API /api/ai/analyze internal error]', err)
-    if (err.message && err.message.includes('INSUFFICIENT_BALANCE')) {
+    if (err.message?.includes('GEMINI_RATE_LIMIT')) {
       return NextResponse.json(
-        { error: '⚠️ Saldo token DeepSeek telah habis. Silakan top-up saldo Anda di platform.deepseek.com.' },
-        { status: 402 }
+        { error: '⚠️ API Gemini sedang sibuk. Tunggu beberapa detik, lalu coba lagi.' },
+        { status: 429 }
+      )
+    }
+    if (err.message?.includes('GEMINI_AUTH_ERROR')) {
+      return NextResponse.json(
+        { error: '⚠️ GEMINI_API_KEY tidak valid. Periksa konfigurasi environment.' },
+        { status: 401 }
       )
     }
     return NextResponse.json(
