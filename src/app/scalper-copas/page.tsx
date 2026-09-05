@@ -294,19 +294,28 @@ export default function ScalperCopasPage() {
   if (!isAdmin) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full glass rounded-3xl p-8 border border-rose-500/30 text-center space-y-4 shadow-2xl">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
-            <ShieldAlert size={28} />
+        <div className="max-w-md w-full glass rounded-3xl p-8 border border-amber-500/35 text-center space-y-5 shadow-2xl relative overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/35 flex items-center justify-center mx-auto text-amber-400 shadow-lg">
+            <Zap size={28} className="animate-pulse" />
           </div>
-          <h1 className="text-lg font-black text-foreground">Akses Terbatas (Private Admin Tool)</h1>
+          <div>
+            <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              Private Beta • Under Active Development
+            </span>
+            <h1 className="text-xl font-black text-foreground mt-2">Open=Low Momentum Lab</h1>
+          </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Halaman <strong>Open=Low Lab Analyzer</strong> saat ini masih dalam fase pengujian privat dan hanya dapat diakses oleh akun master administrator.
+            The <strong>Open=Low Lab Analyzer</strong> is currently undergoing proprietary algorithmic calibration and latency benchmarking. Access is restricted to master research accounts while closed testing is underway.
           </p>
+          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-300/90 flex items-center justify-center gap-2">
+            <Shield size={12} className="text-amber-400 shrink-0" />
+            <span>Public rollout scheduled for upcoming platform release</span>
+          </div>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-xs font-bold text-foreground border border-line-2 transition-all"
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all active:scale-95"
           >
-            Kembali ke Beranda
+            <span>Back to Morning Brief</span>
           </Link>
         </div>
       </div>
