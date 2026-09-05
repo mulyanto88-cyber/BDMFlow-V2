@@ -91,7 +91,7 @@ export default function ActionCenter() {
     <>
       <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-5 right-3 sm:right-5 z-40 md:z-50 flex flex-col items-end gap-2 pointer-events-auto">
         
-        {/* Floating Admin & Scalper Lab & AI Copilot Dock (Exclusive for Master Admin) */}
+        {/* Floating Admin & Open=Low Lab & AI Copilot Dock (Exclusive for Master Admin) */}
         {isAdmin && (
           <div className="flex items-center gap-1.5 bg-black/90 backdrop-blur-xl p-1 rounded-full border border-amber-500/35 shadow-2xl shadow-amber-500/10 animate-fade-in">
             <button
@@ -106,10 +106,10 @@ export default function ActionCenter() {
             <Link
               href="/scalper-copas"
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold text-amber-400/90 hover:text-amber-400 hover:bg-amber-500/15 transition-all active:scale-95"
-              title="Buka Scalper Lab (Private Master Tool)"
+              title="Buka Open=Low Lab (Private Master Tool)"
             >
               <Zap size={12} className="text-amber-400" />
-              <span>Scalper Lab</span>
+              <span>Open=Low Lab</span>
             </Link>
 
             <Link

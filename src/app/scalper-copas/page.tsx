@@ -285,7 +285,7 @@ export default function ScalperCopasPage() {
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
-          <p className="text-xs text-muted-foreground">Memuat Scalper Lab...</p>
+          <p className="text-xs text-muted-foreground">Memuat Open=Low Lab...</p>
         </div>
       </div>
     )
@@ -300,7 +300,7 @@ export default function ScalperCopasPage() {
           </div>
           <h1 className="text-lg font-black text-foreground">Akses Terbatas (Private Admin Tool)</h1>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Halaman <strong>Scalper Lab Copas Analyzer</strong> saat ini masih dalam fase pengujian privat dan hanya dapat diakses oleh akun master administrator.
+            Halaman <strong>Open=Low Lab Analyzer</strong> saat ini masih dalam fase pengujian privat dan hanya dapat diakses oleh akun master administrator.
           </p>
           <Link
             href="/"
@@ -327,7 +327,7 @@ export default function ScalperCopasPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-black text-foreground">Fast Scalper: Quick-Paste Qualifier</h1>
+                <h1 className="text-lg sm:text-xl font-black text-foreground">Open=Low Lab: Quick-Paste Qualifier</h1>
                 <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
                   👑 Private Admin
                 </span>

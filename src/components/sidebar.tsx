@@ -6,11 +6,13 @@ import {
   LayoutDashboard, Search, Globe, Crown, Activity,
   PieChart, LineChart, Shield, Calculator, Bell,
   Menu, ChevronLeft, Zap, Eye, BarChart2, Brain,
-  TrendingUp, Star, X, LogOut, User,
+  TrendingUp, Star, X, LogOut, User, Lock, Sparkles,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/auth-context'
 import BrandLogo, { BrandLogoIcon } from '@/components/brand-logo'
+
+const ADMIN_EMAILS = ['mulyanto.my88@gmail.com']
 
 const navGroups = [
   {
@@ -58,6 +60,13 @@ const navGroups = [
       { href: '/watchlist',        label: 'Watchlist & Alerts',  icon: Bell,       badge: null },
       { href: '/right-issue-calc', label: 'Right Issue Calc',    icon: TrendingUp, badge: null },
     ]
+  },
+  {
+    title: 'AI & Labs',
+    items: [
+      { href: '/scalper-copas', label: 'Open=Low Lab',       icon: Zap,      badge: 'NEW', adminOnly: true },
+      { href: '#ai-copilot',    label: 'AI Intelligence',    icon: Sparkles, badge: 'VIP', adminOnly: true },
+    ]
   }
 ]
 
@@ -74,6 +83,7 @@ const BADGE_STYLES: Record<string, string> = {
   HOT:  'bg-red-500/15 text-red-400 border-red-500/30',
   NEW:  'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
   BETA: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+  VIP:  'bg-amber-500/15 text-amber-400 border-amber-500/30',
 }
 
 const COLLAPSE_KEY = 'bdmflow-sidebar-collapsed'
@@ -84,6 +94,8 @@ export default function Sidebar() {
   const [mounted, setMounted] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { user, isPro, signOut } = useAuth()
+
+  const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()))
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
@@ -180,6 +192,41 @@ export default function Sidebar() {
                 {group.items.map((item) => {
                   const active = isActive(item.href)
                   const Icon = item.icon
+                  const locked = !!(item as any).adminOnly && !isAdmin
+
+                  // Locked "Coming Soon" state for adminOnly items when user is not admin
+                  if (locked) {
+                    return (
+                      <div
+                        key={item.href}
+                        title={collapsed ? `${item.label} — Coming Soon` : undefined}
+                        className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-not-allowed opacity-60 group ${collapsed ? 'justify-center' : ''}`}
+                      >
+                        <span className="shrink-0 text-foreground/40">
+                          <Icon size={15} />
+                        </span>
+
+                        {!collapsed && (
+                          <>
+                            <span className="text-[12px] font-semibold leading-none flex-1 min-w-0 truncate text-foreground/50">
+                              {item.label}
+                            </span>
+                            <span className="flex items-center gap-0.5 text-[8px] font-black uppercase tracking-[0.08em] px-1.5 py-0.5 rounded border shrink-0 bg-indigo-500/10 text-indigo-400 border-indigo-500/25">
+                              <Lock size={7} />
+                              Soon
+                            </span>
+                          </>
+                        )}
+
+                        {collapsed && (
+                          <span
+                            className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-indigo-400/60"
+                          />
+                        )}
+                      </div>
+                    )
+                  }
+
                   return (
                     <Link
                       key={item.href}
@@ -223,7 +270,7 @@ export default function Sidebar() {
                         <span
                           className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
                           style={{
-                            background: item.badge === 'HOT' ? '#ef4444' : item.badge === 'NEW' ? '#22c55e' : '#a855f7'
+                            background: item.badge === 'HOT' ? '#ef4444' : item.badge === 'NEW' ? '#22c55e' : item.badge === 'VIP' ? '#f59e0b' : '#a855f7'
                           }}
                         />
                       )}
@@ -354,6 +401,24 @@ export default function Sidebar() {
                     {group.items.map((item) => {
                       const active = isActive(item.href)
                       const Icon = item.icon
+                      const locked = !!(item as any).adminOnly && !isAdmin
+
+                      if (locked) {
+                        return (
+                          <div
+                            key={item.href}
+                            className="flex items-center gap-2 px-3 py-3 rounded-xl border border-line-3 bg-surface-2/50 opacity-50 cursor-not-allowed"
+                          >
+                            <Icon size={16} className="text-muted-foreground/40 shrink-0" />
+                            <span className="text-[11.5px] font-semibold leading-tight min-w-0 truncate text-muted-foreground/50">{item.label}</span>
+                            <span className="ml-auto flex items-center gap-0.5 text-[7px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-indigo-500/10 text-indigo-400 border-indigo-500/25">
+                              <Lock size={6} />
+                              Soon
+                            </span>
+                          </div>
+                        )
+                      }
+
                       return (
                         <Link
                           key={item.href}
